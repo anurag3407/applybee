@@ -1,0 +1,31 @@
+import os
+import math
+
+# Concept A: Hexagon Bee / Vanguard
+# Mathematical hexagonal grid with upward thrust
+# Center 128, 128. 
+# We'll construct clean SVG paths using explicit coordinates and clean symmetry.
+
+concept_a_svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-a">
+  <title id="title-a">ReachBee — The Hex Vanguard</title>
+  <!-- Head & Antennae -->
+  <path fill="#18231e" d="M128 32 L146 58 L110 58 Z"/>
+  <circle cx="128" cy="24" r="5" fill="#18231e"/>
+  <!-- Left Wing -->
+  <path fill="#18231e" d="M106 72 L36 102 C30 105 28 113 32 119 L52 148 C56 153 63 155 69 152 L106 134 Z"/>
+  <!-- Right Wing -->
+  <path fill="#18231e" d="M150 72 L220 102 C226 105 228 113 224 119 L204 148 C200 153 193 155 187 152 L150 134 Z"/>
+  <!-- Thorax (Upper Body) -->
+  <path fill="#18231e" d="M114 70 L142 70 C149 70 154 76 153 83 L147 118 L109 118 L103 83 C102 76 107 70 114 70 Z"/>
+  <!-- Abdomen Band 1 (Mid) -->
+  <path fill="#18231e" d="M110 128 L146 128 L142 154 L114 154 Z"/>
+  <!-- Abdomen Band 2 (Lower) -->
+  <path fill="#18231e" d="M115 164 L141 164 L138 188 L118 188 Z"/>
+  <!-- Stinger -->
+  <path fill="#18231e" d="M120 198 L136 198 L128 222 Z"/>
+</svg>'''
+
+with open("docs/brand/concept_a_test.svg", "w") as f:
+    f.write(concept_a_svg)
+
+print("Generated concept_a_test.svg")

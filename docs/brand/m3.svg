@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="m3-title">
+  <title id="m3-title">The Monogram B</title>
+  <!-- Vertical Spine / Bee Body on Left with stripes -->
+  <!-- Capsule body -->
+  <path fill="#18231e" fill-rule="evenodd" d="
+    M72 44
+    C84 44 94 54 94 66
+    L94 190
+    C94 202 84 212 72 212
+    C60 212 50 202 50 190
+    L50 66
+    C50 54 60 44 72 44 Z
+    M50 102 L94 102 L94 114 L50 114 Z
+    M50 134 L94 134 L94 146 L50 146 Z
+    M50 166 L94 166 L94 178 L50 178 Z
+  "/>
+  <!-- Upper Wing (top loop of B) -->
+  <path fill="#18231e" d="M106 60 H154 C178 60 196 76 196 98 C196 120 178 126 154 126 H106 V60 Z M124 78 V108 H152 C164 108 174 102 174 93 C174 84 164 78 152 78 H124 Z"/>
+  <!-- Lower Wing (bottom loop of B) -->
+  <path fill="#18231e" d="M106 130 H160 C186 130 206 148 206 172 C206 196 186 206 160 206 H106 V130 Z M124 148 V188 H158 C172 188 184 180 184 168 C184 156 172 148 158 148 H124 Z"/>
+  <!-- Subtle Antenna at top -->
+  <path d="M72 44 C72 30 84 22 96 24" fill="none" stroke="#18231e" stroke-width="7" stroke-linecap="round"/>
+</svg>

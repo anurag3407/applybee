@@ -1,0 +1,59 @@
+{
+  "name": "apply-bee",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Apply Bee — career outreach workspace. Find relevant contacts, write truthful introductions, review before anything leaves your hands.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:seed:test": "tsx scripts/db-seed.ts",
+    "worker:once": "tsx scripts/worker-once.ts",
+    "worker:dev": "tsx scripts/worker-dev.ts"
+  },
+  "dependencies": {
+    "@gsap/react": "2.1.2",
+    "animejs": "4.2.2",
+    "clsx": "2.1.1",
+    "date-fns": "4.1.0",
+    "dotenv": "17.2.3",
+    "drizzle-orm": "0.44.7",
+    "gsap": "3.13.0",
+    "lenis": "1.3.11",
+    "lucide-react": "0.549.0",
+    "next": "16.0.0",
+    "pg": "8.16.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "server-only": "0.0.1",
+    "tailwind-merge": "3.3.1",
+    "zod": "4.1.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.16",
+    "@testing-library/react": "16.3.0",
+    "@types/node": "24.10.1",
+    "@types/pg": "8.15.6",
+    "@types/react": "19.2.5",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.1",
+    "drizzle-kit": "0.31.7",
+    "jsdom": "27.1.0",
+    "postcss": "8.5.6",
+    "tailwindcss": "4.1.16",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vitest": "4.0.6"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

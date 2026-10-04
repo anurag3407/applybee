@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-c">
+  <title id="title-c">ReachBee — The Sovereign Scout</title>
+  <!-- Left Wing (Sleek aerodynamic upward sweep) -->
+  <path fill="#18231e" d="
+    M112 88
+    C84 58 52 44 34 48
+    C22 51 16 64 22 76
+    C34 100 68 130 112 136
+    Z
+  "/>
+
+  <!-- Right Wing (Symmetrical sweep) -->
+  <path fill="#18231e" d="
+    M144 88
+    C172 58 204 44 222 48
+    C234 51 240 64 234 76
+    C222 100 188 130 144 136
+    Z
+  "/>
+
+  <!-- Antennae: Minimalist arcs with pips -->
+  <path d="M122 44 C116 30 106 22 94 24" fill="none" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="92" cy="24" r="4.5" fill="#18231e"/>
+  <path d="M134 44 C140 30 150 22 162 24" fill="none" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="164" cy="24" r="4.5" fill="#18231e"/>
+
+  <!-- Head & Thorax (Solid upper body keystone) -->
+  <path fill="#18231e" d="
+    M128 38
+    C140 38 148 48 148 62
+    L148 110
+    C148 116 142 122 134 122
+    H122
+    C114 122 108 116 108 110
+    L108 62
+    C108 48 116 38 128 38
+    Z
+  "/>
+
+  <!-- Abdomen Plate 1 (Curved Shield Segment) -->
+  <path fill="#18231e" d="
+    M110 130
+    H146
+    C149 130 151 133 150 136
+    L146 156
+    C145 159 142 161 139 161
+    H117
+    C114 161 111 159 110 156
+    L106 136
+    C105 133 107 130 110 130
+    Z
+  "/>
+
+  <!-- Abdomen Plate 2 (Mid Shield Segment) -->
+  <path fill="#18231e" d="
+    M114 169
+    H142
+    C145 169 147 172 146 175
+    L142 191
+    C141 193 139 195 136 195
+    H120
+    C117 195 115 193 114 191
+    L110 175
+    C109 172 111 169 114 169
+    Z
+  "/>
+
+  <!-- Abdomen Plate 3 & Stinger (Terminal Apex) -->
+  <path fill="#18231e" d="
+    M118 203
+    H138
+    C141 203 143 206 141 209
+    L128 232
+    L115 209
+    C113 206 115 203 118 203
+    Z
+  "/>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="c2-title">
+  <title id="c2-title">ReachBee — The Flight Draft</title>
+  <!-- Angled forward flight (Center 128, 128) -->
+  <g transform="rotate(-45 128 128)">
+    <!-- Apex Head / Forward Needle -->
+    <polygon points="128,26 140,58 116,58" fill="#18231e"/>
+    
+    <!-- Thorax & Swept Wings (Folded Delta Wing) -->
+    <path fill="#18231e" d="
+      M128 66
+      L148 66
+      L224 104
+      C234 109 232 124 220 126
+      L148 134
+      L148 114
+      L108 114
+      L108 134
+      L36 126
+      C24 124 22 109 32 104
+      L108 66
+      Z
+    "/>
+
+    <!-- Abdomen Stripe 1 -->
+    <path fill="#18231e" d="
+      M110 144
+      H146
+      L144 168
+      H112
+      Z
+    "/>
+
+    <!-- Abdomen Stripe 2 -->
+    <path fill="#18231e" d="
+      M114 178
+      H142
+      L138 200
+      H118
+      Z
+    "/>
+
+    <!-- Stinger / Tail Rudder -->
+    <polygon points="128,230 135,210 121,210" fill="#18231e"/>
+  </g>
+</svg>

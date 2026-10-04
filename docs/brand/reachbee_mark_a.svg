@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="a-title">
+  <title id="a-title">ReachBee — The Hex Radar</title>
+  <!-- Antennae: 30° clean isometric angle -->
+  <circle cx="106" cy="22" r="5" fill="#18231e"/>
+  <circle cx="150" cy="22" r="5" fill="#18231e"/>
+  <line x1="118" y1="36" x2="108" y2="24" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="138" y1="36" x2="148" y2="24" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- Band 1: Head, Thorax & Wing Apex (Top Chevron) -->
+  <path fill="#18231e" d="
+    M128 34
+    L214 84
+    C220 88 220 96 214 100
+    L202 107
+    L128 66
+    L54 107
+    L42 100
+    C36 96 36 88 42 84
+    Z
+  "/>
+
+  <!-- Band 2: Upper Abdomen / Thorax Chevron -->
+  <path fill="#18231e" d="
+    M128 84
+    L190 120
+    C195 123 195 129 190 132
+    L178 139
+    L128 112
+    L78 139
+    L66 132
+    C61 129 61 123 66 120
+    Z
+  "/>
+
+  <!-- Band 3: Mid Abdomen Chevron -->
+  <path fill="#18231e" d="
+    M128 130
+    L168 154
+    C172 156 172 161 168 164
+    L158 170
+    L128 154
+    L98 170
+    L88 164
+    C84 161 84 156 88 154
+    Z
+  "/>
+
+  <!-- Band 4: Lower Abdomen Chevron -->
+  <path fill="#18231e" d="
+    M128 172
+    L148 184
+    C151 186 151 190 148 192
+    L140 197
+    L128 190
+    L116 197
+    L108 192
+    C105 190 105 186 108 184
+    Z
+  "/>
+
+  <!-- Stinger: Apex terminal point -->
+  <polygon points="128,232 136,206 120,206" fill="#18231e"/>
+</svg>

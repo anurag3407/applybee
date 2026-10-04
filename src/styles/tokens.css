@@ -1,0 +1,67 @@
+/*
+ * Apply Bee design tokens — raw values (plan §8.2).
+ * Components consume semantic tokens mapped in globals.css, never literal colors.
+ */
+:root {
+  color-scheme: light;
+  --ab-canvas: #f7f4ec;
+  --ab-surface: #fffdf7;
+  --ab-surface-subtle: #eeeade;
+  --ab-surface-raised: #ffffff;
+  --ab-ink: #18231e;
+  --ab-ink-soft: #2c3a33;
+  --ab-text-secondary: #586257;
+  --ab-text-disabled: #71796f;
+  --ab-honey: #e8b544;
+  --ab-honey-deep: #c8932a;
+  --ab-honey-wash: #faedc9;
+  --ab-border-decorative: #dcdace;
+  --ab-border-control: #7b8478;
+  --ab-focus: #245ead;
+  --ab-focus-on-dark: #faedc9;
+  --ab-success: #245a3b;
+  --ab-success-wash: #e5f0e7;
+  --ab-warning: #704a08;
+  --ab-warning-wash: #fff0cf;
+  --ab-danger: #a52d2d;
+  --ab-danger-wash: #fce8e5;
+  --ab-info: #245ead;
+  --ab-info-wash: #e7eef9;
+
+  --ab-space-1: 0.25rem;
+  --ab-space-2: 0.5rem;
+  --ab-space-3: 0.75rem;
+  --ab-space-4: 1rem;
+  --ab-space-5: 1.5rem;
+  --ab-space-6: 2rem;
+  --ab-space-7: 3rem;
+  --ab-space-8: 4rem;
+  --ab-space-9: 6rem;
+  --ab-space-10: 8rem;
+
+  --ab-radius-xs: 0.375rem;
+  --ab-radius-control: 0.625rem;
+  --ab-radius-card: 1rem;
+  --ab-radius-scene: 1.5rem;
+  --ab-radius-pill: 999px;
+
+  --ab-shadow-card: 0 2px 10px rgb(24 35 30 / 0.04);
+  --ab-shadow-float: 0 16px 48px rgb(24 35 30 / 0.1);
+  --ab-shadow-dialog: 0 24px 80px rgb(24 35 30 / 0.18);
+
+  --ab-duration-fast: 140ms;
+  --ab-duration-normal: 220ms;
+  --ab-duration-reveal: 500ms;
+  --ab-ease-ui: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --ab-container-marketing: 77.5rem;
+  --ab-container-app: 90rem;
+  --ab-sidebar-width: 15rem;
+  --ab-header-height: 4rem;
+  --ab-control-height: 2.75rem;
+  --ab-z-sticky: 20;
+  --ab-z-dropdown: 40;
+  --ab-z-overlay: 60;
+  --ab-z-dialog: 70;
+  --ab-z-toast: 90;
+}

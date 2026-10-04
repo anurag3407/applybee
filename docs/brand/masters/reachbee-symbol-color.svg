@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="rb-symbol-color-title">
+  <title id="rb-symbol-color-title">ReachBee Symbol (Brand Color)</title>
+  <!-- Antennae: Honey Accent -->
+  <circle cx="106" cy="22" r="5" fill="#e8b544"/>
+  <circle cx="150" cy="22" r="5" fill="#e8b544"/>
+  <polygon points="116,38 119.5,36 108.5,23 105,25" fill="#e8b544"/>
+  <polygon points="140,38 136.5,36 147.5,23 151,25" fill="#e8b544"/>
+
+  <!-- Band 1: Deep Ink -->
+  <path fill="#18231e" d="
+    M128 36
+    L212 84.5
+    C218 88 217 96 211 100
+    L200 109.57
+    L128 68
+    L56 109.57
+    L45 100
+    C39 96 38 88 44 84.5
+    Z
+  "/>
+
+  <!-- Band 2: Warm Honey Accent -->
+  <path fill="#e8b544" d="
+    M128 86
+    L188 120.64
+    C193 123.5 193 129.5 188 132.5
+    L176 141.71
+    L128 114
+    L80 141.71
+    L68 132.5
+    C63 129.5 63 123.5 68 120.64
+    Z
+  "/>
+
+  <!-- Band 3: Deep Ink -->
+  <path fill="#18231e" d="
+    M128 132
+    L168 155.09
+    C172 157.4 172 162.6 168 165
+    L156 170.17
+    L128 154
+    L100 170.17
+    L88 165
+    C84 162.6 84 157.4 88 155.09
+    Z
+  "/>
+
+  <!-- Band 4: Warm Honey Accent -->
+  <path fill="#e8b544" d="
+    M128 172
+    L148 183.55
+    C151 185.3 151 189 148 190.8
+    L138 193.77
+    L128 188
+    L118 193.77
+    L108 190.8
+    C105 189 105 185.3 108 183.55
+    Z
+  "/>
+
+  <!-- Stinger: Deep Ink -->
+  <polygon points="128,232 135.5,204 120.5,204" fill="#18231e"/>
+</svg>

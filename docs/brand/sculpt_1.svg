@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t1-title">
+  <title id="t1-title">ReachBee — The Sovereign Bee</title>
+  
+  <!-- Left Wing (Sleek aerodynamic upward sweep) -->
+  <path fill="#18231e" d="
+    M112 86
+    C80 62 48 50 34 54
+    C24 57 20 68 26 77
+    C38 95 68 122 110 134
+    C112 118 112 102 112 86
+    Z
+  "/>
+
+  <!-- Right Wing (Symmetrical) -->
+  <path fill="#18231e" d="
+    M144 86
+    C176 62 208 50 222 54
+    C232 57 236 68 230 77
+    C218 95 188 122 146 134
+    C144 118 144 102 144 86
+    Z
+  "/>
+
+  <!-- Antennae (Architectural minimalist arcs with pips) -->
+  <path d="M122 46 C116 32 106 24 96 24" fill="none" stroke="#18231e" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="94" cy="24" r="5" fill="#18231e"/>
+  <path d="M134 46 C140 32 150 24 160 24" fill="none" stroke="#18231e" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="162" cy="24" r="5" fill="#18231e"/>
+
+  <!-- Central Body: Head, Thorax, Segmented Abdomen & Stinger -->
+  <!-- We construct with fill-rule="evenodd" so stripes are genuine cutouts -->
+  <path fill="#18231e" fill-rule="evenodd" d="
+    M128 42
+    C142 42 150 54 150 70
+    L150 114
+    C150 148 138 188 128 224
+    C118 188 106 148 106 114
+    L106 70
+    C106 54 114 42 128 42
+    Z
+
+    M104 126
+    H152
+    V138
+    H104
+    Z
+
+    M108 152
+    H148
+    V164
+    H108
+    Z
+
+    M114 178
+    H142
+    V190
+    H114
+    Z
+  "/>
+</svg>

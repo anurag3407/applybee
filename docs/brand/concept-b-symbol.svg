@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="b-title">
+  <title id="b-title">ReachBee — The Velocity Scout</title>
+  <g transform="translate(132, 124) rotate(-45) translate(-128, -128)">
+    <!-- Forewing -->
+    <path fill="#18231e" d="
+      M142 84
+      C176 52 208 46 220 54
+      C230 62 226 92 196 128
+      C176 152 152 142 142 120
+      Z
+    "/>
+
+    <!-- Hindwing -->
+    <path fill="#18231e" d="
+      M114 84
+      C80 52 48 46 36 54
+      C26 62 30 92 60 128
+      C80 152 104 142 114 120
+      Z
+    "/>
+
+    <!-- Antennae: Filled paths -->
+    <circle cx="91" cy="26" r="4.5" fill="#18231e"/>
+    <circle cx="165" cy="26" r="4.5" fill="#18231e"/>
+    <polygon points="119,43 122,46 95,29 93,25" fill="#18231e"/>
+    <polygon points="137,43 134,46 161,29 163,25" fill="#18231e"/>
+
+    <!-- Central Body with negative space stripes -->
+    <path fill="#18231e" fill-rule="evenodd" d="
+      M128 38
+      C142 38 150 50 150 68
+      L150 118
+      C150 152 138 190 128 226
+      C118 190 106 152 106 118
+      L106 68
+      C106 50 114 38 128 38
+      Z
+
+      M109 126 C115 125 141 125 147 126 L145 138 C139 137 117 137 111 138 Z
+      M112 152 C118 151 138 151 144 152 L141 164 C135 163 121 163 115 164 Z
+      M116 178 C120 177 136 177 140 178 L136 190 C132 189 124 189 120 190 Z
+    "/>
+  </g>
+</svg>

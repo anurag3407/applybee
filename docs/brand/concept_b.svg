@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-b">
+  <title id="title-b">ReachBee — The Flight Draft</title>
+  <!-- Angled forward-right (momentum vector) -->
+  <g transform="translate(10, 6)">
+    <!-- Main Center Fuselage / Nose Dart -->
+    <path fill="#18231e" d="
+      M210 46
+      L146 110
+      L130 114
+      L114 98
+      L118 82
+      Z
+    "/>
+    
+    <!-- Left Wing (Top in 45-deg view) with Bee Stripe Band -->
+    <path fill="#18231e" d="
+      M200 56
+      L84 56
+      C74 56 68 66 74 74
+      L114 114
+      L138 114
+      Z
+    "/>
+    
+    <!-- Right Wing (Bottom in 45-deg view) with Bee Stripe Band -->
+    <path fill="#18231e" d="
+      M184 72
+      L114 142
+      L114 166
+      C114 176 124 182 132 176
+      L172 136
+      Z
+    "/>
+
+    <!-- Negative space stripes carved cleanly through the origami wing -->
+    <!-- Wing Facet 2 (The Mid Honeycomb Band) -->
+    <path fill="#18231e" d="
+      M58 88
+      C52 94 54 104 62 108
+      L96 124
+      L82 92
+      Z
+    "/>
+    <path fill="#18231e" d="
+      M102 182
+      C106 190 116 192 122 186
+      L138 152
+      L106 138
+      Z
+    "/>
+    
+    <!-- Tail Rudder / Stinger -->
+    <polygon points="62,154 44,172 74,166" fill="#18231e"/>
+    
+    <!-- Forward Antenna Beam -->
+    <line x1="214" y1="42" x2="228" y2="28" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="230" cy="26" r="4.5" fill="#18231e"/>
+  </g>
+</svg>

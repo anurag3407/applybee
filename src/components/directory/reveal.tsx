@@ -1,0 +1,234 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { Lock, Mail, Copy, PenLine, Bookmark, BookmarkCheck, Flag } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
+import { Button, Badge, InlineError } from "@/components/ui/primitives";
+
+/**
+ * RevealAction (§12.3): shows "Reveal email · 1 contact credit", performs an
+ * idempotent atomic reveal, and displays the authoritative server balance —
+ * never a locally computed one.
+ */
+export function RevealAction({
+  contactId,
+  unlocked,
+  initialEmail,
+  initialBalance,
+  companyName,
+  contactName,
+}: {
+  contactId: string;
+  unlocked: boolean;
+  initialEmail: string | null;
+  initialBalance: { available: number; reserved: number } | null;
+  companyName: string;
+  contactName: string;
+}) {
+  const router = useRouter();
+  const [email, setEmail] = useState<string | null>(initialEmail);
+  const [balance, setBalance] = useState(initialBalance);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function reveal() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/v1/contacts/${contactId}/reveal`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
+        },
+        body: JSON.stringify({ contactId }),
+      });
+      const body = (await res.json()) as {
+        data?: { email: string; alreadyUnlocked: boolean; charged: boolean; balances: { contact: { available: number; reserved: number } } };
+        error?: { code?: string; message?: string };
+      };
+      if (!res.ok || !body.data) {
+        throw new Error(body.error?.message ?? "Reveal failed.");
+      }
+      setEmail(body.data.email);
+      setBalance(body.data.balances.contact);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Reveal failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copy() {
+    if (!email) return;
+    await navigator.clipboard.writeText(email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  if (email) {
+    return (
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <code className="rounded-control border border-border-decorative bg-canvas px-3 py-1.5 text-sm font-semibold text-ink">
+            {email}
+          </code>
+          <Button size="sm" variant="secondary" onClick={copy} aria-label="Copy email address">
+            <Copy size={14} aria-hidden /> {copied ? "Copied" : "Copy"}
+          </Button>
+        </div>
+        {balance ? (
+          <p className="text-xs text-text-disabled">
+            {balance.available} contact {balance.available === 1 ? "reveal" : "reveals"} left
+          </p>
+        ) : null}
+        {error ? <InlineError>{error}</InlineError> : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <Badge tone="honey">
+        <Lock size={12} aria-hidden /> •••@{companyName.toLowerCase().replace(/[^a-z]+/g, "-")}.example
+      </Badge>
+      <div>
+        <Button size="sm" variant="accent" onClick={reveal} disabled={busy}>
+          <Mail size={14} aria-hidden />
+          {busy ? "Revealing…" : "Reveal email · 1 contact credit"}
+        </Button>
+      </div>
+      {balance && balance.available < 1 ? (
+        <p className="text-xs text-warning">
+          No contact reveals left. <a href="/app/billing/plans" className="underline">Add credits</a>.
+        </p>
+      ) : null}
+      {error ? <InlineError>{error}</InlineError> : null}
+      <p className="text-xs text-text-disabled">
+        Revealing {contactName.split(" ")[0]}'s address costs one credit, once. Reopening it later is always free.
+      </p>
+    </div>
+  );
+}
+
+export function SaveContactButton({ contactId, saved }: { contactId: string; saved: boolean }) {
+  const router = useRouter();
+  const [isSaved, setIsSaved] = useState(saved);
+  const [busy, setBusy] = useState(false);
+
+  async function toggle() {
+    setBusy(true);
+    try {
+      if (isSaved) {
+        await fetch(`/api/v1/saved-contacts/${contactId}`, { method: "DELETE" });
+      } else {
+        await fetch(`/api/v1/saved-contacts/${contactId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: "{}" });
+      }
+      setIsSaved(!isSaved);
+      router.refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Button size="sm" variant="secondary" onClick={toggle} disabled={busy}>
+      {isSaved ? <BookmarkCheck size={14} aria-hidden /> : <Bookmark size={14} aria-hidden />}
+      {isSaved ? "Saved" : "Save"}
+    </Button>
+  );
+}
+
+export function WriteToContactButton({ contactId }: { contactId: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function start() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "manual", intent: "intro", recipient: { kind: "directory", contactId } }),
+      });
+      const body = (await res.json()) as { data?: { draftId: string }; error?: { message?: string } };
+      if (!res.ok || !body.data) throw new Error(body.error?.message ?? "Could not create a draft.");
+      window.location.href = `/app/drafts/${body.data.draftId}`;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create a draft.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <Button size="sm" variant="primary" onClick={start} disabled={busy}>
+        <PenLine size={14} aria-hidden /> {busy ? "Opening…" : "Write introduction"}
+      </Button>
+      {error ? <InlineError>{error}</InlineError> : null}
+    </div>
+  );
+}
+
+export function ReportContactDialog({ contactId }: { contactId: string }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [type, setType] = useState("stale");
+  const [details, setDetails] = useState("");
+
+  async function submit() {
+    setBusy(true);
+    await fetch(`/api/v1/contacts/${contactId}/reports`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportType: type, details }),
+    });
+    setBusy(false);
+    setDone(true);
+    setTimeout(() => setOpen(false), 1200);
+  }
+
+  return (
+    <>
+      <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
+        <Flag size={14} aria-hidden /> Report
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)} title="Report this contact">
+        {done ? (
+          <p role="status" className="text-sm text-success">Thanks — our team will review this report.</p>
+        ) : (
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-ink" htmlFor="report-type">What’s wrong?</label>
+            <select id="report-type" value={type} onChange={(e) => setType(e.target.value)} className="h-11 w-full rounded-control border border-border-control bg-surface px-3 text-ink">
+              <option value="stale">Left the company / role changed</option>
+              <option value="incorrect">Details are incorrect</option>
+              <option value="removal">I am this person — remove me</option>
+              <option value="abuse">Something else</option>
+            </select>
+            <label className="block text-sm font-semibold text-ink" htmlFor="report-details">Details</label>
+            <textarea
+              id="report-details"
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              rows={4}
+              maxLength={2000}
+              className="w-full rounded-control border border-border-control bg-surface px-3 py-2 text-ink"
+              placeholder="Tell us what you noticed."
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button size="sm" onClick={submit} disabled={busy || details.length < 10}>
+                {busy ? "Sending…" : "Send report"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+    </>
+  );
+}

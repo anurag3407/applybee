@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="a-title">
+  <title id="a-title">ReachBee — The Hex Signal</title>
+  <!-- Antennae: 30-degree precision offsets -->
+  <circle cx="106" cy="24" r="5.5" fill="#18231e"/>
+  <circle cx="150" cy="24" r="5.5" fill="#18231e"/>
+  <line x1="118" y1="40" x2="108" y2="26" stroke="#18231e" stroke-width="5" stroke-linecap="round"/>
+  <line x1="138" y1="40" x2="148" y2="26" stroke="#18231e" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Wing & Head Chevron (Band 1: Top Apex) -->
+  <path fill="#18231e" d="
+    M128 36
+    L216 86
+    C222 90 220 98 214 102
+    L200 110
+    L128 68
+    L56 110
+    L42 102
+    C36 98 34 90 40 86
+    Z
+  "/>
+
+  <!-- Thorax / Abdomen Band 2 -->
+  <path fill="#18231e" d="
+    M128 86
+    L190 122
+    C195 125 194 131 188 134
+    L176 142
+    L128 114
+    L80 142
+    L68 134
+    C62 131 61 125 66 122
+    Z
+  "/>
+
+  <!-- Abdomen Band 3 -->
+  <path fill="#18231e" d="
+    M128 132
+    L168 156
+    C172 158 172 164 167 167
+    L156 174
+    L128 158
+    L100 174
+    L89 167
+    C84 164 84 158 88 156
+    Z
+  "/>
+
+  <!-- Abdomen Band 4 -->
+  <path fill="#18231e" d="
+    M128 174
+    L148 186
+    L140 196
+    L128 190
+    L116 196
+    L108 186
+    Z
+  "/>
+
+  <!-- Stinger -->
+  <polygon points="128,232 138,206 118,206" fill="#18231e"/>
+</svg>

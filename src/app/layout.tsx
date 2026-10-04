@@ -1,0 +1,52 @@
+import type { Metadata } from "next";
+import { Manrope, Fraunces } from "next/font/google";
+import "@/styles/globals.css";
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  title: {
+    default: "Apply Bee — Get your work in front of the right people",
+    template: "%s · Apply Bee",
+  },
+  description:
+    "Find relevant hiring contacts, write a truthful, well-grounded introduction, and prepare a Gmail draft you review before anything happens. You send it yourself.",
+  openGraph: {
+    title: "Apply Bee",
+    description: "Relevant contacts. Resume-grounded introductions. You review before sending.",
+    type: "website",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${manrope.variable} ${fraunces.variable}`}>
+      <body>
+        <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:bg-surface focus:px-4 focus:py-2 focus:text-ink focus:shadow-card">
+          Skip to main content
+        </a>
+        {children}
+      </body>
+    </html>
+  );
+}

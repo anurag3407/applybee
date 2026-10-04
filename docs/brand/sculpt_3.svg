@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t3-title">
+  <title id="t3-title">ReachBee — The Monogram B</title>
+  <!-- Architectural B with Integrated Bee Anatomy -->
+  <!-- Left Spine -->
+  <rect x="50" y="36" width="36" height="184" rx="8" fill="#18231e"/>
+  
+  <!-- Upper Loop / Wing: Clean geometric semicircle/rounded wedge -->
+  <path fill="#18231e" d="
+    M96 46
+    H150
+    C178 46 198 64 198 88
+    C198 112 178 126 150 126
+    H96
+    Z
+    M124 72
+    V100
+    H146
+    C158 100 166 94 166 86
+    C166 78 158 72 146 72
+    Z
+  "/>
+
+  <!-- Lower Loop / Abdomen: Hexagonal honeycomb cell with stripes -->
+  <path fill="#18231e" fill-rule="evenodd" d="
+    M96 130
+    H156
+    C186 130 208 148 208 174
+    C208 200 186 218 156 218
+    H96
+    Z
+
+    M124 154
+    V194
+    H152
+    C168 194 178 186 178 174
+    C178 162 168 154 152 154
+    Z
+
+    M96 166 H124 V174 H96 Z
+  "/>
+
+  <!-- Antenna / Stinger Accents -->
+  <circle cx="68" cy="22" r="5" fill="#18231e"/>
+</svg>

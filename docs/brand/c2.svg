@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="c2-title">
+  <title id="c2-title">ReachBee — The Hex-Wing b</title>
+  <!-- Lowercase 'b' with Hexagonal Bowl -->
+  <!-- Stem -->
+  <path fill="#18231e" d="
+    M56 46
+    C56 38 64 32 72 32
+    C80 32 88 38 88 46
+    L88 206
+    C88 214 80 220 72 220
+    C64 220 56 214 56 206
+    Z
+  "/>
+  <!-- Hexagonal Honeycomb Bowl -->
+  <path fill="#18231e" fill-rule="evenodd" d="
+    M88 106
+    L144 74
+    L200 106
+    L200 170
+    L144 202
+    L88 170
+    Z
+    
+    M108 120
+    L108 156
+    L144 177
+    L180 156
+    L180 120
+    L144 99
+    Z
+  "/>
+  <!-- Ascending Wing (Emerging from shoulder up-right at 30 deg) -->
+  <path fill="#18231e" d="
+    M114 74
+    L196 36
+    C206 32 216 38 218 48
+    C220 58 212 66 202 70
+    L152 86
+    Z
+  "/>
+</svg>

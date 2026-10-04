@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="cand-b-title">
+  <title id="cand-b-title">ReachBee — Honeycomb Monogram B</title>
+  <!-- Architectural B with Hexagonal / Wing Curvature -->
+  <path fill="#18231e" fill-rule="evenodd" d="
+    M52 40
+    H146
+    C176 40 198 58 198 86
+    C198 106 186 120 168 126
+    C192 132 206 150 206 172
+    C206 200 180 216 148 216
+    H52
+    Z
+    
+    M88 72
+    V112
+    H140
+    C156 112 166 102 166 92
+    C166 82 156 72 140 72
+    H88
+    Z
+    
+    M88 142
+    V184
+    H144
+    C162 184 174 174 174 163
+    C174 152 162 142 144 142
+    H88
+    Z
+  "/>
+  <!-- Wing / Flight cut in the B: diagonal feather cuts on the spine that turn it into bee stripes -->
+  <polygon points="46,104 58,104 58,124 46,124" fill="#ffffff"/>
+  <polygon points="46,134 58,134 58,154 46,154" fill="#ffffff"/>
+</svg>

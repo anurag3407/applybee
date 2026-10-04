@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="t2-title">
+  <title id="t2-title">ReachBee — The Hex Chevron</title>
+  <!-- Antenna Pips -->
+  <circle cx="106" cy="22" r="5" fill="#18231e"/>
+  <circle cx="150" cy="22" r="5" fill="#18231e"/>
+  <line x1="118" y1="38" x2="108" y2="24" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+  <line x1="138" y1="38" x2="148" y2="24" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- Top Chevron: Thorax & Outstretched Wings -->
+  <path fill="#18231e" d="
+    M128 34
+    L214 84
+    C220 88 220 96 214 100
+    L200 108
+    L128 66
+    L56 108
+    L42 100
+    C36 96 36 88 42 84
+    Z
+  "/>
+
+  <!-- Mid Chevron: Abdomen Band 1 -->
+  <path fill="#18231e" d="
+    M128 84
+    L190 120
+    L176 130
+    L128 102
+    L80 130
+    L66 120
+    Z
+  "/>
+
+  <!-- Lower Chevron: Abdomen Band 2 -->
+  <path fill="#18231e" d="
+    M128 120
+    L168 144
+    L154 154
+    L128 138
+    L102 154
+    L88 144
+    Z
+  "/>
+
+  <!-- Lower Chevron: Abdomen Band 3 -->
+  <path fill="#18231e" d="
+    M128 156
+    L152 170
+    L140 180
+    L128 172
+    L116 180
+    L104 170
+    Z
+  "/>
+
+  <!-- Stinger -->
+  <polygon points="128,228 138,194 118,194" fill="#18231e"/>
+</svg>

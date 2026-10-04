@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="b-title">
+  <title id="b-title">ReachBee — The Velocity Scout</title>
+  <g transform="translate(12, -8) rotate(-45 128 128)">
+    <!-- Forewing (Right wing when facing up, top wing in flight) -->
+    <path fill="#18231e" d="
+      M144 86
+      C180 54 214 48 224 58
+      C234 68 228 102 198 136
+      L144 116
+      Z
+    "/>
+
+    <!-- Hindwing (Left wing) -->
+    <path fill="#18231e" d="
+      M112 86
+      C76 54 42 48 32 58
+      C22 68 28 102 58 136
+      L112 116
+      Z
+    "/>
+
+    <!-- Antennae -->
+    <path d="M120 46 C112 32 102 26 92 28" fill="none" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="90" cy="28" r="4.5" fill="#18231e"/>
+    <path d="M136 46 C144 32 154 26 164 28" fill="none" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="166" cy="28" r="4.5" fill="#18231e"/>
+
+    <!-- Central Fuselage (Continuous compound path, negative-space stripes strictly inside body) -->
+    <path fill="#18231e" fill-rule="evenodd" d="
+      M128 40
+      C142 40 150 52 150 70
+      L150 120
+      C150 152 138 188 128 224
+      C118 188 106 152 106 120
+      L106 70
+      C106 52 114 40 128 40
+      Z
+
+      M107 126 H149 V138 H107 Z
+      M110 152 H146 V164 H110 Z
+      M115 178 H141 V190 H115 Z
+    "/>
+  </g>
+</svg>

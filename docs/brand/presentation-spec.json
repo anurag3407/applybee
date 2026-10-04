@@ -1,0 +1,39 @@
+{
+  "brand": "ReachBee",
+  "tagline": "Career Outreach & Contact Intelligence",
+  "brief": "An autonomous career outreach workspace connecting tech talent and engineers directly to verified decision-makers via 1-click tailored Gmail drafts.",
+  "adjectives": ["precise", "intelligent", "momentum", "warm", "solid"],
+  "criteria": "Success: unmistakably a bee and a reach signal, works at 16 px, scales across terminal/readme/browser contexts.",
+  "industry": "software",
+  "mockups": ["readme", "terminal", "app-icon", "website", "social", "sticker"],
+  "nav": ["Directory", "Drafts", "Pipeline", "Pricing"],
+  "brand_color": "#e8b544",
+  "tile_color": "#18231e",
+  "greyscale": false,
+  "final": true,
+  "designer": "Senior Identity Designer",
+  "round": 2,
+  "concepts": [
+    {
+      "name": "The Hex Radar",
+      "symbol": "masters/reachbee-symbol.svg",
+      "lockup": "masters/reachbee-lockup.svg",
+      "stacked": "masters/reachbee-stacked.svg",
+      "symbol_on_tile": "masters/reachbee-symbol-color.svg",
+      "symbol_on_dark": "masters/reachbee-symbol-color.svg",
+      "lockup_on_dark": "masters/reachbee-lockup.svg",
+      "idea": "30°/150° isometric honeycomb geometry meets upward outreach signal waves.",
+      "rationale": [
+        "Dual reading: an industrious bee and an upward radar beacon reaching decision-makers",
+        "Mastery at 16 px: survives browser favicon and app icon sizes with zero distortion",
+        "Engineered craft: 100% clean vector paths, exact isometric angles, and native brand tokens"
+      ]
+    }
+  ],
+  "recommendation": "The Hex Radar — selected as the definitive brand identity for ReachBee across product, web, and documentation surfaces.",
+  "next_steps": [
+    "Production lockups and web icon suite deployed to public/ and src/app/",
+    "BrandMark and Wordmark components updated across all app shells and marketing pages",
+    "Brand guidelines and vector master assets documented in docs/brand/"
+  ]
+}

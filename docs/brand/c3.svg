@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="c3-title">
+  <title id="c3-title">ReachBee — The Velocity Vector</title>
+  <g transform="rotate(-45 128 128)">
+    <!-- Central Fuselage (Bullet shape with stinger) -->
+    <path fill="#18231e" d="
+      M128 32
+      C142 32 152 46 152 64
+      L152 160
+      L128 224
+      L104 160
+      L104 64
+      C104 46 114 32 128 32 Z
+    "/>
+    
+    <!-- Left Wing (Aerodynamic swept wing) -->
+    <path fill="#18231e" d="
+      M98 76
+      L36 94
+      C24 98 22 112 32 120
+      L98 148
+      Z
+    "/>
+    
+    <!-- Right Wing -->
+    <path fill="#18231e" d="
+      M158 76
+      L220 94
+      C232 98 234 112 224 120
+      L158 148
+      Z
+    "/>
+
+    <!-- Negative space stripes carved out across the whole body & wings -->
+    <!-- Stripe 1 (White mask or direct compound cutout) -->
+    <polygon points="18,126 238,126 238,140 18,140" fill="#ffffff"/>
+    <polygon points="18,154 238,154 238,168 18,168" fill="#ffffff"/>
+  </g>
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><title>ReachBee</title><rect width="256" height="256" rx="57.6" fill="#18231e"/><g transform="translate(35.2 39.19) scale(0.725)" fill="#e8b544">
+  <title id="rb-symbol-small-title">ReachBee Symbol (Micro Cut)</title>
+  <!-- Antennae: Bolder for 16px readability -->
+  <circle cx="104" cy="20" r="7" fill="#e8b544"/>
+  <circle cx="152" cy="20" r="7" fill="#e8b544"/>
+  <polygon points="116,38 120,36 107,22 103,24" fill="#e8b544"/>
+  <polygon points="140,38 136,36 149,22 153,24" fill="#e8b544"/>
+
+  <!-- Band 1 -->
+  <path fill="#e8b544" d="
+    M128 34
+    L214 84
+    C220 88 220 96 214 100
+    L200 108
+    L128 66
+    L56 108
+    L42 100
+    C36 96 36 88 42 84
+    Z
+  "/>
+
+  <!-- Band 2 -->
+  <path fill="#e8b544" d="
+    M128 86
+    L188 121
+    C193 124 193 130 188 133
+    L176 140
+    L128 112
+    L80 140
+    L68 133
+    C63 130 63 124 68 121
+    Z
+  "/>
+
+  <!-- Band 3 -->
+  <path fill="#e8b544" d="
+    M128 134
+    L168 157
+    C172 159 172 164 168 166
+    L156 172
+    L128 156
+    L100 172
+    L88 166
+    C84 164 84 159 88 157
+    Z
+  "/>
+
+  <!-- Band 4 + Stinger combined for supreme 16px contrast -->
+  <polygon points="128,176 150,189 138,232 118,232 106,189" fill="#e8b544"/>
+</g></svg>

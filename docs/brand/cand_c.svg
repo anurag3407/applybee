@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="cand-c-title">
+  <title id="cand-c-title">ReachBee — Minimalist Apex Bee</title>
+  <!-- Symmetrical Circular Arc Wings -->
+  <!-- Left Wing -->
+  <path fill="#18231e" d="M120 104 C100 64 64 48 44 54 C32 58 28 72 38 82 C56 100 88 124 116 132 Z"/>
+  <!-- Right Wing -->
+  <path fill="#18231e" d="M136 104 C156 64 192 48 212 54 C224 58 228 72 218 82 C200 100 168 124 140 132 Z"/>
+  
+  <!-- Central Body: Unified droplet / capsule with 2 negative cuts -->
+  <!-- Outer Body: (128, 44) to (128, 220) -->
+  <path fill="#18231e" fill-rule="evenodd" d="
+    M128 42
+    C144 42 154 56 154 74
+    L154 136
+    C154 168 142 198 128 220
+    C114 198 102 168 102 136
+    L102 74
+    C102 56 112 42 128 42 Z
+    
+    M98 114 H158 V126 H98 Z
+    M104 142 H152 V154 H104 Z
+    M112 170 H144 V182 H112 Z
+  "/>
+  
+  <!-- Minimalist Head Pips / Antennae -->
+  <circle cx="114" cy="30" r="5" fill="#18231e"/>
+  <circle cx="142" cy="30" r="5" fill="#18231e"/>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="c1-title">
+  <title id="c1-title">ReachBee — The Hexagon Scout</title>
+  <!-- Segment 1: Top Chevron / Wings & Head (Ascending Hexagon Crown) -->
+  <path fill="#18231e" d="
+    M128 32
+    L210 79
+    L196 110
+    L128 71
+    L60 110
+    L46 79
+    Z
+  "/>
+  
+  <!-- Segment 2: Mid-Thorax / Abdomen Chevron 1 -->
+  <path fill="#18231e" d="
+    M128 92
+    L190 128
+    L176 157
+    L128 129
+    L80 157
+    L66 128
+    Z
+  "/>
+
+  <!-- Segment 3: Abdomen Chevron 2 -->
+  <path fill="#18231e" d="
+    M128 148
+    L170 172
+    L156 198
+    L128 182
+    L100 198
+    L86 172
+    Z
+  "/>
+
+  <!-- Segment 4: Stinger / Keel Apex -->
+  <path fill="#18231e" d="
+    M128 200
+    L148 211
+    L128 232
+    L108 211
+    Z
+  "/>
+</svg>

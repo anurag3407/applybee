@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/*
+ * Semantic token mapping (plan §8.2). Light theme first; dark mode is a
+ * separately contrast-tested phase-two effort, not an inversion.
+ */
+@theme {
+  --color-canvas: var(--ab-canvas);
+  --color-surface: var(--ab-surface);
+  --color-surface-subtle: var(--ab-surface-subtle);
+  --color-surface-raised: var(--ab-surface-raised);
+  --color-ink: var(--ab-ink);
+  --color-ink-soft: var(--ab-ink-soft);
+  --color-text-secondary: var(--ab-text-secondary);
+  --color-text-disabled: var(--ab-text-disabled);
+  --color-honey: var(--ab-honey);
+  --color-honey-deep: var(--ab-honey-deep);
+  --color-honey-wash: var(--ab-honey-wash);
+  --color-border-decorative: var(--ab-border-decorative);
+  --color-border-control: var(--ab-border-control);
+  --color-focus: var(--ab-focus);
+  --color-focus-on-dark: var(--ab-focus-on-dark);
+  --color-success: var(--ab-success);
+  --color-success-wash: var(--ab-success-wash);
+  --color-warning: var(--ab-warning);
+  --color-warning-wash: var(--ab-warning-wash);
+  --color-danger: var(--ab-danger);
+  --color-danger-wash: var(--ab-danger-wash);
+  --color-info: var(--ab-info);
+  --color-info-wash: var(--ab-info-wash);
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-editorial: var(--font-fraunces), Georgia, serif;
+
+  --radius-xs: var(--ab-radius-xs);
+  --radius-control: var(--ab-radius-control);
+  --radius-card: var(--ab-radius-card);
+  --radius-scene: var(--ab-radius-scene);
+
+  --shadow-card: var(--ab-shadow-card);
+  --shadow-float: var(--ab-shadow-float);
+  --shadow-dialog: var(--ab-shadow-dialog);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background-color: var(--ab-canvas);
+  color: var(--ab-ink);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Accessible focus ring: 2px distinct ring with contrasting offset. */
+:focus-visible {
+  outline: 2px solid var(--ab-focus);
+  outline-offset: 2px;
+  border-radius: var(--ab-radius-xs);
+}
+
+/* On ink/dark surfaces the blue ring fails 3:1; scope to the light wash. */
+.on-dark :focus-visible,
+.on-ink :focus-visible {
+  outline-color: var(--ab-focus-on-dark);
+}
+
+::selection {
+  background: var(--ab-honey-wash);
+  color: var(--ab-ink);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.prose-measure {
+  max-width: 66ch;
+}
+
+/* Motion enhancement classes are added by JS after setup, never shipped as
+ * permanent opacity: 0 (plan §9.3). */
+[data-motion="reveal"] {
+  opacity: 1;
+  transform: none;
+}
+
+.js-motion [data-motion="reveal"] {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.js-motion [data-motion="reveal"].is-revealed {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--ab-duration-reveal) var(--ab-ease-ui),
+    transform var(--ab-duration-reveal) var(--ab-ease-ui);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-motion [data-motion="reveal"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

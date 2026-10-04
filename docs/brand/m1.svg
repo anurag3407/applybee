@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="m1-title">
+  <title id="m1-title">Soaring Geometric Bee</title>
+  <!-- Wings (Swept Upward and Outward) -->
+  <!-- Left Wing -->
+  <path fill="#18231e" d="M112 110 C90 60 55 42 36 44 C28 45 24 53 28 62 C38 86 64 122 104 136 Z"/>
+  <!-- Right Wing -->
+  <path fill="#18231e" d="M144 110 C166 60 201 42 220 44 C228 45 232 53 228 62 C218 86 192 122 152 136 Z"/>
+  
+  <!-- Central Bee Body: Compound path with negative-space stripes via fill-rule evenodd -->
+  <!-- Outer capsule: Head at (128, 48), thorax, abdomen tapering to stinger at (128, 224) -->
+  <path fill="#18231e" fill-rule="evenodd" d="
+    M128 44
+    C142 44 154 56 154 72
+    C154 84 158 106 158 132
+    C158 168 148 198 128 224
+    C108 198 98 168 98 132
+    C98 106 102 84 102 72
+    C102 56 114 44 128 44 Z
+    
+    M104 118 L152 118 L150 130 L106 130 Z
+    M108 144 L148 144 L144 156 L112 156 Z
+    M115 170 L141 170 L136 182 L120 182 Z
+  "/>
+  <!-- Antennae: clean minimal arcs -->
+  <path d="M122 46 C116 32 104 26 94 28" fill="none" stroke="#18231e" stroke-width="7" stroke-linecap="round"/>
+  <path d="M134 46 C140 32 152 26 162 28" fill="none" stroke="#18231e" stroke-width="7" stroke-linecap="round"/>
+</svg>

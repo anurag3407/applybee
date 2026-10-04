@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="cand-a-title">
+  <title id="cand-a-title">ReachBee — Hex Vanguard</title>
+  <!-- Wings (Geometric Swept Diamond Wings) -->
+  <path fill="#18231e" d="M128 76 L62 48 C52 44 42 50 40 60 C38 68 42 76 50 80 L114 116 Z"/>
+  <path fill="#18231e" d="M128 76 L194 48 C204 44 214 50 216 60 C218 68 214 76 206 80 L142 116 Z"/>
+  
+  <!-- Central Body (Thorax + Head) -->
+  <path fill="#18231e" d="M128 34 C138 34 146 42 146 52 L146 112 C146 118 138 122 128 122 C118 122 110 118 110 112 L110 52 C110 42 118 34 128 34 Z"/>
+  
+  <!-- Antennae -->
+  <circle cx="112" cy="24" r="5" fill="#18231e"/>
+  <circle cx="144" cy="24" r="5" fill="#18231e"/>
+  <path d="M122 36 L114 27" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M134 36 L142 27" stroke="#18231e" stroke-width="4.5" stroke-linecap="round"/>
+  
+  <!-- Abdomen: Segment 1 (Upper stripe) -->
+  <path fill="#18231e" d="M106 132 C106 130 114 128 128 128 C142 128 150 130 150 132 L147 154 C147 156 139 158 128 158 C117 158 109 156 109 154 Z"/>
+  
+  <!-- Abdomen: Segment 2 (Mid stripe) -->
+  <path fill="#18231e" d="M111 166 C111 164 118 163 128 163 C138 163 145 164 145 166 L141 186 C141 188 135 189 128 189 C121 189 115 188 115 186 Z"/>
+
+  <!-- Abdomen: Segment 3 (Stinger / Tail) -->
+  <path fill="#18231e" d="M117 196 C117 195 122 194 128 194 C134 194 139 195 139 196 L128 226 Z"/>
+</svg>

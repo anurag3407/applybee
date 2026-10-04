@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="m4-title">
+  <title id="m4-title">The Velocity Bee</title>
+  <!-- Main fuselage (body angled at 45 deg) -->
+  <!-- Top-right apex at (216, 40), bottom-left stinger at (40, 216) -->
+  <g transform="rotate(45 128 128)">
+    <!-- Central Bee / Rocket Body -->
+    <path fill="#18231e" fill-rule="evenodd" d="
+      M128 34
+      L146 72
+      L146 168
+      L128 222
+      L110 168
+      L110 72
+      Z
+      M110 100 L146 100 L146 114 L110 114 Z
+      M110 130 L146 130 L146 144 L110 144 Z
+    "/>
+    <!-- Delta Wings (Swept Forward-Outward) -->
+    <!-- Left Wing -->
+    <path fill="#18231e" d="M98 78 L34 108 C26 112 26 122 34 126 L98 146 Z"/>
+    <!-- Right Wing -->
+    <path fill="#18231e" d="M158 78 L222 108 C230 112 230 122 222 126 L158 146 Z"/>
+    <!-- Antennae / Forward Sensor Dots -->
+    <circle cx="118" cy="24" r="5" fill="#18231e"/>
+    <circle cx="138" cy="24" r="5" fill="#18231e"/>
+  </g>
+</svg>

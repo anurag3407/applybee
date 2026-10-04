@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# build/standalone
+standalone/
+
+# env & secrets — never commit
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# local private object storage emulator root (uploaded resumes etc.)
+.data/
+
+# test artifacts
+coverage/
+test-results/
+playwright-report/
+
+# misc
+.DS_Store
+*.pem
+*.tsbuildinfo
