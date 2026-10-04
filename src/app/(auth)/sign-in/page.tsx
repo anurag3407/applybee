@@ -6,6 +6,7 @@ import { DevSignInForm } from "@/components/auth/dev-signin-form";
 import { getSessionUser } from "@/server/auth/session";
 
 export const metadata: Metadata = { title: "Sign in" };
+export const dynamic = "force-dynamic";
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ redirect?: string }> }) {
   const user = await getSessionUser();

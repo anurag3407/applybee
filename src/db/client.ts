@@ -14,7 +14,7 @@ const globalForDb = globalThis as unknown as { __applyBeePool?: Pool };
 export const pool =
   globalForDb.__applyBeePool ??
   new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL || "postgresql://localhost:5432/applybee_dev",
     max: 10,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,

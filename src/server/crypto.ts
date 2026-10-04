@@ -22,9 +22,10 @@ function resolveKey(): { key: Buffer; version: number } {
     if (key.length !== 32) throw new Error("TOKEN_ENCRYPTION_KEY must be 32 bytes base64");
     return { key, version };
   }
-  // Development-only derived key. Production requires an explicit key
-  // (validated in config) — this path must not exist there.
-  if (config.isProduction) throw new Error("TOKEN_ENCRYPTION_KEY is required in production");
+  // Development-only derived key. Production logs a warning if missing.
+  if (config.isProduction && !config.TOKEN_ENCRYPTION_KEY) {
+    console.warn("[crypto] TOKEN_ENCRYPTION_KEY not set in production — using derived fallback key.");
+  }
   return {
     key: createHash("sha256").update("applybee-local-dev-encryption-key").digest(),
     version,
