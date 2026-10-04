@@ -24,6 +24,10 @@
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
 	},
+	"vars": {
+		"NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_d2lyZWQtbGFkeWJ1Zy0xMDg2LmNsZXJrLmFjY291bnRzLmRldiQ",
+		"NEXT_PUBLIC_APP_URL": "https://reachbee.sayalabs.in"
+	},
 	"routes": [
 		{
 			"pattern": "applybee.sayalabs.in",

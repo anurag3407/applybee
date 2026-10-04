@@ -9,7 +9,13 @@ export default function SSOCallbackPage() {
         <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-2 border-ink border-t-transparent" />
         <p className="text-sm text-text-secondary">Completing sign-in…</p>
       </div>
-      <AuthenticateWithRedirectCallback signInForceRedirectUrl="/app" signUpForceRedirectUrl="/app" />
+      <AuthenticateWithRedirectCallback
+        signInUrl="/sign-in"
+        signUpUrl="/sign-up"
+        signInForceRedirectUrl="/app"
+        signUpForceRedirectUrl="/app"
+        continueSignUpUrl="/sso-callback"
+      />
     </div>
   );
 }
