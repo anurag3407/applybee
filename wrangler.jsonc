@@ -28,6 +28,10 @@
 		{
 			"pattern": "applybee.sayalabs.in",
 			"custom_domain": true
+		},
+		{
+			"pattern": "reachbee.sayalabs.in",
+			"custom_domain": true
 		}
 	]
 }
