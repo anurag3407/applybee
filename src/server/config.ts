@@ -51,7 +51,17 @@ const envSchema = z.object({
   RAZORPAY_WEBHOOK_SECRET: optional(z.string().min(1)),
   PAYMENTS_MODE: z.enum(["test", "live"]).default("test"),
 
-  OBJECT_STORE_PROVIDER: z.enum(["local", "s3", "r2"]).default("local"),
+  OBJECT_STORE_PROVIDER: z.enum(["local", "s3", "r2", "supabase"]).default("supabase"),
+  CLOUDFLARE_R2: boolFlag("CLOUDFLARE_R2", false),
+  SUPABASE_URL: optional(z.string().url()),
+  SUPABASE_SERVICE_ROLE_KEY: optional(z.string().min(1)),
+  SUPABASE_STORAGE_BUCKET: z.string().default("resumes"),
+
+  CLOUDFLARE_R2_ACCESS_KEY_ID: optional(z.string().min(1)),
+  CLOUDFLARE_R2_SECRET_ACCESS_KEY: optional(z.string().min(1)),
+  CLOUDFLARE_R2_ENDPOINT: optional(z.string().url()),
+  CLOUDFLARE_R2_BUCKET: z.string().default("resumes"),
+
   PRIVATE_QUARANTINE_BUCKET: z.string().default(".data/private/quarantine"),
   PRIVATE_CLEAN_BUCKET: z.string().default(".data/private/clean"),
   PRIVATE_EXPORT_BUCKET: z.string().default(".data/private/export"),
@@ -74,6 +84,7 @@ export type AppConfig = z.infer<typeof envSchema> & {
   aiMode: "gemini" | "mock";
   gmailMode: "live" | "mock";
   paymentsMode: "razorpay" | "mock";
+  storageMode: "r2" | "supabase" | "local";
 };
 
 let cached: AppConfig | null = null;
@@ -98,6 +109,15 @@ export function getConfig(): AppConfig {
   const paymentsMode: "razorpay" | "mock" =
     env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET ? "razorpay" : "mock";
 
+  const storageMode: "r2" | "supabase" | "local" =
+    env.CLOUDFLARE_R2 || env.OBJECT_STORE_PROVIDER === "r2"
+      ? "r2"
+      : env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY
+        ? "supabase"
+        : env.OBJECT_STORE_PROVIDER === "local"
+          ? "local"
+          : "supabase";
+
   if (isProduction && authMode === "dev") {
     console.warn("[config] Dev auth adapter active in production — Clerk keys not configured.");
   }
@@ -113,6 +133,7 @@ export function getConfig(): AppConfig {
     aiMode,
     gmailMode,
     paymentsMode,
+    storageMode,
   });
   return cached;
 }
