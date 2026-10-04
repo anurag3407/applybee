@@ -175,55 +175,70 @@ export function WriteToContactButton({ contactId }: { contactId: string }) {
 }
 
 export function ReportContactDialog({ contactId }: { contactId: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-  const [type, setType] = useState("stale");
+  const [message, setMessage] = useState("");
+  const [type, setType] = useState("bounced");
   const [details, setDetails] = useState("");
 
   async function submit() {
     setBusy(true);
-    await fetch(`/api/v1/contacts/${contactId}/reports`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reportType: type, details }),
-    });
-    setBusy(false);
-    setDone(true);
-    setTimeout(() => setOpen(false), 1200);
+    try {
+      const res = await fetch(`/api/v1/contacts/${contactId}/reports`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reportType: type, details: details || "Reported contact" }),
+      });
+      const body = await res.json();
+      setDone(true);
+      setMessage(body?.data?.message || "Thanks — our team will review this report.");
+      setTimeout(() => {
+        setOpen(false);
+        router.refresh();
+      }, 1800);
+    } catch (_) {
+      setMessage("Failed to submit report. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
     <>
       <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
-        <Flag size={14} aria-hidden /> Report
+        <Flag size={14} aria-hidden /> Report / Bounce Refund
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Report this contact">
+      <Dialog open={open} onClose={() => setOpen(false)} title="Report contact & request replacement">
         {done ? (
-          <p role="status" className="text-sm text-success">Thanks — our team will review this report.</p>
+          <p role="status" className="text-sm font-medium text-success">{message}</p>
         ) : (
           <div className="space-y-3">
-            <label className="block text-sm font-semibold text-ink" htmlFor="report-type">What’s wrong?</label>
+            <label className="block text-sm font-semibold text-ink" htmlFor="report-type">Reason</label>
             <select id="report-type" value={type} onChange={(e) => setType(e.target.value)} className="h-11 w-full rounded-control border border-border-control bg-surface px-3 text-ink">
+              <option value="bounced">⚡ Email Bounced / Unreachable (Instant 100% Credit Refund)</option>
               <option value="stale">Left the company / role changed</option>
               <option value="incorrect">Details are incorrect</option>
               <option value="removal">I am this person — remove me</option>
               <option value="abuse">Something else</option>
             </select>
-            <label className="block text-sm font-semibold text-ink" htmlFor="report-details">Details</label>
+            <label className="block text-sm font-semibold text-ink" htmlFor="report-details">
+              {type === "bounced" ? "Bounce Details (Optional)" : "Details"}
+            </label>
             <textarea
               id="report-details"
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              rows={4}
+              rows={3}
               maxLength={2000}
               className="w-full rounded-control border border-border-control bg-surface px-3 py-2 text-ink"
-              placeholder="Tell us what you noticed."
+              placeholder={type === "bounced" ? "e.g. Mail delivery failed with 550 User not found" : "Tell us what you noticed."}
             />
             <div className="flex justify-end gap-2">
               <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button size="sm" onClick={submit} disabled={busy || details.length < 10}>
-                {busy ? "Sending…" : "Send report"}
+              <Button size="sm" variant={type === "bounced" ? "accent" : "primary"} onClick={submit} disabled={busy}>
+                {busy ? "Processing…" : type === "bounced" ? "Claim instant credit refund" : "Send report"}
               </Button>
             </div>
           </div>

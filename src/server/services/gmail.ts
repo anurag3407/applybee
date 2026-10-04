@@ -366,6 +366,18 @@ export async function startDelivery(params: { userId: string; draftId: string; a
     throw new DeliveryPreflightError("RATE_LIMITED", "Too many delivery requests. Please wait a moment.");
   }
 
+  const dailyAdmission = await admitWithPreCheck({
+    policy: LIMITS.gmailCreateDaily,
+    principal: params.userId,
+    operationRef: `gmail:daily:${params.userId}:${params.approvalId}`,
+  });
+  if (!dailyAdmission.admitted) {
+    throw new DeliveryPreflightError(
+      "DAILY_LIMIT_REACHED",
+      "Daily draft limit reached (maximum 15 drafts per 24 hours to protect your sender reputation and prevent bulk spam). You can still export to .eml or compose manually in Gmail.",
+    );
+  }
+
   // Consume the approval and create the delivery + job atomically.
   const deliveryId = await db.transaction(async (tx) => {
     const consumed = await tx

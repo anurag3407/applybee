@@ -8,6 +8,7 @@ import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
 import { withIdempotency, hashRequest } from "@/server/services/idempotency";
 import { audit } from "@/server/services/audit";
 import { CreditError } from "@/server/services/credits";
+import { verifyMailboxPreflight } from "@/server/services/verification";
 
 /**
  * Directory service (§12.3, §12.4). Locked emails are absent from every
@@ -208,6 +209,18 @@ export async function revealContactForUser(params: {
     key: params.idempotencyKey,
     requestHash: hashRequest({ contactId: params.contactId }),
     run: async (operationRef) => {
+      const existingContact = (await db.select().from(contacts).where(eq(contacts.id, params.contactId)).limit(1))[0];
+      if (existingContact?.emailEnc) {
+        const plainEmail = decryptEnvelope(existingContact.emailEnc, `contact:${existingContact.id}`);
+        const preflight = await verifyMailboxPreflight(plainEmail);
+        if (preflight.status === "invalid") {
+          await db.update(contacts).set({ verificationStatus: "invalid" }).where(eq(contacts.id, params.contactId));
+          throw new RevealError("CONTACT_INVALID", "We tested this contact's mailbox in real-time and it is currently unreachable. No credit was charged.");
+        } else if (preflight.status === "catch_all" && existingContact.verificationStatus !== "catch_all") {
+          await db.update(contacts).set({ verificationStatus: "catch_all" }).where(eq(contacts.id, params.contactId));
+        }
+      }
+
       const result = await revealContact({
         userId: params.userId,
         contactId: params.contactId,
@@ -314,6 +327,76 @@ export async function reportContact(params: {
     reportType: params.reportType,
     details: params.details.slice(0, 2000),
   });
+}
+
+export async function reportBounceAndRefund(params: {
+  userId: string;
+  contactId: string;
+}): Promise<{ refunded: boolean; message: string }> {
+  // 1. Verify user unlocked this contact
+  const unlock = await db
+    .select({ id: contactUnlockss.id })
+    .from(contactUnlockss)
+    .where(and(eq(contactUnlockss.userId, params.userId), eq(contactUnlockss.contactId, params.contactId)))
+    .limit(1);
+  if (unlock.length === 0) {
+    return { refunded: false, message: "You can only request replacement for contacts you have revealed." };
+  }
+
+  // 2. Check if a replacement was already granted
+  const existingGrant = await db.execute(sql`
+    SELECT id FROM credit_ledger_entries
+    WHERE user_id = ${params.userId}::uuid
+      AND operation_ref = ${`replacement:${params.contactId}`}
+    LIMIT 1
+  `);
+  if (existingGrant.rows.length > 0) {
+    return { refunded: false, message: "A replacement credit was already granted for this contact." };
+  }
+
+  // 3. Mark contact invalid & add to suppressions
+  const contact = (await db.select().from(contacts).where(eq(contacts.id, params.contactId)).limit(1))[0];
+  if (contact) {
+    await db.update(contacts).set({ verificationStatus: "invalid", status: "stale" }).where(eq(contacts.id, params.contactId));
+    if (contact.emailFingerprint) {
+      await db.execute(sql`
+        INSERT INTO contact_suppressions (email_fingerprint, contact_id, scope, reason, state)
+        VALUES (${contact.emailFingerprint}, ${contact.id}::uuid, 'delivery_wide', 'Reported hard bounce by user', 'active')
+        ON CONFLICT DO NOTHING
+      `);
+    }
+  }
+
+  // 4. Record the report
+  await db.insert(contactReports).values({
+    reporterUserId: params.userId,
+    contactId: params.contactId,
+    emailFingerprint: contact?.emailFingerprint ?? null,
+    reportType: "incorrect",
+    details: "User reported hard bounce / non-delivery. Automated instant credit replacement issued.",
+  });
+
+  // 5. Grant replacement credit atomically
+  await db.execute(sql`
+    SELECT grant_credits(
+      ${params.userId}::uuid,
+      'contact',
+      1,
+      'replacement',
+      ${params.contactId}
+    )
+  `);
+
+  await audit({
+    actorType: "user",
+    actorId: params.userId,
+    action: "contact.refunded_bounce",
+    entityType: "contact",
+    entityId: params.contactId,
+    metadata: { reason: "bounced_email_instant_replacement" },
+  });
+
+  return { refunded: true, message: "1 contact reveal credit has been refunded to your account instantly." };
 }
 
 export async function getCompanyWithEvidence(companyId: string) {

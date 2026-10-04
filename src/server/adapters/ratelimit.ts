@@ -28,6 +28,7 @@ export const LIMITS = {
   aiGenerate: { operationKind: "ai.generate", windowSeconds: 60, limit: 5, failClosed: true },
   aiGenerateHour: { operationKind: "ai.generate.hour", windowSeconds: 3600, limit: 30, failClosed: true },
   gmailCreate: { operationKind: "gmail.create", windowSeconds: 60, limit: 5, failClosed: true },
+  gmailCreateDaily: { operationKind: "gmail.create.daily", windowSeconds: 86400, limit: 15, failClosed: true },
   gmailReconcile: { operationKind: "gmail.reconcile", windowSeconds: 60, limit: 3, failClosed: false },
   uploadIntent: { operationKind: "upload.intent", windowSeconds: 600, limit: 3, failClosed: true },
   autosave: { operationKind: "draft.autosave", windowSeconds: 60, limit: 120, failClosed: false },

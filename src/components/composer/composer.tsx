@@ -446,6 +446,18 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
               <FileDown size={14} aria-hidden /> Download .eml
             </Button>
           </a>
+          {recipient?.email ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipient.email!)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.open(url, "_blank");
+              }}
+            >
+              <Mail size={14} aria-hidden /> Open in Gmail Web
+            </Button>
+          ) : null}
         </div>
       </section>
 
@@ -606,6 +618,27 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
               )}
             </div>
           )}
+        </div>
+
+        {/* Candidate Outreach Guardian & Deliverability Checklist */}
+        <div className="rounded-card border border-border-decorative bg-surface p-4 space-y-2.5">
+          <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-ink">
+            <ShieldCheck size={14} className="text-accent" /> Candidate Outreach Guardian
+          </h4>
+          <ul className="space-y-2 text-xs text-text-secondary">
+            <li className="flex items-start gap-1.5">
+              <span className="text-success font-bold">✓</span>
+              <span><strong>Pacing Limit:</strong> Maximum 10–15 messages per 24 hours to keep your domain reputation safe.</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="text-success font-bold">✓</span>
+              <span><strong>Optimal Timing:</strong> Send during local working hours (10:00 AM – 4:00 PM) for maximum replies.</span>
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="text-success font-bold">✓</span>
+              <span><strong>Bounce Guarantee:</strong> If an address bounces, report it for an instant replacement credit.</span>
+            </li>
+          </ul>
         </div>
       </aside>
 

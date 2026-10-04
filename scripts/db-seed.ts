@@ -32,11 +32,11 @@ const CATALOG: Array<{
   sku: string; name: string; description: string; price: number; contact: number; ai: number; order: number;
 }> = [
   { sku: "free_trial_v1", name: "Free trial", description: "Once per verified account. No card required.", price: 0, contact: 5, ai: 2, order: 0 },
-  { sku: "explorer_v1", name: "Explorer", description: "Browsing, manual editor, templates, tracking.", price: 14900, contact: 75, ai: 0, order: 1 },
-  { sku: "plus_v1", name: "Plus", description: "Balanced starter pack with an AI allowance.", price: 29900, contact: 150, ai: 30, order: 2 },
-  { sku: "pro_v1", name: "Pro", description: "Higher allowance for an active search.", price: 59900, contact: 350, ai: 75, order: 3 },
-  { sku: "contacts_100_v1", name: "100 contact reveals", description: "Standalone top-up pack.", price: 19900, contact: 100, ai: 0, order: 4 },
-  { sku: "ai_25_v1", name: "25 AI generations", description: "Standalone top-up pack.", price: 24900, contact: 0, ai: 25, order: 5 },
+  { sku: "explorer_v1", name: "ReachBee AI Career Workspace — Explorer", description: "Job application drafting workspace, verified manager directory, and personal pipeline.", price: 14900, contact: 75, ai: 0, order: 1 },
+  { sku: "plus_v1", name: "ReachBee AI Career Workspace — Plus", description: "Career workspace with 150 manager reveals and 30 bespoke AI application drafts.", price: 29900, contact: 150, ai: 30, order: 2 },
+  { sku: "pro_v1", name: "ReachBee AI Career Workspace — Pro", description: "Professional job search suite with 350 manager reveals, 75 AI resume drafts, and company tech-stack matching.", price: 59900, contact: 350, ai: 75, order: 3 },
+  { sku: "contacts_100_v1", name: "100 Outreach Credits", description: "Direct manager outreach reveal credits with instant bounce replacement guarantee.", price: 19900, contact: 100, ai: 0, order: 4 },
+  { sku: "ai_25_v1", name: "25 AI Resume Co-Pilot Credits", description: "Bespoke technical application drafts tailored to target company tech stacks.", price: 24900, contact: 0, ai: 25, order: 5 },
 ];
 
 const COMPANIES = [
