@@ -69,6 +69,20 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
 /* Branded Transactional Templates                                    */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Support and privacy templates interpolate free-text supplied by an
+ * unauthenticated visitor. Without escaping, a crafted message injects
+ * arbitrary HTML (and links) into the operator's inbox.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function emailWrapper(content: string): string {
   return `
 <!DOCTYPE html>
@@ -144,10 +158,10 @@ export async function sendSupportTicketNotification(params: {
     <h2 style="margin-top: 0; font-size: 20px;">Support Request Received</h2>
     <p style="font-size: 14px; color: #403e38;">We received your message and our team will get back to you shortly.</p>
     <div class="meta-box">
-      <p style="margin: 0 0 8px;"><strong>Reference:</strong> <span class="tag">${params.publicRef}</span></p>
-      <p style="margin: 0 0 8px;"><strong>Category:</strong> ${params.category}</p>
+      <p style="margin: 0 0 8px;"><strong>Reference:</strong> <span class="tag">${escapeHtml(params.publicRef)}</span></p>
+      <p style="margin: 0 0 8px;"><strong>Category:</strong> ${escapeHtml(params.category)}</p>
       <p style="margin: 0;"><strong>Message:</strong></p>
-      <p style="margin: 4px 0 0; color: #555; white-space: pre-wrap;">${params.message}</p>
+      <p style="margin: 4px 0 0; color: #555; white-space: pre-wrap;">${escapeHtml(params.message)}</p>
     </div>
     <p style="font-size: 13px; color: #78756c;">Save your reference code for faster follow-up.</p>
   `);
@@ -160,12 +174,12 @@ export async function sendSupportTicketNotification(params: {
 
   // Alert Team
   const adminHtml = emailWrapper(`
-    <h2 style="margin-top: 0; font-size: 18px; color: #b45309;">New Support Ticket (${params.publicRef})</h2>
+    <h2 style="margin-top: 0; font-size: 18px; color: #b45309;">New Support Ticket (${escapeHtml(params.publicRef)})</h2>
     <div class="meta-box">
-      <p><strong>From:</strong> ${params.userEmail}</p>
-      <p><strong>Category:</strong> ${params.category}</p>
+      <p><strong>From:</strong> ${escapeHtml(params.userEmail)}</p>
+      <p><strong>Category:</strong> ${escapeHtml(params.category)}</p>
       <p><strong>Message:</strong></p>
-      <div style="background: #fff; padding: 12px; border: 1px solid #ddd; border-radius: 6px; white-space: pre-wrap;">${params.message}</div>
+      <div style="background: #fff; padding: 12px; border: 1px solid #ddd; border-radius: 6px; white-space: pre-wrap;">${escapeHtml(params.message)}</div>
     </div>
   `);
 
@@ -188,8 +202,8 @@ export async function sendContactDataRequestNotification(params: {
       We have logged your request to <strong>${params.requestType === "removal" ? "remove" : "correct"}</strong> your contact information from the ReachBee directory.
     </p>
     <div class="meta-box">
-      <p style="margin: 0;"><strong>Subject Email:</strong> ${params.email}</p>
-      <p style="margin: 8px 0 0;"><strong>Details:</strong> ${params.details}</p>
+      <p style="margin: 0;"><strong>Subject Email:</strong> ${escapeHtml(params.email)}</p>
+      <p style="margin: 8px 0 0;"><strong>Details:</strong> ${escapeHtml(params.details)}</p>
     </div>
     <p style="font-size: 13px; color: #403e38;">
       Our governance process honors suppression requests within 48 hours without requiring an account.
@@ -208,8 +222,8 @@ export async function sendContactDataRequestNotification(params: {
     subject: `🛡️ [Privacy Request] ${params.requestType.toUpperCase()} for ${params.email}`,
     html: emailWrapper(`
       <h3>Directory Data Request (${params.requestType})</h3>
-      <p><strong>Email:</strong> ${params.email}</p>
-      <p><strong>Details:</strong> ${params.details}</p>
+      <p><strong>Email:</strong> ${escapeHtml(params.email)}</p>
+      <p><strong>Details:</strong> ${escapeHtml(params.details)}</p>
     `),
   });
 }

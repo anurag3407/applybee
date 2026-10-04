@@ -16,7 +16,7 @@ import { logger } from "@/server/logger";
  * validated (not names/MIME headers); quarantine → immutable clean key.
  */
 
-const MAX_RESUME_BYTES = 5 * 1024 * 1024;
+export const MAX_RESUME_BYTES = 5 * 1024 * 1024;
 const MAX_PAGES = 10;
 
 export class UploadError extends Error {

@@ -426,7 +426,7 @@ export function WorkspaceTeaser() {
 export function Trust() {
   const principles = [
     { title: "Explicit Gmail connection", body: "Connecting Gmail is optional and separate from signing in. You choose when — and you can disconnect any time." },
-    { title: "Private resumes", body: "Your files sit in private storage, scanned and gated. Downloads use short-lived links. Nothing becomes public." },
+    { title: "Private resumes", body: "Your files sit in private storage, scanned and gated. Downloads require your signed-in session. Nothing becomes public." },
     { title: "Truthful AI", body: "Drafts cite the facts they use. Unsupported claims are rejected, not dressed up." },
     { title: "Visible costs", body: "Every action shows its price before you confirm. Balances, reservations, and history are in the open." },
   ];

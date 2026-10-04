@@ -26,6 +26,22 @@ export function getTestDb(): Promise<Client> {
 }
 
 async function setup(): Promise<Client> {
+  // This setup drops the public schema. Refuse to do that against anything
+  // that isn't obviously a throwaway test database — a stray TEST_DATABASE_URL
+  // pointing at a real instance would destroy production data.
+  const databaseName = (() => {
+    try {
+      return new URL(TEST_DB_URL).pathname.replace(/^\//, "");
+    } catch {
+      return "";
+    }
+  })();
+  if (databaseName && !/test/i.test(databaseName)) {
+    throw new Error(
+      `Refusing to reset schema: TEST_DATABASE_URL points at database "${databaseName}", which does not look like a test database.`,
+    );
+  }
+
   const client = new Client({ connectionString: TEST_DB_URL });
   await client.connect();
 

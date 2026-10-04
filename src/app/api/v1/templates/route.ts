@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { createTemplate, listTemplates, updateTemplate, deleteTemplate, DraftConflictError } from "@/server/services/drafts";
 import { templateSchema } from "@/lib/validation";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
 export async function GET() {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     return ok({ templates: await listTemplates(user.id) });
   } catch (err) {
@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const body = templateSchema.parse(await req.json());
     const result = await createTemplate(user.id, body);
@@ -32,7 +32,7 @@ const patchSchema = templateSchema.partial().extend({ expectedVersion: z.number(
 export async function PATCH(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const url = new URL(req.url);
     const templateId = url.searchParams.get("id");
@@ -49,7 +49,7 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const url = new URL(req.url);
     const templateId = url.searchParams.get("id");

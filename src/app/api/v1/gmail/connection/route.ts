@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { startConnect, getConnection, disconnectGmail, connectSandbox } from "@/server/services/gmail";
 import { getConfig } from "@/server/config";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 /** GET /gmail/connection — safe identity/scope/health, never tokens (§19.2). */
 export async function GET() {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const config = getConfig();
     const connection = await getConnection(user.id);
@@ -33,7 +33,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const config = getConfig();
     const body = (await req.json().catch(() => ({}))) as { returnPath?: string; sandbox?: boolean };
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     await disconnectGmail(user.id);
     return NextResponse.json({ data: { disconnected: true }, meta: {} }, { headers: { "Cache-Control": "private, no-store" } });

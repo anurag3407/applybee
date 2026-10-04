@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { startGeneration, GenerationPreflightError } from "@/server/services/generations";
 import { generationInputSchema } from "@/lib/validation";
 import { accepted, errorResponse, assertSameOrigin, requireIdempotencyKey } from "@/server/http";
@@ -10,7 +10,7 @@ import { accepted, errorResponse, assertSameOrigin, requireIdempotencyKey } from
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const idempotencyKey = requireIdempotencyKey(req);
     const { id } = await params;

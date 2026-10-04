@@ -98,7 +98,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
 
   /* Autosave: debounce 800ms; flush on approval; version-checked. */
   const save = useCallback(
-    async (payload: { subject: string; body: string; expectedVersion: number; intent?: string; mode?: string }) => {
+    async (payload: { subject: string; body: string; expectedVersion: number; intent?: string; mode?: string }): Promise<"ok" | "conflict" | "error"> => {
       setSaveState("saving");
       try {
         const res = await fetch(`/api/v1/drafts/${draftId}`, {
@@ -115,17 +115,17 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
         if (res.status === 409) {
           setSaveState("conflict");
           setConflictOpen(true);
-          return false;
+          return "conflict";
         }
         if (!res.ok) throw new Error("SAVE_FAILED");
         const data = (await res.json()) as { data: { version: number } };
         savedVersion.current = data.data.version;
         setVersion(data.data.version);
         setSaveState("saved");
-        return true;
+        return "ok";
       } catch {
         setSaveState("error");
-        return false;
+        return "error";
       }
     },
     [draftId],
@@ -145,16 +145,28 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
     setSaveState("idle");
   }
 
-  /* Polling: 2s → 5s → 10s, stop when done or hidden (§20.5). */
+  // Cancel any in-flight polling when this draft is left or a new poll starts.
+  // Without this the AbortController was created but never aborted, so the
+  // loop kept fetching (and setting state) after unmount.
+  useEffect(() => () => pollSource?.abort(), [pollSource]);
+
+  /* Polling: 2s → 5s → 10s, bounded, stop when done or hidden (§20.5). */
   const pollGeneration = useCallback(
     async (generationId: string) => {
       let delay = 2000;
       const controller = new AbortController();
       setPollSource(controller);
-      while (!controller.signal.aborted) {
+      // Bounded like the delivery poll. An unbounded loop kept hammering the
+      // API forever whenever a generation never reached a terminal state (for
+      // example if the job queue stalled), which is exactly when the user is
+      // least able to do anything about it. Only polls that actually reach the
+      // API count against the budget, so a backgrounded tab does not give up.
+      let polls = 0;
+      while (!controller.signal.aborted && polls < 20) {
         await new Promise((r) => setTimeout(r, delay));
         delay = Math.min(delay * 2.5, 10_000);
         if (document.hidden) continue;
+        polls++;
         try {
           const res = await fetch(`/api/v1/generations/${generationId}`, { signal: controller.signal });
           if (!res.ok) break;
@@ -170,10 +182,13 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
               warnings: [],
             });
           }
-          if (["ready", "failed", "released", "cancelled"].includes(data.data.state)) break;
+          if (["ready", "failed", "released", "cancelled"].includes(data.data.state)) return;
         } catch {
           break;
         }
+      }
+      if (!controller.signal.aborted) {
+        setActionError("Still working on it. Reopen this draft in a moment to see the result.");
       }
     },
     [],
@@ -181,9 +196,20 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
 
   async function startGeneration() {
     setActionError(null);
-    // Flush pending edits first so the snapshot includes them.
-    const flushed = await save({ subject, body, expectedVersion: savedVersion.current, intent, mode });
-    if (!flushed && saveState === "conflict") return;
+    // Flush pending edits first so the snapshot includes them. The outcome has
+    // to come from this call's return value — reading `saveState` here would be
+    // a stale closure from the render that started this handler, so a version
+    // conflict would slip through and the AI would draft from the last saved
+    // revision rather than what the user is looking at.
+    const flush = await save({ subject, body, expectedVersion: savedVersion.current, intent, mode });
+    if (flush === "conflict") {
+      setActionError("This draft changed in another tab. Resolve the conflict before generating.");
+      return;
+    }
+    if (flush === "error") {
+      setActionError("We couldn't save your latest edits. Generate is paused so nothing is lost.");
+      return;
+    }
     setBusy(true);
     try {
       const res = await fetch(`/api/v1/drafts/${draftId}/generations`, {
@@ -268,8 +294,8 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
     setActionError(null);
     try {
       // Flush latest content first: approval covers the current version.
-      const ok = await save({ subject, body, expectedVersion: savedVersion.current, intent, mode });
-      if (!ok) throw new Error("Save your draft first — it changed and needs a clean save.");
+      const flush = await save({ subject, body, expectedVersion: savedVersion.current, intent, mode });
+      if (flush !== "ok") throw new Error("Save your draft first — it changed and needs a clean save.");
       const approval = await fetch(`/api/v1/drafts/${draftId}/approvals`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { createDraft, listDrafts } from "@/server/services/drafts";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
@@ -18,7 +18,7 @@ const createSchema = z.object({
 
 export async function GET() {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const rows = await listDrafts(user.id);
     return ok({ drafts: rows });
@@ -30,7 +30,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const body = createSchema.parse(await req.json());
     const id = await createDraft({

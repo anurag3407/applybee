@@ -9,6 +9,7 @@ import {
   dispatchDigestForUser,
 } from "@/server/services/digest";
 import { updatePreferences, getPreferences } from "@/server/services/resumes";
+import { getConfig } from "@/server/config";
 
 let client: Client;
 
@@ -62,8 +63,47 @@ describe("Daily Hiring Digest (Option B)", () => {
     expect(html).toContain("5 AI Drafts Available");
     expect(html).toContain("⚡ 1-Click Draft to Gmail");
     expect(html).toContain("🔓 Reveal Direct Email");
-    expect(html).toContain("https://applybee.sayalabs.in/app?action=draft");
-    expect(html).toContain("https://applybee.sayalabs.in/app/settings");
+
+    // Deep links must resolve to real routes and use the configured base URL.
+    // They used to point at "/app?action=draft", which the dashboard never
+    // read — every call to action in the digest was a dead link.
+    const baseUrl = getConfig().APP_BASE_URL.replace(/\/+$/, "");
+    expect(html).toContain(baseUrl);
+    expect(html).toMatch(/href="[^"]*\/app\/contacts/);
+    expect(html).not.toContain("/app?action=");
+    expect(html).toContain(`${baseUrl}/app/settings`);
+  });
+
+  it("escapes directory-supplied text in the HTML body", () => {
+    const html = renderDailyDigestHtml({
+      displayName: "<script>alert(1)</script>",
+      posts: [
+        {
+          id: "p1",
+          title: 'Senior <img src=x onerror="alert(1)">',
+          companyName: "Acme & Co",
+          location: "<b>Bangalore</b>",
+          roleCategory: "engineering",
+          department: "engineering",
+          sourcePlatform: "reachbee",
+          sourceUrl: null,
+          postSnippet: "Hiring <script>alert('xss')</script> now",
+          techStack: ["<i>React</i>"],
+          hiringManagerName: "Ada <script>",
+          hiringManagerTitle: "CTO",
+          postedAt: new Date(),
+        },
+      ],
+      contactCredits: 1,
+      aiCredits: 1,
+    });
+
+    // No live markup survives: the injected tags appear only in escaped form.
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("<img");
+    expect(html).toContain("&lt;script&gt;");
+    expect(html).toContain("&lt;img");
+    expect(html).toContain("Acme &amp; Co");
   });
 
   it("dispatches digest, prevents duplicate dispatch today, and allows force dispatch", async () => {

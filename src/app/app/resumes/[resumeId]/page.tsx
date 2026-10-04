@@ -6,6 +6,7 @@ import { getResume } from "@/server/services/resumes";
 import { Badge, Card, StatusChip } from "@/components/ui/primitives";
 import { formatDate } from "@/lib/format";
 import { DeleteResumeButton } from "@/components/resumes/delete-resume";
+import { DownloadResumeButton } from "@/components/resumes/download-resume";
 
 export const metadata: Metadata = { title: "Resume" };
 
@@ -30,7 +31,14 @@ export default async function ResumeDetailPage({ params }: { params: Promise<{ r
               {resume.pageCount ? ` · ${resume.pageCount} pages` : ""} · uploaded {formatDate(resume.createdAt)}
             </p>
           </div>
-          <DeleteResumeButton resumeId={resume.id} />
+          <div className="flex items-center gap-2">
+            <DownloadResumeButton
+              resumeId={resume.id}
+              filename={resume.displayFilename}
+              disabled={resume.scanStatus !== "clean"}
+            />
+            <DeleteResumeButton resumeId={resume.id} />
+          </div>
         </div>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex items-center gap-2">
@@ -62,10 +70,10 @@ export default async function ResumeDetailPage({ params }: { params: Promise<{ r
         </Card>
       ) : null}
       <Card>
-        <h3 className="text-sm font-bold text-ink">Safe preview</h3>
+        <h3 className="text-sm font-bold text-ink">Safe downloads</h3>
         <p className="mt-1 text-sm text-text-secondary">
-          Inline PDF preview uses an isolated viewer in production. In this build, download links are authorized,
-          short-lived, and scan-gated — a file must be scan-clean before it can be downloaded or attached.
+          Downloads require your signed-in session and an ownership check on the server, are scan-gated, and are never
+          publicly linkable. A file must be scan-clean before it can be downloaded or attached to a draft.
         </p>
       </Card>
     </div>

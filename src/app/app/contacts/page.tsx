@@ -127,7 +127,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                       {c.unlocked ? (
                         <Badge tone="success">Unlocked</Badge>
                       ) : (
-                        <RevealAction contactId={c.id} unlocked={false} initialEmail={null} initialBalance={balances.contact} companyName={c.companyName} contactName={c.name} />
+                        <RevealAction contactId={c.id} unlocked={false} initialEmail={null} initialBalance={balances.contact} maskedEmail={c.maskedEmail} contactName={c.name} />
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -169,7 +169,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                   {c.unlocked ? (
                     <Badge tone="success">Unlocked</Badge>
                   ) : (
-                    <RevealAction contactId={c.id} unlocked={false} initialEmail={null} initialBalance={balances.contact} companyName={c.companyName} contactName={c.name} />
+                    <RevealAction contactId={c.id} unlocked={false} initialEmail={null} initialBalance={balances.contact} maskedEmail={c.maskedEmail} contactName={c.name} />
                   )}
                   <SaveContactButton contactId={c.id} saved={c.saved} />
                 </div>

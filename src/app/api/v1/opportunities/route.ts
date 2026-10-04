@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { createOpportunity, listOpportunities, updateOpportunity, deleteOpportunity, addNote, OpportunityError } from "@/server/services/opportunities";
 import { opportunitySchema, opportunitySchema as opSchema } from "@/lib/validation";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
 export async function GET() {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     return ok({ opportunities: await listOpportunities(user.id) });
   } catch (err) {
@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const body = opportunitySchema.parse(await req.json());
     const id = await createOpportunity(user.id, body);
@@ -32,7 +32,7 @@ const patchSchema = opSchema.partial();
 export async function PATCH(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const url = new URL(req.url);
     const opportunityId = url.searchParams.get("id");
@@ -49,7 +49,7 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const url = new URL(req.url);
     const opportunityId = url.searchParams.get("id");
@@ -66,7 +66,7 @@ const noteSchema = z.object({ body: z.string().min(1).max(5000) });
 export async function PUT(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const url = new URL(req.url);
     const opportunityId = url.searchParams.get("id");

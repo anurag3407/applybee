@@ -31,7 +31,8 @@ export default async function ResumesPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-ink">Resumes</h2>
         <p className="text-sm text-text-secondary">
-          Private storage, scan-gated, short-lived download links. PDF up to 5 MiB, 10 pages, 3 active files.
+          Private storage, scan-gated, owner-only downloads — files are never publicly linkable. PDF up to 5 MiB, 10 pages, 3
+          active files.
         </p>
       </div>
 

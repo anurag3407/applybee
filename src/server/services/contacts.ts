@@ -9,6 +9,7 @@ import { withIdempotency, hashRequest } from "@/server/services/idempotency";
 import { audit } from "@/server/services/audit";
 import { CreditError } from "@/server/services/credits";
 import { verifyMailboxPreflight } from "@/server/services/verification";
+import { logger } from "@/server/logger";
 
 /**
  * Directory service (§12.3, §12.4). Locked emails are absent from every
@@ -218,6 +219,14 @@ export async function revealContactForUser(params: {
           throw new RevealError("CONTACT_INVALID", "We tested this contact's mailbox in real-time and it is currently unreachable. No credit was charged.");
         } else if (preflight.status === "catch_all" && existingContact.verificationStatus !== "catch_all") {
           await db.update(contacts).set({ verificationStatus: "catch_all" }).where(eq(contacts.id, params.contactId));
+        } else if (preflight.status === "unavailable") {
+          // The check could not run (no DNS/TCP in this runtime). That is not
+          // evidence the mailbox is bad, so the reveal proceeds unchanged and
+          // we only record that verification was skipped.
+          logger.debug("contact.verification_unavailable", {
+            contactId: params.contactId,
+            reason: preflight.reason,
+          });
         }
       }
 
@@ -320,6 +329,16 @@ export async function reportContact(params: {
   reportType: "stale" | "incorrect" | "removal" | "abuse";
   details: string;
 }) {
+  if (params.userId) {
+    const admission = await admitWithPreCheck({
+      policy: LIMITS.contactReport,
+      principal: params.userId,
+      operationRef: `report:${params.userId}:${params.contactId ?? "anon"}:${params.reportType}:${Date.now()}`,
+    });
+    if (!admission.admitted) {
+      throw new RevealError("RATE_LIMITED", "Too many reports submitted. Please try again later.", admission.retryAfterSeconds);
+    }
+  }
   await db.insert(contactReports).values({
     reporterUserId: params.userId,
     contactId: params.contactId,
@@ -333,6 +352,21 @@ export async function reportBounceAndRefund(params: {
   userId: string;
   contactId: string;
 }): Promise<{ refunded: boolean; message: string }> {
+  // Durable per-user budget. The per-contact guard below alone does NOT bound
+  // this: a user could reveal contact A, report it bounced, then repeat for
+  // every other contact and obtain the whole directory for free.
+  const admission = await admitWithPreCheck({
+    policy: LIMITS.contactReplacement,
+    principal: params.userId,
+    operationRef: `replacement:${params.userId}:${params.contactId}`,
+  });
+  if (!admission.admitted) {
+    return {
+      refunded: false,
+      message: "You've reached the daily limit for bounced-email replacements. Our team reviews these manually — we'll credit you if the address was genuinely invalid.",
+    };
+  }
+
   // 1. Verify user unlocked this contact
   const unlock = await db
     .select({ id: contactUnlockss.id })
@@ -356,22 +390,27 @@ export async function reportBounceAndRefund(params: {
 
   // 3. Mark contact invalid & add to suppressions
   const contact = (await db.select().from(contacts).where(eq(contacts.id, params.contactId)).limit(1))[0];
-  if (contact) {
-    await db.update(contacts).set({ verificationStatus: "invalid", status: "stale" }).where(eq(contacts.id, params.contactId));
-    if (contact.emailFingerprint) {
-      await db.execute(sql`
-        INSERT INTO contact_suppressions (email_fingerprint, contact_id, scope, reason, state)
-        VALUES (${contact.emailFingerprint}, ${contact.id}::uuid, 'delivery_wide', 'Reported hard bounce by user', 'active')
-        ON CONFLICT DO NOTHING
-      `);
-    }
+  if (!contact) {
+    return { refunded: false, message: "This contact is no longer in the directory." };
+  }
+  if (contact.verificationStatus === "invalid") {
+    // Already known-bad. Do not refund again, and do not re-report.
+    return { refunded: false, message: "This contact's email is already flagged as invalid." };
+  }
+  await db.update(contacts).set({ verificationStatus: "invalid", status: "stale" }).where(eq(contacts.id, params.contactId));
+  if (contact.emailFingerprint) {
+    await db.execute(sql`
+      INSERT INTO contact_suppressions (email_fingerprint, contact_id, scope, reason, state)
+      VALUES (${contact.emailFingerprint}, ${contact.id}::uuid, 'delivery_wide', 'Reported hard bounce by user', 'active')
+      ON CONFLICT DO NOTHING
+    `);
   }
 
   // 4. Record the report
   await db.insert(contactReports).values({
     reporterUserId: params.userId,
     contactId: params.contactId,
-    emailFingerprint: contact?.emailFingerprint ?? null,
+    emailFingerprint: contact.emailFingerprint ?? null,
     reportType: "incorrect",
     details: "User reported hard bounce / non-delivery. Automated instant credit replacement issued.",
   });

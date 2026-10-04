@@ -21,7 +21,7 @@ import {
   users,
 } from "@/db/schema";
 import { getConfig } from "@/server/config";
-import { decryptEnvelope, emailFingerprint } from "@/server/crypto";
+import { decryptEnvelope, emailFingerprint, sha256Hex } from "@/server/crypto";
 import { logger } from "@/server/logger";
 import {
   completeGeneration,
@@ -166,7 +166,11 @@ const draftGenerate: Handler = async (ctx) => {
           },
           profileRevisionId: snapshot.profileRevisionId ?? null,
           generationId: gen.id,
-          contentHash: `${draft.subject.length}:${draft.body.length}`,
+          // A real digest, matching the manual/autosave path in services/drafts.ts.
+          // This used to store `${subject.length}:${body.length}`, which is not a
+          // hash: any same-length edit produces an identical value, so the
+          // column could not be used to detect changed content.
+          contentHash: sha256Hex(`${draft.subject}\n${draft.body}`).slice(0, 32),
         })
         .returning({ id: draftRevisions.id });
       const revisionId = inserted[0]!.id;
@@ -441,13 +445,24 @@ const gmailCreateDraft: Handler = async (ctx) => {
 
   // Persist the attempt with external-call-start evidence BEFORE dispatch
   // (§16.5): a crash after POST must route recovery to reconciliation.
+  //
+  // attempt_no must be derived, not hardcoded. `delivery_attempts` has a unique
+  // index on (delivery_id, attempt_no), and this handler deliberately re-enters
+  // when the delivery is left in `calling_provider` — that is precisely the
+  // crash-recovery path. A hardcoded 1 made the second entry violate the unique
+  // constraint, so a crashed dispatch permanently broke the delivery instead of
+  // routing it to reconciliation.
   const { deliveryAttempts } = await import("@/db/schema");
+  const maxAttempt = await db.execute(sql`
+    SELECT COALESCE(MAX(attempt_no), 0) + 1 AS next FROM delivery_attempts WHERE delivery_id = ${delivery.id}::uuid
+  `);
+  const attemptNo = Number((maxAttempt.rows[0] as { next: number }).next);
   const attempt = (
     await db
       .insert(deliveryAttempts)
       .values({
         deliveryId: delivery.id,
-        attemptNo: 1,
+        attemptNo,
         state: "calling",
         callStartedAt: new Date(),
         leaseOwner: ctx.jobId,
@@ -735,7 +750,9 @@ const resumeScanParse: Handler = async (ctx) => {
             source: "resume",
             resumeId: resume.id,
             extracted: { summary: parsed.summary, targetRole: parsed.targetRole, lowText: parsed.lowText },
-            contentHash: `${parsed.facts.length}`,
+            // Match the manual path in services/resumes.ts: a digest of the fact list,
+          // not the number of facts.
+          contentHash: sha256Hex(JSON.stringify(parsed.facts)).slice(0, 32),
           })
           .returning({ id: candidateProfileRevisions.id })
       )[0];

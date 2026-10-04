@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { approveDraftDelivery, startDelivery, DeliveryPreflightError } from "@/server/services/gmail";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
@@ -12,7 +12,7 @@ const schema = z.object({ attachmentResumeId: z.string().uuid().nullable().optio
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     const body = schema.parse(await req.json().catch(() => ({})));
@@ -37,7 +37,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     const body = z.object({ approvalId: z.string().uuid() }).parse(await req.json());

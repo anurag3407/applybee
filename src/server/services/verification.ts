@@ -3,8 +3,10 @@ import dns from "node:dns/promises";
 import type { MxRecord } from "node:dns";
 import net from "node:net";
 
+export type VerificationStatus = "verified" | "catch_all" | "invalid" | "unavailable";
+
 export type VerificationResult = {
-  status: "verified" | "catch_all" | "invalid";
+  status: VerificationStatus;
   score: number; // 0 - 100
   isCatchAll: boolean;
   mxHost?: string;
@@ -20,10 +22,37 @@ const KNOWN_CATCH_ALL_DOMAINS = new Set([
 ]);
 
 /**
+ * Whether this runtime can actually perform the checks.
+ *
+ * The probe needs a DNS resolver and a raw TCP socket to port 25. Cloudflare
+ * Workers provide neither: `node:dns` is not implemented and outbound TCP is
+ * unavailable, so every lookup would throw. Attempting it anyway is worse than
+ * skipping it — a thrown lookup used to be reported as "invalid", which marked
+ * every contact in the directory as invalid and failed every reveal in
+ * production. A check that could not run must never be treated as a negative
+ * result.
+ */
+function canRunNetworkProbe(): boolean {
+  const runtime = globalThis as {
+    process?: { versions?: { node?: string } };
+    navigator?: { userAgent?: string };
+    caches?: unknown;
+  };
+  // Cloudflare Workers expose no `process` and no outbound TCP.
+  if (typeof runtime.process?.versions?.node !== "string") return false;
+  const userAgent = runtime.navigator?.userAgent ?? "";
+  if (/Cloudflare/i.test(userAgent)) return false;
+  return true;
+}
+
+/**
  * Pre-flight network-level mailbox verification.
  * 1. Syntax check
  * 2. DNS MX resolution
  * 3. Catch-all simulation & SMTP handshake (RCPT TO) without sending any mail
+ *
+ * Returns status "unavailable" when the runtime cannot perform the check, so
+ * callers can distinguish "this mailbox is bad" from "we could not look".
  */
 export async function verifyMailboxPreflight(email: string): Promise<VerificationResult> {
   const trimmed = email.trim().toLowerCase();
@@ -39,6 +68,16 @@ export async function verifyMailboxPreflight(email: string): Promise<Verificatio
     return { status: "invalid", score: 0, isCatchAll: false, reason: "Invalid domain syntax" };
   }
 
+  // Without a usable resolver/socket there is nothing to conclude.
+  if (!canRunNetworkProbe()) {
+    return {
+      status: "unavailable",
+      score: 0,
+      isCatchAll: false,
+      reason: "Mailbox verification is not available in this runtime",
+    };
+  }
+
   // 1. DNS MX Resolution
   let mxRecords: MxRecord[];
   try {
@@ -48,7 +87,8 @@ export async function verifyMailboxPreflight(email: string): Promise<Verificatio
     }
     mxRecords.sort((a, b) => a.priority - b.priority);
   } catch (err) {
-    return { status: "invalid", score: 0, isCatchAll: false, reason: "DNS MX lookup failed" };
+    // Lookup failure is not evidence the mailbox is bad.
+    return { status: "unavailable", score: 0, isCatchAll: false, reason: "DNS MX lookup failed" };
   }
 
   const primaryMx = mxRecords[0]!.exchange;
@@ -63,7 +103,7 @@ export async function verifyMailboxPreflight(email: string): Promise<Verificatio
     };
   }
 
-  // 2. Network-Level SMTP Handshake Simulation (5 second budget)
+  // 2. Network-Level SMTP Handshake Simulation (4 second budget)
   try {
     const smtpCheck = await simulateSmtpHandshake(primaryMx, domain, user);
     return {
@@ -74,13 +114,14 @@ export async function verifyMailboxPreflight(email: string): Promise<Verificatio
       reason: smtpCheck.reason,
     };
   } catch (_networkError) {
-    // If SMTP port 25 is blocked by cloud/ISP firewall, fall back to high-confidence MX resolution
+    // Port 25 is commonly blocked. Report "unavailable" rather than claiming a
+    // verification that never happened.
     return {
-      status: "verified",
-      score: 95,
+      status: "unavailable",
+      score: 0,
       isCatchAll: false,
       mxHost: primaryMx,
-      reason: "DNS MX verified (SMTP direct check bypassed)",
+      reason: "DNS MX resolved but the SMTP probe was blocked",
     };
   }
 }

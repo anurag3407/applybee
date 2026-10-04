@@ -8,15 +8,40 @@ import { emailFingerprint } from "@/server/crypto";
 
 /**
  * Public support + contact-data requests (§19.2). No account required for
- * data subjects; challenge/limits apply per trusted IP (simplified to global
- * principal here, documented limitation).
+ * data subjects; rate limiting is applied per source IP.
  */
+
+/**
+ * Best-effort client IP. Cloudflare Workers set CF-Connecting-IP; the
+ * x-forwarded-for fallback keeps local and proxied setups working. Returns
+ * "unknown" when neither header is present so the limit still applies.
+ */
+function clientIp(req: Request): string {
+  const cf = req.headers.get("cf-connecting-ip");
+  if (cf) return cf.trim().slice(0, 64);
+  const forwarded = req.headers.get("x-forwarded-for");
+  const first = forwarded?.split(",")[0]?.trim();
+  if (first) return first.slice(0, 64);
+  return "unknown";
+}
+
 export async function POST(req: Request) {
   try {
     const url = new URL(req.url);
     const kind = url.searchParams.get("kind") ?? "support";
-    const principal = "public";
-    await admitWithPreCheck({ policy: LIMITS.publicSupport, principal, operationRef: `public:${kind}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}` });
+    // Rate limit per source IP, not one global bucket. A single shared
+    // principal meant three requests from anyone exhausted the budget for
+    // every other visitor, so one abuser could silence the support form.
+    const principal = `public:${clientIp(req)}`;
+    const admission = await admitWithPreCheck({
+      policy: LIMITS.publicSupport,
+      principal,
+      operationRef: `public:${kind}:${principal}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+    });
+    if (!admission.admitted) {
+      const { apiError } = await import("@/server/http");
+      return apiError(429, "RATE_LIMITED", "Too many requests. Please try again later.");
+    }
 
     const body = await req.json();
     if (kind === "contact-data-request") {

@@ -60,9 +60,10 @@ class RazorpayGateway implements PaymentGateway {
   }
 
   async fetchPayment(paymentId: string) {
-    if (paymentId.startsWith("mock_pay_")) {
-      return { status: "captured", amount: 0, currency: "INR", orderId: null };
-    }
+    // No mock short-circuit here: this gateway is only selected when real
+    // Razorpay keys are configured, so provider state must always come from
+    // the provider. Answering "captured" for a caller-chosen id would let
+    // anyone mint a paid-looking payment.
     const res = await fetch(`https://api.razorpay.com/v1/payments/${encodeURIComponent(paymentId)}`, {
       headers: { Authorization: this.authHeader() },
       signal: AbortSignal.timeout(20_000),

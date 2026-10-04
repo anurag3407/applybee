@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
-import { reportContact, reportBounceAndRefund } from "@/server/services/contacts";
+import { getApiUser } from "@/server/auth/session";
+import { reportContact, reportBounceAndRefund, RevealError } from "@/server/services/contacts";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
 const schema = z.object({
@@ -11,7 +11,9 @@ const schema = z.object({
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    // getApiUser, not getSessionUser: reporting mutates shared directory state
+    // and issues credits, so disabled/deleting accounts must not be able to.
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     const body = schema.parse(await req.json());
@@ -29,6 +31,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
     return ok({ reported: true });
   } catch (err) {
+    if (err instanceof RevealError && err.code === "RATE_LIMITED") {
+      return errorResponse(new Error("RATE_LIMITED"));
+    }
     return errorResponse(err);
   }
 }

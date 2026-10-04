@@ -1,10 +1,10 @@
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { getDeliveryStatus, requestReconcile, recreateDelivery, DeliveryPreflightError } from "@/server/services/gmail";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     const delivery = await getDeliveryStatus(user.id, id);
@@ -27,7 +27,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     const body = (await req.json().catch(() => ({}))) as { action?: string; draftId?: string };

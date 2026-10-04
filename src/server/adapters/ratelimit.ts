@@ -25,6 +25,11 @@ export type LimitPolicy = {
 export const LIMITS = {
   directorySearch: { operationKind: "directory.search", windowSeconds: 60, limit: 60, failClosed: false },
   reveal: { operationKind: "reveal", windowSeconds: 60, limit: 20, failClosed: true },
+  // A "bounced" report grants a replacement credit and invalidates a shared
+  // directory contact. Without a durable per-user budget, reveal -> report ->
+  // free repeat turns every contact in the directory into a free reveal.
+  contactReplacement: { operationKind: "contact.replacement", windowSeconds: 86400, limit: 3, failClosed: true },
+  contactReport: { operationKind: "contact.report", windowSeconds: 3600, limit: 10, failClosed: true },
   aiGenerate: { operationKind: "ai.generate", windowSeconds: 60, limit: 5, failClosed: true },
   aiGenerateHour: { operationKind: "ai.generate.hour", windowSeconds: 3600, limit: 30, failClosed: true },
   gmailCreate: { operationKind: "gmail.create", windowSeconds: 60, limit: 5, failClosed: true },
@@ -34,6 +39,7 @@ export const LIMITS = {
   autosave: { operationKind: "draft.autosave", windowSeconds: 60, limit: 120, failClosed: false },
   orders: { operationKind: "billing.order", windowSeconds: 600, limit: 5, failClosed: true },
   publicSupport: { operationKind: "public.support", windowSeconds: 3600, limit: 3, failClosed: false },
+  digestTest: { operationKind: "digest.test", windowSeconds: 3600, limit: 3, failClosed: true },
   oauthStart: { operationKind: "oauth.start", windowSeconds: 600, limit: 5, failClosed: true },
   exportData: { operationKind: "privacy.export", windowSeconds: 86400, limit: 1, failClosed: true },
   deleteAccount: { operationKind: "privacy.delete", windowSeconds: 86400, limit: 3, failClosed: true },

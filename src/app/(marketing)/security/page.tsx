@@ -21,9 +21,11 @@ export default function SecurityPage() {
         <section>
           <h2 className="text-xl font-bold text-ink">Storage and files</h2>
           <p className="prose-measure mt-2 text-[0.95rem] leading-relaxed text-text-secondary">
-            Resumes live in private storage with quarantine → scan → immutable clean storage. Downloads use short-lived
-            authorized links. Directory emails are protected at rest with envelope encryption and never appear in list
-            responses, exports, or logs — only revealed to the account that unlocked them.
+            Resumes live in private storage with quarantine → scan → immutable clean storage. Downloads require your signed-in
+            session and an ownership check on the server; there are no public or guessable file URLs, and a file must
+            pass the scan gate before it can be downloaded or attached. Directory emails are protected at rest with
+            envelope encryption and never appear in list responses, exports, or logs — only revealed to the account
+            that unlocked them.
           </p>
         </section>
         <section>

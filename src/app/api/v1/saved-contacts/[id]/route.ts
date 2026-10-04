@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { saveContact, unsaveContact, updateSavedContact } from "@/server/services/contacts";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
@@ -11,7 +11,7 @@ const putSchema = z.object({
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     const body = putSchema.parse(await req.json().catch(() => ({})));
@@ -30,7 +30,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     await unsaveContact(user.id, id);

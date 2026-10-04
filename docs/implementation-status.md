@@ -49,15 +49,21 @@
 
 ## Known deviations / notes
 
-1. **Auth adapter:** the plan mandates Clerk; this build ships the full app behind an adapter interface with a labeled local development session (production-blocked by config validation). Wiring steps in ADR 0002 — intentional per “keep incomplete external features behind honest flags”.
+1. **Auth adapter:** the plan mandates Clerk; this build ships the full app behind an adapter interface with a labeled local development session. `getConfig()` now throws in production when Clerk keys are missing, when `DATABASE_URL` is unset/localhost, or when `TOKEN_ENCRYPTION_KEY` is absent or malformed — the dev adapter can no longer reach production. Wiring steps in ADR 0002.
 2. **React Query** (§5.1) intentionally omitted; server state via RSC + small polling hooks — fewer dependencies, same behavior. Documented in ADR 0001.
-3. **Direct server-mediated uploads** locally (no presigned PUT without a real bucket); the storage adapter interface matches S3/R2 semantics for production.
-4. **Embedded dev worker** via `instrumentation.ts` executes the same durable DB jobs with outbox/idempotency semantics; production runs the standalone worker (`pnpm worker:dev`) per runbook.
+3. **Direct server-mediated uploads** locally (no presigned PUT without a real bucket); the storage adapter interface matches S3/R2 semantics for production. Upload bodies are read from the request stream under a 5 MiB cap rather than buffered whole.
+4. **Embedded dev worker** via `instrumentation.ts` executes the same durable DB jobs with outbox/idempotency semantics. **This does not work on Cloudflare Workers** — Workers freeze between requests, so the `setInterval` loop never ticks in production and the OpenNext build emits no `scheduled` handler. Production background work (resume scanning, AI generations, credit reconcile, reminders, the daily digest) is driven by `POST /api/v1/cron/run` with `Authorization: Bearer $CRON_SECRET`, scheduled by `.github/workflows/scheduled-jobs.yml`. See “Background jobs in production” in the README.
 5. **Next.js 16** renamed `middleware.ts` → `proxy.ts` (adopted). Exact versions pinned in `package.json`.
-6. Two real defects were caught and fixed during E2E verification: missing `setAuthTag` in envelope decryption, and a column-count bug in three credit ledger SQL functions — both now covered by tests.
+6. `src/db/functions.sql` is re-applied whenever its contents change (tracked by SHA-256 in `_applied_functions`), so audited SQL function fixes actually reach an already-migrated database.
+7. Admin authorization is enforced in `src/app/admin/layout.tsx`, not only inside `AdminShell`, so a non-admin request is rejected before any admin page body runs its cross-user queries.
+8. **Gmail reconciliation does not auto-resolve.** `listRecentDraftMarkers` searches `drafts.list` with `q=in:draft X-ApplyBee-Operation:<marker>`. Gmail's search syntax does not index arbitrary custom headers, so this returns no matches and every uncertain delivery falls through to `needs_confirmation` after ~10 minutes of retries. The failure mode is safe (the user is asked to check their Drafts folder rather than being told a false outcome), but automatic confirmation does not work. Fixing it requires either a Gmail label or adding `messages.get` to the adapter's HTTP allowlist — a change to a send-blocking security boundary that should be made deliberately, with tests.
+9. **Contact verification cannot run on Cloudflare Workers.** The probe needs DNS plus a raw port-25 socket, neither of which Workers provide. `verifyMailboxPreflight` now returns `unavailable` in that runtime rather than reporting a false negative, so reveals are not blocked — but no contact is genuinely verified in production. Directory `verificationStatus` values come from licensed/seeded data.
+10. Resume malware scanning requires the isolated document processor. Without `DOCUMENT_PROCESSOR_ENDPOINT`, uploads are validated structurally (magic bytes, encryption, page count) and marked clean on that basis alone; config logs a warning at boot when this is the case.
 
 ## Operator checklist before enabling live capability
 
-1. Set real credentials (`.env.example` inventory), set `APP_ENV=production`; config validation will refuse dev adapters.
-2. Flip flags only after their gates: `FEATURE_AI_ENABLED` (AI terms + eval), `FEATURE_GMAIL_ENABLED` (Google verification), `FEATURE_LIVE_PURCHASES_ENABLED` (economics + legal), `FEATURE_RESUME_ATTACHMENTS_ENABLED` (scanner).
-3. Run `docs/runbooks/deployment.md` with a real staging drill incl. restore + payment/Gmail reconciliation.
+1. Set real credentials (`.env.example` inventory) via `wrangler secret put`, set `APP_ENV=production` in `wrangler.jsonc` vars. Config validation refuses to boot on a missing auth adapter, database, or encryption key, and logs a loud list of any feature-degrading gaps (missing webhook secrets, no AI key, no document processor).
+2. If the deployment serves more than one custom domain, set `EXTRA_ALLOWED_ORIGINS` so users on the non-canonical host are not blocked from every form.
+3. Register `CRON_SECRET` as a repository secret and `APP_URL` as a repository variable so the scheduled workflow can drive the job queue and digest.
+4. Flip flags only after their gates: `FEATURE_AI_ENABLED` (AI terms + eval), `FEATURE_GMAIL_ENABLED` (Google verification), `FEATURE_LIVE_PURCHASES_ENABLED` (economics + legal), `FEATURE_RESUME_ATTACHMENTS_ENABLED` (scanner).
+5. Run `docs/runbooks/deployment.md` with a real staging drill incl. restore + payment/Gmail reconciliation.

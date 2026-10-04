@@ -16,14 +16,15 @@ export function RevealAction({
   unlocked,
   initialEmail,
   initialBalance,
-  companyName,
+  maskedEmail,
   contactName,
 }: {
   contactId: string;
   unlocked: boolean;
   initialEmail: string | null;
   initialBalance: { available: number; reserved: number } | null;
-  companyName: string;
+  /** Server-computed masked preview (domain only). Never fabricated client-side. */
+  maskedEmail: string;
   contactName: string;
 }) {
   const router = useRouter();
@@ -93,7 +94,7 @@ export function RevealAction({
   return (
     <div className="space-y-2">
       <Badge tone="honey">
-        <Lock size={12} aria-hidden /> •••@{companyName.toLowerCase().replace(/[^a-z]+/g, "-")}.example
+        <Lock size={12} aria-hidden /> {maskedEmail}
       </Badge>
       <div>
         <Button size="sm" variant="accent" onClick={reveal} disabled={busy}>
@@ -217,7 +218,7 @@ export function ReportContactDialog({ contactId }: { contactId: string }) {
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-ink" htmlFor="report-type">Reason</label>
             <select id="report-type" value={type} onChange={(e) => setType(e.target.value)} className="h-11 w-full rounded-control border border-border-control bg-surface px-3 text-ink">
-              <option value="bounced">⚡ Email Bounced / Unreachable (Instant 100% Credit Refund)</option>
+              <option value="bounced">⚡ Email Bounced / Unreachable (request a replacement credit)</option>
               <option value="stale">Left the company / role changed</option>
               <option value="incorrect">Details are incorrect</option>
               <option value="removal">I am this person — remove me</option>
@@ -238,7 +239,7 @@ export function ReportContactDialog({ contactId }: { contactId: string }) {
             <div className="flex justify-end gap-2">
               <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>Cancel</Button>
               <Button size="sm" variant={type === "bounced" ? "accent" : "primary"} onClick={submit} disabled={busy}>
-                {busy ? "Processing…" : type === "bounced" ? "Claim instant credit refund" : "Send report"}
+                {busy ? "Processing…" : type === "bounced" ? "Request replacement credit" : "Send report"}
               </Button>
             </div>
           </div>

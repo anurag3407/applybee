@@ -1,0 +1,38 @@
+name: Scheduled jobs
+
+# The deployed Cloudflare Worker has no timer — Workers freeze between requests,
+# so the in-process setInterval worker loop never ticks in production. This
+# schedule is what actually drains the durable job queue (resume scanning, AI
+# generation, credit reconcile, reminders) and sends the daily digest.
+#
+# The endpoint itself is idempotent: jobs are claimed with leases and the digest
+# is claimed by a unique (user_id, dispatch_date) row before any email is sent.
+
+on:
+  schedule:
+    # Every 5 minutes. Outside the digest hour this only drains the queue.
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: scheduled-jobs
+  cancel-in-progress: false
+
+jobs:
+  run-cron:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger scheduler endpoint
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${APP_URL}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "APP_URL (repo variable) and CRON_SECRET (repo secret) must both be set." >&2
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error --max-time 240 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${APP_URL}/api/v1/cron/run"

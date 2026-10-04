@@ -1,10 +1,10 @@
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { getContactForUser } from "@/server/services/contacts";
 import { ok, errorResponse } from "@/server/http";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     const contact = await getContactForUser(user.id, id);

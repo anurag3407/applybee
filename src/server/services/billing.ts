@@ -155,7 +155,12 @@ export async function verifyCheckout(params: {
   if (order.status === "fulfilled") return { status: "fulfilled", fulfilled: true };
 
   const gateway = getPaymentGateway();
-  if (gateway.mode === "mock" || params.providerPaymentId.startsWith("mock_pay_")) {
+  // The sandbox shortcut must depend ONLY on the server-side gateway mode.
+  // It previously also triggered on any client-supplied payment id starting
+  // with "mock_pay_", which let a signed-in user fulfill their own order and
+  // receive paid credits without paying anything, even with live Razorpay
+  // keys configured.
+  if (gateway.mode === "mock" && !config.isProduction) {
     const { fulfillCapturedPayment } = await import("@/server/services/credits");
     const result = await fulfillCapturedPayment({
       providerPaymentId: params.providerPaymentId,

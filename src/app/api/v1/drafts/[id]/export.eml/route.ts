@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { exportEml } from "@/server/services/drafts";
 import { errorResponse } from "@/server/http";
 import { NextResponse } from "next/server";
@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 /** GET /drafts/:id/export.eml — authorized download; no hidden links (§19.2). */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const { id } = await params;
     const result = await exportEml(user.id, id);

@@ -29,8 +29,8 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "AI processing",
         body: [
-          "When you generate a draft, the confirmed profile facts, relevant company evidence, and any job description you paste are sent to our model provider (Google Gemini API) to produce the draft. Draft bodies and resumes are not used to train models under our commercial terms.",
-          "Manual writing, templates, and copying never call the model provider.",
+          "When you generate a draft, the profile facts you have confirmed, relevant company evidence, and any job description you paste are sent to our model provider to produce the draft. When you upload a resume, the extracted text is sent to the same provider to extract facts for your review. Manual writing, templates, and copying never call the model provider.",
+          "Our current model provider is OpenRouter (openrouter.ai); if that changes we will update this policy before the change takes effect. Data sent to the provider is limited to the inputs needed for that one request and is not used to train models under our commercial terms with that provider. See the provider's own terms for the model you select.",
         ],
       },
       {
@@ -51,7 +51,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Processors",
         body: [
-          "Neon (database), Upstash (rate limiting), Razorpay (payments), Google (model API and Gmail API), and our hosting provider. Contact directory data is licensed from verified sources only; see the Contact data policy.",
+          "Neon (database and resume file storage), Upstash (rate limiting), Resend (transactional email such as receipts and the daily digest), OpenRouter (model API), Razorpay (payments), Google (Gmail API), and Cloudflare (hosting and CDN). Contact directory data is licensed from verified sources only; see the Contact data policy.",
         ],
       },
     ],

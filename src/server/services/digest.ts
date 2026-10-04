@@ -10,8 +10,23 @@ import {
   users,
 } from "@/db/schema";
 import { logger } from "@/server/logger";
+import { getConfig } from "@/server/config";
 import { sendEmail, type SendEmailResult } from "@/server/services/email";
 import { getBalances } from "@/server/services/credits";
+
+/**
+ * Digest copy is assembled from directory data (contact names, company names,
+ * post snippets) that admins and importers control. Without escaping, a single
+ * crafted record injects arbitrary HTML/links into every recipient's inbox.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 export type DigestHiringPost = {
   id: string;
@@ -354,20 +369,22 @@ export function renderDailyDigestHtml(params: {
   aiCredits: number;
 }): string {
   const name = params.displayName.trim() || "there";
-  const baseUrl = "https://applybee.sayalabs.in";
+  const baseUrl = getConfig().APP_BASE_URL.replace(/\/+$/, "");
 
   const postCardsHtml = params.posts
     .map((p, index) => {
-      // 1-Click Draft Deeplink (Consumes 1 AI Generation Credit)
-      const draftUrl = `${baseUrl}/app?action=draft&company=${encodeURIComponent(p.companyName)}&role=${encodeURIComponent(p.title)}${p.contactId ? `&contactId=${p.contactId}` : ""}`;
+      // Deep links must resolve to real routes. `/app?action=...` was a dead end:
+      // the dashboard never reads search params, so every call to action in the
+      // digest silently did nothing. Link straight at the contact instead.
+      const draftUrl = `${baseUrl}/app/contacts${p.contactId ? `/${encodeURIComponent(p.contactId)}` : `?q=${encodeURIComponent(p.companyName)}`}`;
       // Reveal Email Deeplink (Consumes 1 Contact Reveal Credit)
-      const revealUrl = `${baseUrl}/app?action=reveal${p.contactId ? `&contactId=${p.contactId}` : `&search=${encodeURIComponent(p.companyName)}`}`;
+      const revealUrl = `${baseUrl}/app/contacts${p.contactId ? `/${encodeURIComponent(p.contactId)}` : `?q=${encodeURIComponent(p.companyName)}`}`;
 
       const stackBadges = p.techStack
         .slice(0, 4)
         .map(
           (tech) =>
-            `<span style="display:inline-block; background:#f3f4f6; color:#374151; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; margin-right:4px; margin-bottom:4px;">${tech}</span>`,
+            `<span style="display:inline-block; background:#f3f4f6; color:#374151; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; margin-right:4px; margin-bottom:4px;">${escapeHtml(tech)}</span>`,
         )
         .join("");
 
@@ -384,22 +401,22 @@ export function renderDailyDigestHtml(params: {
           <div>
             <div style="margin-bottom:4px;">${sourceBadge}</div>
             <div style="font-size:16px; font-weight:700; color:#111827; margin:0 0 2px;">
-              ${index + 1}. ${p.title}
+              ${index + 1}. ${escapeHtml(p.title)}
             </div>
             <div style="font-size:13px; font-weight:600; color:#4b5563;">
-              🏢 ${p.companyName} &bull; <span style="font-weight:400; color:#6b7280;">📍 ${p.location ?? "Remote / Flexible"}</span>
+              🏢 ${escapeHtml(p.companyName)} &bull; <span style="font-weight:400; color:#6b7280;">📍 ${escapeHtml(p.location ?? "Remote / Flexible")}</span>
             </div>
           </div>
         </div>
-        
+
         <p style="font-size:13px; line-height:1.5; color:#374151; margin:8px 0 10px; background:#f9fafb; padding:10px; border-radius:6px; border-left:3px solid #f59e0b;">
-          ${p.postSnippet}
+          ${escapeHtml(p.postSnippet)}
         </p>
 
         ${
           p.hiringManagerName
             ? `<div style="font-size:12px; color:#4b5563; margin-bottom:10px;">
-                <strong>Hiring Lead:</strong> ${p.hiringManagerName} ${p.hiringManagerTitle ? `(${p.hiringManagerTitle})` : ""}
+                <strong>Hiring Lead:</strong> ${escapeHtml(p.hiringManagerName)} ${p.hiringManagerTitle ? `(${escapeHtml(p.hiringManagerTitle)})` : ""}
               </div>`
             : ""
         }
@@ -445,7 +462,7 @@ export function renderDailyDigestHtml(params: {
       </div>
     </div>
 
-    <h2 style="margin: 0 0 6px; font-size: 22px; color: #111827;">Good morning, ${name}! ☀️</h2>
+    <h2 style="margin: 0 0 6px; font-size: 22px; color: #111827;">Good morning, ${escapeHtml(name)}! ☀️</h2>
     <p style="font-size: 14px; color: #4b5563; margin: 0 0 16px; line-height: 1.5;">
       Here are today's <strong>10 curated hiring leads & active founders</strong> looking for developers. Click any post to prepare a tailored intro directly in your Gmail.
     </p>
@@ -494,6 +511,7 @@ export function renderDailyDigestText(params: {
   aiCredits: number;
 }): string {
   const lines: string[] = [];
+  const baseUrl = getConfig().APP_BASE_URL.replace(/\/+$/, "");
   lines.push(`Good morning, ${params.displayName || "there"}!`);
   lines.push(`Here are today's 10 fresh hiring leads from ReachBee AI:\n`);
 
@@ -501,12 +519,14 @@ export function renderDailyDigestText(params: {
     lines.push(`${idx + 1}. ${p.title} at ${p.companyName} (${p.location ?? "Remote"})`);
     lines.push(`   Hiring Note: ${p.postSnippet}`);
     if (p.hiringManagerName) lines.push(`   Hiring Lead: ${p.hiringManagerName}`);
-    lines.push(`   1-Click Gmail Draft: https://applybee.sayalabs.in/app?action=draft&company=${encodeURIComponent(p.companyName)}&role=${encodeURIComponent(p.title)}`);
+    lines.push(
+      `   1-Click Gmail Draft: ${baseUrl}/app/contacts${p.contactId ? `/${encodeURIComponent(p.contactId)}` : `?q=${encodeURIComponent(p.companyName)}`}`,
+    );
     lines.push("");
   });
 
   lines.push(`Your Balance: ${params.contactCredits} Contact Reveals, ${params.aiCredits} AI Drafts.`);
-  lines.push(`Top up credits or adjust settings: https://applybee.sayalabs.in/app`);
+  lines.push(`Top up credits or adjust settings: ${baseUrl}/app/billing`);
   return lines.join("\n");
 }
 
@@ -568,22 +588,26 @@ export async function dispatchDigestForUser(
     dispatchDate = new Date().toISOString().slice(0, 10);
   }
 
-  // 2. Check if already dispatched today
+  // 2. Claim today's dispatch BEFORE sending. Checking-then-sending let two
+  // concurrent runs both pass the check and both email the user; the unique
+  // (user_id, dispatch_date) constraint is the real serialization point.
+  let claimId: string | null = null;
   if (!force) {
-    const existing = await db
-      .select({ id: digestDispatches.id })
-      .from(digestDispatches)
-      .where(and(eq(digestDispatches.userId, userId), eq(digestDispatches.dispatchDate, dispatchDate)))
-      .limit(1);
-
-    if (existing.length > 0) {
+    const claimed = await db
+      .insert(digestDispatches)
+      .values({ userId, dispatchDate, postIds: [], status: "pending" })
+      .onConflictDoNothing({ target: [digestDispatches.userId, digestDispatches.dispatchDate] })
+      .returning({ id: digestDispatches.id });
+    if (claimed.length === 0) {
       return { success: false, skipped: true, reason: "ALREADY_SENT_TODAY", date: dispatchDate };
     }
+    claimId = claimed[0]!.id;
   }
 
   // 3. Get 10 curated posts
   const posts = await getDigestPostsForUser(userId, 10);
   if (posts.length === 0) {
+    if (claimId) await db.delete(digestDispatches).where(eq(digestDispatches.id, claimId));
     return { success: false, skipped: true, reason: "NO_ACTIVE_POSTS", date: dispatchDate };
   }
 
@@ -605,23 +629,35 @@ export async function dispatchDigestForUser(
     aiCredits: balances.ai.available,
   });
 
-  // 6. Send email via Resend
+  // 6. Send email via Resend. A thrown error must still release the claim,
+  // otherwise one provider outage silently costs the user their digest.
   const subject = `🔥 Today's 10 Tech Hiring Leads — ReachBee Daily Dispatch (${dispatchDate})`;
-  const sendResult: SendEmailResult = await sendEmail({
-    to: user.email,
-    subject,
-    html,
-    text,
-  });
+  let sendResult: SendEmailResult;
+  try {
+    sendResult = await sendEmail({
+      to: user.email,
+      subject,
+      html,
+      text,
+    });
+  } catch (err) {
+    if (claimId) await db.delete(digestDispatches).where(eq(digestDispatches.id, claimId));
+    const reason = err instanceof Error ? err.message : String(err);
+    logger.error("digest.dispatch_threw", { userId, error: reason });
+    return { success: false, error: reason, date: dispatchDate };
+  }
 
   const postIds = posts.map((p) => p.id);
 
   if (!sendResult.success) {
     logger.warn("digest.dispatch_failed", { userId, email: user.email, reason: sendResult.reason });
+    // Release the claim so the next run can retry instead of being permanently
+    // blocked by a row that says "pending".
+    if (claimId) await db.delete(digestDispatches).where(eq(digestDispatches.id, claimId));
     return { success: false, error: sendResult.reason, date: dispatchDate };
   }
 
-  // 7. Record dispatch idempotency record
+  // 7. Finalise the dispatch record
   await db
     .insert(digestDispatches)
     .values({

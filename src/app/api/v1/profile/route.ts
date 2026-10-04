@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { getProfileForUser, saveProfileRevision, approveProfileRevision } from "@/server/services/resumes";
 import { profileRevisionSchema } from "@/lib/validation";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
 export async function GET() {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const profile = await getProfileForUser(user.id);
     return ok(profile);
@@ -19,7 +19,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const input = profileRevisionSchema.parse(await req.json());
     const result = await saveProfileRevision({ userId: user.id, input });
@@ -35,7 +35,7 @@ const approveSchema = z.object({ revisionId: z.string().uuid() });
 export async function PUT(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const body = approveSchema.parse(await req.json());
     await approveProfileRevision(user.id, body.revisionId);

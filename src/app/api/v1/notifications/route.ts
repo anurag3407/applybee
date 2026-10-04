@@ -1,11 +1,11 @@
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { listNotifications, markNotificationRead, dismissNotification } from "@/server/services/opportunities";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     return ok({ notifications: await listNotifications(user.id) });
   } catch (err) {
@@ -17,7 +17,7 @@ export async function GET() {
 export async function PATCH(req: Request) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     const url = new URL(req.url);
     const notificationId = url.searchParams.get("id");

@@ -109,8 +109,12 @@ class NeonObjectStore implements ObjectStore {
         );
       `);
       NeonObjectStore.tableEnsured = true;
-    } catch {
+    } catch (err) {
+      // The table normally comes from 0002_storage_objects.sql and the runtime
+      // role should never need to create it. Log rather than fail silently so a
+      // least-privilege misconfiguration is diagnosable.
       NeonObjectStore.tableEnsured = true;
+      console.error("[objectStore] storage_objects ensure-table failed:", String(err));
     }
   }
 
@@ -423,9 +427,14 @@ class R2ObjectStore implements ObjectStore {
   async put(key: string, bytes: Uint8Array, contentType: string): Promise<ObjectMetadata> {
     const fullKey = this.resolveKey(key);
     const bucket = await this.getWorkerBucket();
-    if (bucket) {
-      await bucket.put(fullKey, bytes, { httpMetadata: { contentType } });
+    if (!bucket) {
+      // Reporting success here would record a resume row whose bytes were never
+      // stored: the upload would appear to succeed, then fail on download or
+      // attachment with no explanation. This happens when CLOUDFLARE_R2 is
+      // enabled but no R2_BUCKET binding exists on the Worker.
+      throw new Error("R2_BUCKET_BINDING_MISSING: object storage is unavailable");
     }
+    await bucket.put(fullKey, bytes, { httpMetadata: { contentType } });
     const sha256 = createHash("sha256").update(bytes).digest("hex");
     return {
       byteSize: bytes.length,

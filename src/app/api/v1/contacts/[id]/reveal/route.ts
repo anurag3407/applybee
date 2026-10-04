@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { revealContactForUser, RevealError } from "@/server/services/contacts";
 import { getBalances } from "@/server/services/credits";
 import { ok, errorResponse, assertSameOrigin, requireIdempotencyKey } from "@/server/http";
@@ -13,7 +13,7 @@ const bodySchema = z.object({}).passthrough();
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await assertSameOrigin(req);
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
     bodySchema.parse(await req.json().catch(() => ({})));
     const idempotencyKey = requireIdempotencyKey(req);

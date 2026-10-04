@@ -159,13 +159,14 @@ export async function devSignIn(input: {
     ).rows.length > 0;
   const trialGranted = isNewAccount && !identityAlreadyClaimed;
 
-  const result = await db.transaction(async (tx) => {
-    const res = await tx.execute(sql`
-      SELECT provision_user_and_trial(
-        ${clerkId}, ${email}, ${input.displayName ?? null}, ${fingerprint}, 5, 2, '2026-10-04.1'
-      ) AS user_id
-    `);
-    return (res.rows[0] as { user_id: string }).user_id;
+  // Provisioning (and therefore the trial quantity) is centralized in the
+  // provisioning service so the dev adapter and the Clerk path cannot drift
+  // apart, and so the grant matches what the marketing site advertises.
+  const result = await provisionUserAndTrial({
+    clerkId,
+    email,
+    displayName: input.displayName ?? null,
+    fingerprint,
   });
 
   if (identityAlreadyClaimed) {

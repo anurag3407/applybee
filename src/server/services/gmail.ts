@@ -17,7 +17,7 @@ import {
   encryptTokenEnvelope,
   GMAIL_SCOPE,
 } from "@/server/adapters/gmail";
-import { emailFingerprint, sha256Hex, decryptEnvelope, encryptEnvelope } from "@/server/crypto";
+import { emailFingerprint, sha256Hex, base64UrlSha256, decryptEnvelope, encryptEnvelope } from "@/server/crypto";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
 import { enqueueJob } from "@/server/services/jobs";
 import { logger } from "@/server/logger";
@@ -64,7 +64,7 @@ export async function startConnect(params: {
   if (!admission.admitted) return { error: "Too many connection attempts. Please wait a moment." };
 
   const { state, verifier } = buildOAuthState();
-  const challenge = sha256Hex(verifier).slice(0, 43);
+  const challenge = base64UrlSha256(verifier);
   await db.insert(oauthStates).values({
     stateHash: sha256Hex(state),
     userId: params.userId,
@@ -80,11 +80,12 @@ export async function startConnect(params: {
     state,
     challenge,
   });
-  // Store the verifier encrypted alongside state (hash of verifier kept for
-  // binding; the plaintext verifier is recoverable only via the envelope key).
+  // Store the verifier encrypted alongside state. The plaintext verifier must
+  // round-trip exactly: the token exchange sends it as `code_verifier`, so
+  // wrapping it in JSON here would send `{"verifier":"..."}` to Google.
   await db
     .update(oauthStates)
-    .set({ verifierEncrypted: encryptEnvelope(JSON.stringify({ verifier }), `oauth-state:${sha256Hex(state)}`) })
+    .set({ verifierEncrypted: encryptEnvelope(verifier, `oauth-state:${sha256Hex(state)}`) })
     .where(sql`state_hash = ${sha256Hex(state)}`);
   return { authorizeUrl };
 }

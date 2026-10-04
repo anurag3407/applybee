@@ -1,4 +1,4 @@
-import { getSessionUser } from "@/server/auth/session";
+import { getApiUser } from "@/server/auth/session";
 import { searchDirectory } from "@/server/services/contacts";
 import { ok, errorResponse } from "@/server/http";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
@@ -6,7 +6,7 @@ import { QUERY_MAX } from "@/lib/validation";
 
 export async function GET(req: Request) {
   try {
-    const user = await getSessionUser();
+    const user = await getApiUser();
     if (!user) return errorResponse(new Error("UNAUTHORIZED"));
 
     await admitWithPreCheck({

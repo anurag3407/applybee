@@ -37,6 +37,32 @@ The durable job worker runs embedded in dev (`instrumentation.ts`); production r
 | `pnpm db:seed:test` | Deterministic fictional seed (never production) |
 | `pnpm worker:once` / `pnpm worker:dev` | Process bounded due jobs / long-running worker |
 
+## Background jobs in production
+
+Cloudflare Workers freeze between requests, so the in-process `setInterval`
+worker loop from `src/instrumentation.ts` only works under `pnpm dev`. The
+deployed worker has no timer of its own, and the OpenNext Cloudflare build does
+not emit a `scheduled` handler — so **an external scheduler must drive the
+queue**:
+
+```
+POST /api/v1/cron/run
+Authorization: Bearer $CRON_SECRET
+```
+
+That call seeds the recurring housekeeping jobs, runs the recovery sweep,
+drains due jobs and the outbox, and (during `CRON_DIGEST_HOUR_UTC`) sends the
+daily hiring digest. It is safe to call frequently: jobs are claimed under
+leases and the digest is claimed by a unique `(user_id, dispatch_date)` row
+before any email is sent, so a repeated call cannot double-send.
+`.github/workflows/scheduled-jobs.yml` runs it every 5 minutes; it needs the
+`CRON_SECRET` repository secret and an `APP_URL` repository variable.
+
+Secrets belong in `wrangler secret put <NAME>` — never in `wrangler.jsonc`.
+`src/server/config.ts` refuses to boot in production when auth, the database,
+or the token-encryption key are missing, and logs a loud summary for secrets
+that only degrade a single feature.
+
 ## What is enforced in code (not just policy)
 
 - **Draft-only Gmail:** the HTTP allowlist inside the Gmail adapter rejects any send path; a structural test asserts no send capability is exported.

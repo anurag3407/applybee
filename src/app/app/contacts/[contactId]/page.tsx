@@ -56,7 +56,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
                     unlocked={contact.unlocked}
                     initialEmail={contact.email}
                     initialBalance={balances.contact}
-                    companyName={contact.companyDomain}
+                    maskedEmail={contact.maskedEmail}
                     contactName={contact.name}
                   />
                 </div>

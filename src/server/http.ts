@@ -100,21 +100,17 @@ export async function assertSameOrigin(req: Request): Promise<void> {
     throw new Error("FORBIDDEN_ORIGIN");
   }
   if (origin) {
-    const { APP_BASE_URL, NEXT_PUBLIC_APP_URL } = await import("@/server/config").then((m) => m.getConfig());
-    // Both configured app origins are trusted; a stale APP_BASE_URL during a
-    // domain migration must not lock every cookie mutation out.
-    const allowed = new Set([APP_BASE_URL, new URL(APP_BASE_URL).host]);
-    if (NEXT_PUBLIC_APP_URL) {
-      allowed.add(NEXT_PUBLIC_APP_URL);
-      allowed.add(new URL(NEXT_PUBLIC_APP_URL).host);
-    }
+    const { allowedOrigins } = await import("@/server/config").then((m) => m.getConfig());
     let originHost: string;
     try {
       originHost = new URL(origin).host;
     } catch {
       throw new Error("FORBIDDEN_ORIGIN");
     }
-    if (!allowed.has(origin) && !allowed.has(originHost)) {
+    // `allowedOrigins` already contains the canonical origins plus their hosts
+    // and any EXTRA_ALLOWED_ORIGINS. A deployment that answers on more than
+    // one custom domain must not lock users out of every form on the other.
+    if (!allowedOrigins.includes(origin) && !allowedOrigins.includes(originHost)) {
       throw new Error("FORBIDDEN_ORIGIN");
     }
   }
