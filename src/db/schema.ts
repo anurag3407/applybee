@@ -12,6 +12,7 @@ import {
   boolean,
   check,
   index,
+  customType,
   integer,
   jsonb,
   pgTable,
@@ -1238,3 +1239,38 @@ export const concurrencySlots = pgTable(
     index("concurrency_slots_scope_idx").on(t.resourceScope, t.leaseExpiresAt),
   ],
 );
+
+/* ------------------------------------------------------------------ */
+/* Neon / PostgreSQL Object Storage                                    */
+/* ------------------------------------------------------------------ */
+
+export const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+  toDriver(val: Buffer | Uint8Array) {
+    return Buffer.isBuffer(val) ? val : Buffer.from(val);
+  },
+  fromDriver(val: unknown) {
+    return Buffer.isBuffer(val) ? val : Buffer.from(val as Uint8Array);
+  },
+});
+
+export const storageObjects = pgTable(
+  "storage_objects",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bucket: text("bucket").notNull(),
+    objectKey: text("object_key").notNull(),
+    bytes: bytea("bytes").notNull(),
+    byteSize: integer("byte_size").notNull(),
+    contentType: text("content_type"),
+    sha256: text("sha256").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("storage_objects_bucket_key_idx").on(t.bucket, t.objectKey),
+  ],
+);
+

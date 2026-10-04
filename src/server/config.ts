@@ -51,8 +51,18 @@ const envSchema = z.object({
   RAZORPAY_WEBHOOK_SECRET: optional(z.string().min(1)),
   PAYMENTS_MODE: z.enum(["test", "live"]).default("test"),
 
-  OBJECT_STORE_PROVIDER: z.enum(["local", "s3", "r2", "supabase"]).default("supabase"),
+  OBJECT_STORE_PROVIDER: z.enum(["local", "s3", "r2", "appwrite", "supabase", "neon"]).default("neon"),
+  IS_NEON: boolFlag("IS_NEON", true),
+  IS_NEON_DB: boolFlag("IS_NEON_DB", true),
   CLOUDFLARE_R2: boolFlag("CLOUDFLARE_R2", false),
+  APPWRITE_STORAGE: boolFlag("APPWRITE_STORAGE", false),
+  SUPABASE_STORAGE: boolFlag("SUPABASE_STORAGE", false),
+
+  APPWRITE_ENDPOINT: optional(z.string().url()),
+  APPWRITE_PROJECT_ID: optional(z.string().min(1)),
+  APPWRITE_API_KEY: optional(z.string().min(1)),
+  APPWRITE_BUCKET_ID: z.string().default("resumes"),
+
   SUPABASE_URL: optional(z.string().url()),
   SUPABASE_SERVICE_ROLE_KEY: optional(z.string().min(1)),
   SUPABASE_STORAGE_BUCKET: z.string().default("resumes"),
@@ -84,7 +94,7 @@ export type AppConfig = z.infer<typeof envSchema> & {
   aiMode: "gemini" | "mock";
   gmailMode: "live" | "mock";
   paymentsMode: "razorpay" | "mock";
-  storageMode: "r2" | "supabase" | "local";
+  storageMode: "r2" | "appwrite" | "supabase" | "neon" | "local";
 };
 
 let cached: AppConfig | null = null;
@@ -109,14 +119,33 @@ export function getConfig(): AppConfig {
   const paymentsMode: "razorpay" | "mock" =
     env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET ? "razorpay" : "mock";
 
-  const storageMode: "r2" | "supabase" | "local" =
-    env.CLOUDFLARE_R2 || env.OBJECT_STORE_PROVIDER === "r2"
-      ? "r2"
-      : env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY
-        ? "supabase"
-        : env.OBJECT_STORE_PROVIDER === "local"
-          ? "local"
-          : "supabase";
+  // Priority: cloudflare > appwrite > supabase > neon > local
+  let storageMode: "r2" | "appwrite" | "supabase" | "neon" | "local" = "local";
+  if (env.CLOUDFLARE_R2 || env.OBJECT_STORE_PROVIDER === "r2") {
+    storageMode = "r2";
+  } else if (
+    env.APPWRITE_STORAGE ||
+    env.OBJECT_STORE_PROVIDER === "appwrite" ||
+    (env.APPWRITE_ENDPOINT && env.APPWRITE_PROJECT_ID && env.APPWRITE_API_KEY)
+  ) {
+    storageMode = "appwrite";
+  } else if (
+    env.SUPABASE_STORAGE ||
+    env.OBJECT_STORE_PROVIDER === "supabase" ||
+    (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY)
+  ) {
+    storageMode = "supabase";
+  } else if (
+    env.IS_NEON ||
+    env.IS_NEON_DB ||
+    env.OBJECT_STORE_PROVIDER === "neon"
+  ) {
+    storageMode = "neon";
+  } else if (env.OBJECT_STORE_PROVIDER === "local") {
+    storageMode = "local";
+  } else {
+    storageMode = "neon";
+  }
 
   if (isProduction && authMode === "dev") {
     console.warn("[config] Dev auth adapter active in production — Clerk keys not configured.");

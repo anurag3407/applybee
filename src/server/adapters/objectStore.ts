@@ -2,15 +2,16 @@ import "server-only";
 import { mkdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { and, eq, sql } from "drizzle-orm";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { db } from "@/db/client";
+import { storageObjects } from "@/db/schema";
 import { getConfig } from "@/server/config";
 
 /**
- * Object store adapter (§6.2).
- * Supports:
- * 1. Supabase Storage (100% free tier, zero credit card)
- * 2. Cloudflare R2 (when CLOUDFLARE_R2=true)
- * 3. Local filesystem (development fallback)
+ * Multi-provider Object Store adapter (§6.2).
+ * Priority chain:
+ *   Cloudflare R2 > Appwrite > Supabase > Neon (PostgreSQL bytea) > Local filesystem
  */
 
 export type ObjectMetadata = {
@@ -25,6 +26,10 @@ export interface ObjectStore {
   metadata(key: string): Promise<ObjectMetadata | null>;
   delete(key: string): Promise<void>;
 }
+
+/* ------------------------------------------------------------------ */
+/* 1. Local filesystem store (Offline development fallback)            */
+/* ------------------------------------------------------------------ */
 
 class LocalObjectStore implements ObjectStore {
   constructor(private bucket: string) {}
@@ -77,12 +82,122 @@ class LocalObjectStore implements ObjectStore {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* 2. Neon / PostgreSQL bytea Store (Zero-config, 100% Free)           */
+/* ------------------------------------------------------------------ */
+
+class NeonObjectStore implements ObjectStore {
+  private static tableEnsured = false;
+
+  constructor(private bucket: string) {}
+
+  private async ensureTable(): Promise<void> {
+    if (NeonObjectStore.tableEnsured) return;
+    try {
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS storage_objects (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          bucket TEXT NOT NULL,
+          object_key TEXT NOT NULL,
+          bytes BYTEA NOT NULL,
+          byte_size INTEGER NOT NULL,
+          content_type TEXT,
+          sha256 TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          CONSTRAINT storage_objects_bucket_key_idx UNIQUE (bucket, object_key)
+        );
+      `);
+      NeonObjectStore.tableEnsured = true;
+    } catch {
+      NeonObjectStore.tableEnsured = true;
+    }
+  }
+
+  async put(key: string, bytes: Uint8Array, contentType: string): Promise<ObjectMetadata> {
+    await this.ensureTable();
+    const sha256 = createHash("sha256").update(bytes).digest("hex");
+    const buf = Buffer.from(bytes);
+
+    await db
+      .insert(storageObjects)
+      .values({
+        bucket: this.bucket,
+        objectKey: key,
+        bytes: buf,
+        byteSize: bytes.length,
+        contentType,
+        sha256,
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [storageObjects.bucket, storageObjects.objectKey],
+        set: {
+          bytes: buf,
+          byteSize: bytes.length,
+          contentType,
+          sha256,
+          updatedAt: new Date(),
+        },
+      });
+
+    return {
+      byteSize: bytes.length,
+      sha256,
+      contentType,
+    };
+  }
+
+  async get(key: string): Promise<Uint8Array> {
+    await this.ensureTable();
+    const rows = await db
+      .select({ bytes: storageObjects.bytes })
+      .from(storageObjects)
+      .where(and(eq(storageObjects.bucket, this.bucket), eq(storageObjects.objectKey, key)))
+      .limit(1);
+
+    const row = rows[0];
+    if (!row || !row.bytes) {
+      throw new Error(`Object not found in Neon database storage: ${this.bucket}/${key}`);
+    }
+    return new Uint8Array(row.bytes);
+  }
+
+  async metadata(key: string): Promise<ObjectMetadata | null> {
+    await this.ensureTable();
+    const rows = await db
+      .select({
+        byteSize: storageObjects.byteSize,
+        sha256: storageObjects.sha256,
+        contentType: storageObjects.contentType,
+      })
+      .from(storageObjects)
+      .where(and(eq(storageObjects.bucket, this.bucket), eq(storageObjects.objectKey, key)))
+      .limit(1);
+
+    const row = rows[0];
+    if (!row) return null;
+    return row;
+  }
+
+  async delete(key: string): Promise<void> {
+    await this.ensureTable();
+    await db
+      .delete(storageObjects)
+      .where(and(eq(storageObjects.bucket, this.bucket), eq(storageObjects.objectKey, key)));
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 3. Supabase Storage (100% Free, 1 GB)                               */
+/* ------------------------------------------------------------------ */
+
 class SupabaseObjectStore implements ObjectStore {
   private client: SupabaseClient | null = null;
 
   constructor(
     private bucketName: string,
-    private prefix: string
+    private prefix: string,
   ) {}
 
   private getClient(): SupabaseClient {
@@ -159,10 +274,128 @@ class SupabaseObjectStore implements ObjectStore {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* 4. Appwrite Storage (Free 2 GB, REST API via fetch)                 */
+/* ------------------------------------------------------------------ */
+
+class AppwriteStore implements ObjectStore {
+  constructor(
+    private bucketId: string,
+    private prefix: string,
+  ) {}
+
+  private getEndpointAndHeaders(): { endpoint: string; headers: Record<string, string> } {
+    const config = getConfig();
+    if (!config.APPWRITE_PROJECT_ID || !config.APPWRITE_API_KEY) {
+      throw new Error("APPWRITE_PROJECT_ID and APPWRITE_API_KEY are required for Appwrite storage");
+    }
+    const endpoint = (config.APPWRITE_ENDPOINT || "https://cloud.appwrite.io/v1").replace(/\/+$/, "");
+    return {
+      endpoint,
+      headers: {
+        "X-Appwrite-Project": config.APPWRITE_PROJECT_ID,
+        "X-Appwrite-Key": config.APPWRITE_API_KEY,
+      },
+    };
+  }
+
+  private fileIdForKey(key: string): string {
+    const cleanKey = key.replace(/^\/+/, "");
+    // Appwrite file IDs must be alphanumeric or hyphen/dot/underscore <= 36 chars
+    return createHash("md5").update(`${this.prefix}:${cleanKey}`).digest("hex");
+  }
+
+  async put(key: string, bytes: Uint8Array, contentType: string): Promise<ObjectMetadata> {
+    const fileId = this.fileIdForKey(key);
+    const { endpoint, headers } = this.getEndpointAndHeaders();
+
+    // Check if file already exists; delete before uploading to mimic upsert
+    try {
+      await fetch(`${endpoint}/storage/buckets/${this.bucketId}/files/${fileId}`, {
+        method: "DELETE",
+        headers,
+      });
+    } catch {
+      // Ignore if absent
+    }
+
+    const formData = new FormData();
+    formData.append("fileId", fileId);
+    formData.append("file", new Blob([Buffer.from(bytes)], { type: contentType }), path.basename(key) || "upload.pdf");
+
+    const res = await fetch(`${endpoint}/storage/buckets/${this.bucketId}/files`, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Appwrite storage upload failed (${res.status}): ${errText}`);
+    }
+
+    const sha256 = createHash("sha256").update(bytes).digest("hex");
+    return {
+      byteSize: bytes.length,
+      sha256,
+      contentType,
+    };
+  }
+
+  async get(key: string): Promise<Uint8Array> {
+    const fileId = this.fileIdForKey(key);
+    const { endpoint, headers } = this.getEndpointAndHeaders();
+
+    const res = await fetch(`${endpoint}/storage/buckets/${this.bucketId}/files/${fileId}/download`, {
+      method: "GET",
+      headers,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Appwrite storage download failed (${res.status})`);
+    }
+
+    const ab = await res.arrayBuffer();
+    return new Uint8Array(ab);
+  }
+
+  async metadata(key: string): Promise<ObjectMetadata | null> {
+    const fileId = this.fileIdForKey(key);
+    const { endpoint, headers } = this.getEndpointAndHeaders();
+
+    const res = await fetch(`${endpoint}/storage/buckets/${this.bucketId}/files/${fileId}`, {
+      method: "GET",
+      headers,
+    });
+
+    if (!res.ok) return null;
+    const json = (await res.json()) as { sizeOriginal?: number; mimeType?: string; $id?: string };
+    return {
+      byteSize: json.sizeOriginal ?? 0,
+      sha256: json.$id ?? "",
+      contentType: json.mimeType ?? null,
+    };
+  }
+
+  async delete(key: string): Promise<void> {
+    const fileId = this.fileIdForKey(key);
+    const { endpoint, headers } = this.getEndpointAndHeaders();
+
+    await fetch(`${endpoint}/storage/buckets/${this.bucketId}/files/${fileId}`, {
+      method: "DELETE",
+      headers,
+    });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 5. Cloudflare R2 Store (Native Worker Binding / S3 REST)            */
+/* ------------------------------------------------------------------ */
+
 class R2ObjectStore implements ObjectStore {
   constructor(
     private bucketName: string,
-    private prefix: string
+    private prefix: string,
   ) {}
 
   private resolveKey(key: string): string {
@@ -239,13 +472,24 @@ class R2ObjectStore implements ObjectStore {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Exported Factory resolving by priority:                             */
+/* Cloudflare R2 > Appwrite > Supabase > Neon > Local                 */
+/* ------------------------------------------------------------------ */
+
 export function getObjectStore(bucket: "quarantine" | "clean" | "export"): ObjectStore {
   const config = getConfig();
   if (config.storageMode === "r2") {
     return new R2ObjectStore(config.CLOUDFLARE_R2_BUCKET || "resumes", bucket);
   }
+  if (config.storageMode === "appwrite") {
+    return new AppwriteStore(config.APPWRITE_BUCKET_ID || "resumes", bucket);
+  }
   if (config.storageMode === "supabase") {
     return new SupabaseObjectStore(config.SUPABASE_STORAGE_BUCKET || "resumes", bucket);
+  }
+  if (config.storageMode === "neon") {
+    return new NeonObjectStore(bucket);
   }
   return new LocalObjectStore(bucket);
 }
