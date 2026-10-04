@@ -28,12 +28,13 @@ export function CheckoutLauncher({ sku, priceLabel, salesLive }: { sku: string; 
         body: JSON.stringify({ sku }),
       });
       const data = (await res.json()) as {
-        data?: { orderId: string; providerOrderId: string | null; amountPaise: number; mock: boolean };
+        data?: { orderId: string; providerOrderId: string | null; amountPaise: number; mock: boolean; keyId?: string | null };
         error?: { message?: string };
       };
       if (!res.ok || !data.data) throw new Error(data.error?.message ?? "Checkout could not start.");
 
-      const { orderId, providerOrderId, amountPaise, mock } = data.data;
+      const { orderId, providerOrderId, amountPaise, mock, keyId } = data.data;
+      void amountPaise;
 
       if (mock) {
         // Sandbox: simulate a captured payment with a clearly labeled mock id.
@@ -64,9 +65,8 @@ export function CheckoutLauncher({ sku, priceLabel, salesLive }: { sku: string; 
       await loadRazorpayScript();
       const Razorpay = (window as unknown as { Razorpay?: new (options: Record<string, unknown>) => { open: () => void } }).Razorpay;
       if (!Razorpay) throw new Error("Checkout failed to load. Disable blockers or try again.");
-      void amountPaise;
       const rzp = new Razorpay({
-        key: (window as unknown as { __rzpKeyId?: string }).__rzpKeyId ?? "",
+        key: keyId || (window as unknown as { __rzpKeyId?: string }).__rzpKeyId || "",
         order_id: providerOrderId,
         name: "Apply Bee",
         description: "One-time credit pack",

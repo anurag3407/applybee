@@ -80,6 +80,7 @@ export const userPreferences = pgTable(
     defaultTone: text("default_tone").notNull().default("warm_professional"),
     notifyReminders: boolean("notify_reminders").notNull().default(true),
     notifyProduct: boolean("notify_product").notNull().default(false),
+    dailyDigestEnabled: boolean("daily_digest_enabled").notNull().default(true),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
 );
@@ -468,6 +469,56 @@ export const savedContacts = pgTable(
     savedAt: timestamp("saved_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("saved_contacts_user_contact_key").on(t.userId, t.contactId)],
+);
+
+/* ------------------------------------------------------------------ */
+/* Hiring posts feed & daily digest                                   */
+/* ------------------------------------------------------------------ */
+
+export const hiringPosts = pgTable(
+  "hiring_posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    companyId: uuid("company_id").references(() => companies.id, { onDelete: "set null" }),
+    contactId: uuid("contact_id").references(() => contacts.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    companyName: text("company_name").notNull(),
+    location: text("location"),
+    roleCategory: text("role_category").notNull().default("engineering"),
+    department: text("department").notNull().default("engineering"),
+    sourcePlatform: text("source_platform").notNull().default("reachbee"),
+    sourceUrl: text("source_url"),
+    postSnippet: text("post_snippet").notNull(),
+    techStack: jsonb("tech_stack").notNull().default(sql`'[]'::jsonb`),
+    hiringManagerName: text("hiring_manager_name"),
+    hiringManagerTitle: text("hiring_manager_title"),
+    status: text("status").notNull().default("active").$type<"active" | "archived">(),
+    postedAt: timestamp("posted_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("hiring_posts_status_posted_idx").on(t.status, t.postedAt),
+    index("hiring_posts_role_idx").on(t.roleCategory, t.status),
+  ],
+);
+
+export const digestDispatches = pgTable(
+  "digest_dispatches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    dispatchDate: text("dispatch_date").notNull(),
+    postIds: jsonb("post_ids").notNull().default(sql`'[]'::jsonb`),
+    emailId: text("email_id"),
+    status: text("status").notNull().default("sent").$type<"sent" | "failed" | "skipped">(),
+    dispatchedAt: timestamp("dispatched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("digest_dispatches_user_date_key").on(t.userId, t.dispatchDate),
+    index("digest_dispatches_user_idx").on(t.userId, t.dispatchedAt),
+  ],
 );
 
 export const contactReports = pgTable(
@@ -1079,7 +1130,7 @@ export const jobs = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     kind: text("kind").notNull().$type<
-      "resume.scan_parse" | "draft.generate" | "gmail.create_draft" | "gmail.reconcile" | "payment.fulfill" | "payment.reconcile" | "contacts.import_verify" | "privacy.export" | "privacy.delete" | "reminders.materialize" | "credits.reconcile" | "outbox.dispatch"
+      "resume.scan_parse" | "draft.generate" | "gmail.create_draft" | "gmail.reconcile" | "payment.fulfill" | "payment.reconcile" | "contacts.import_verify" | "privacy.export" | "privacy.delete" | "reminders.materialize" | "credits.reconcile" | "outbox.dispatch" | "digest.dispatch_daily"
     >(),
     userId: uuid("user_id"),
     entityId: uuid("entity_id"),

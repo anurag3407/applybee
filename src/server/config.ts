@@ -25,6 +25,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().default("postgresql://localhost:5432/applybee_dev"),
   DATABASE_MIGRATION_URL: z.string().optional(),
 
+  AUTH_MODE: z.enum(["clerk", "dev"]).optional(),
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: optional(z.string().min(1)),
   CLERK_SECRET_KEY: optional(z.string().min(1)),
   CLERK_WEBHOOK_SIGNING_SECRET: optional(z.string().min(1)),
@@ -89,7 +90,8 @@ const envSchema = z.object({
   DOCUMENT_PROCESSOR_SIGNING_SECRET: optional(z.string().min(1)),
 
   SENTRY_DSN: optional(z.string().url()),
-  TRANSACTIONAL_EMAIL_FROM: optional(z.string().min(3)),
+  RESEND_API_KEY: optional(z.string().min(1)),
+  TRANSACTIONAL_EMAIL_FROM: z.string().default("ReachBee <team@sayalabs.in>"),
 
   FEATURE_AI_ENABLED: boolFlag("FEATURE_AI_ENABLED", true),
   FEATURE_GMAIL_ENABLED: boolFlag("FEATURE_GMAIL_ENABLED", true),
@@ -121,7 +123,7 @@ export function getConfig(): AppConfig {
   const isProduction = env.APP_ENV === "production";
 
   const authMode: "clerk" | "dev" =
-    env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && env.CLERK_SECRET_KEY ? "clerk" : "dev";
+    env.AUTH_MODE ?? (env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && env.CLERK_SECRET_KEY ? "clerk" : "dev");
 
   // AI Priority: if IS_OPENROUTER=true (or isOpenrouter=true) or AI_PROVIDER="openrouter",
   // openrouter is primary. Otherwise gemini is primary.

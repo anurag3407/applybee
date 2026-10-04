@@ -30,3 +30,5 @@ playwright-report/
 .DS_Store
 *.pem
 *.tsbuildinfo
+__pycache__/
+*.pyc

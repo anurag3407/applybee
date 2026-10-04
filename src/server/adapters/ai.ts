@@ -341,7 +341,11 @@ function extractJsonFromModelOutput(rawText: string): unknown {
     const firstBrace = jsonString.indexOf("{");
     const lastBrace = jsonString.lastIndexOf("}");
     if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-      return JSON.parse(jsonString.slice(firstBrace, lastBrace + 1));
+      try {
+        return JSON.parse(jsonString.slice(firstBrace, lastBrace + 1));
+      } catch {
+        // Fall through
+      }
     }
     throw new ModelOutputError("Model output was not valid JSON");
   }
@@ -448,10 +452,10 @@ ${resumeContent.slice(0, 24_000) || "[No readable text extracted from document]"
         model: this.modelId,
         messages,
         temperature: 0.4,
-        max_tokens: 1_500,
+        max_tokens: 4_000,
         response_format: { type: "json_object" },
       }),
-      signal: AbortSignal.timeout(35_000),
+      signal: AbortSignal.timeout(60_000),
     });
 
     if (!res.ok) {

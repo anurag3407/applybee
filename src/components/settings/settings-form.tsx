@@ -11,12 +11,14 @@ export function SettingsForm(props: {
   defaultMode: string;
   notifyReminders: boolean;
   notifyProduct: boolean;
+  dailyDigestEnabled?: boolean;
 }) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notifyReminders, setNotifyReminders] = useState(props.notifyReminders);
   const [notifyProduct, setNotifyProduct] = useState(props.notifyProduct);
+  const [dailyDigestEnabled, setDailyDigestEnabled] = useState(props.dailyDigestEnabled ?? true);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,6 +35,7 @@ export function SettingsForm(props: {
         defaultMode: String(form.get("defaultMode") ?? "manual"),
         notifyReminders,
         notifyProduct,
+        dailyDigestEnabled,
       }),
     });
     setBusy(false);
@@ -72,7 +75,16 @@ export function SettingsForm(props: {
       </div>
       <fieldset className="mt-5">
         <legend className="text-sm font-semibold text-ink">Notifications</legend>
-        <label className="mt-2 flex items-center gap-2 text-sm text-ink">
+        <label className="mt-2 flex items-start gap-2 text-sm text-ink">
+          <input type="checkbox" checked={dailyDigestEnabled} onChange={(e) => setDailyDigestEnabled(e.target.checked)} className="mt-0.5 h-4 w-4" />
+          <span>
+            <strong className="text-ink">Daily 10-Post Hiring Digest</strong> (Free morning dispatch at 8:00 AM)
+            <span className="block text-xs text-text-secondary">
+              Receive 10 fresh founder & engineering hiring leads in your email every morning with 1-click tailored Gmail draft triggers.
+            </span>
+          </span>
+        </label>
+        <label className="mt-3 flex items-center gap-2 text-sm text-ink">
           <input type="checkbox" checked={notifyReminders} onChange={(e) => setNotifyReminders(e.target.checked)} className="h-4 w-4" />
           In-app opportunity reminders (always shown here; this also permits email reminders if introduced)
         </label>

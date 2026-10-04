@@ -12,6 +12,7 @@ const patchSchema = z.object({
   targetLocations: z.array(z.string().max(120)).max(10).optional(),
   notifyReminders: z.boolean().optional(),
   notifyProduct: z.boolean().optional(),
+  dailyDigestEnabled: z.boolean().optional(),
 });
 
 export async function PATCH(req: Request) {

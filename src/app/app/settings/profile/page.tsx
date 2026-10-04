@@ -22,6 +22,7 @@ export default async function SettingsProfilePage() {
         defaultMode={prefs?.defaultMode ?? "manual"}
         notifyReminders={prefs?.notifyReminders ?? true}
         notifyProduct={prefs?.notifyProduct ?? false}
+        dailyDigestEnabled={prefs?.dailyDigestEnabled ?? true}
       />
       <p className="text-xs text-text-disabled">
         Locale is English (India) at launch. Timezone affects reminder scheduling and display times.

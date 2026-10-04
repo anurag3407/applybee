@@ -891,6 +891,16 @@ const creditsReconcile: Handler = async () => {
 };
 
 /* ------------------------------------------------------------------ */
+/* digest.dispatch_daily                                              */
+/* ------------------------------------------------------------------ */
+
+const digestDispatchDaily: Handler = async () => {
+  const { dispatchAllDueDigests } = await import("@/server/services/digest");
+  const result = await dispatchAllDueDigests();
+  return { status: "succeeded", result };
+};
+
+/* ------------------------------------------------------------------ */
 /* registry                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -903,4 +913,6 @@ export const HANDLERS: Record<string, Handler> = {
   "reminders.materialize": remindersMaterialize,
   "privacy.export": privacyExport,
   "credits.reconcile": creditsReconcile,
+  "digest.dispatch_daily": digestDispatchDaily,
 };
+

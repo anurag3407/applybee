@@ -27,6 +27,12 @@ export async function POST(req: Request) {
         details: parsed.details,
         proofContact: parsed.email,
       });
+      const { sendContactDataRequestNotification } = await import("@/server/services/email");
+      sendContactDataRequestNotification({
+        email: parsed.email,
+        requestType: parsed.requestType,
+        details: parsed.details,
+      }).catch(() => {});
       return ok({ received: true, note: "We'll review and respond to this request. No account is needed." }, 201);
     }
 
@@ -38,6 +44,13 @@ export async function POST(req: Request) {
       category: parsed.category,
       message: parsed.message,
     });
+    const { sendSupportTicketNotification } = await import("@/server/services/email");
+    sendSupportTicketNotification({
+      userEmail: parsed.email,
+      publicRef,
+      category: parsed.category,
+      message: parsed.message,
+    }).catch(() => {});
     return ok({ reference: publicRef }, 201);
   } catch (err) {
     return errorResponse(err);

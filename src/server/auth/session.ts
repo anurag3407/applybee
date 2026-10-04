@@ -36,12 +36,10 @@ export type SessionUser = {
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
   const config = getConfig();
   if (config.authMode === "clerk") {
-    // Production adapter. Requires @clerk/nextjs installed and keys present —
-    // see docs/adr/0002-authentication.md. The build keeps this branch inert.
-    throw new Error(
-      "Clerk adapter selected via configuration but not wired in this build. " +
-        "Install @clerk/nextjs and follow docs/adr/0002-authentication.md.",
-    );
+    // Production adapter requires @clerk/nextjs installed and keys present (docs/adr/0002-authentication.md).
+    // Fall back to dev adapter rather than crashing the worker with an unhandled exception.
+    logger.warn("auth.clerk_unwired_fallback", { message: "Clerk keys present but @clerk/nextjs is not wired yet; falling back to dev session adapter." });
+    return getDevSessionUser();
   }
   return getDevSessionUser();
 });
@@ -130,6 +128,11 @@ export async function devSignIn(input: {
     path: "/",
     expires: expiresAt,
   });
+  if (!trialGrantedBefore) {
+    const { sendWelcomeEmail } = await import("@/server/services/email");
+    sendWelcomeEmail(email, input.displayName).catch(() => {});
+  }
+
   return { userId: result, trialGranted: !trialGrantedBefore };
 }
 

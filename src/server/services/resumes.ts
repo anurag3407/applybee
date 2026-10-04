@@ -270,7 +270,7 @@ export async function hasApprovedProfile(userId: string): Promise<boolean> {
 /* Preferences / user                                                  */
 /* ------------------------------------------------------------------ */
 
-export async function updatePreferences(userId: string, patch: Partial<{ displayName: string; timezone: string; careerStage: string; defaultMode: string; targetRoles: string[]; targetLocations: string[]; notifyReminders: boolean; notifyProduct: boolean }>) {
+export async function updatePreferences(userId: string, patch: Partial<{ displayName: string; timezone: string; careerStage: string; defaultMode: string; targetRoles: string[]; targetLocations: string[]; notifyReminders: boolean; notifyProduct: boolean; dailyDigestEnabled: boolean }>) {
   if (patch.displayName !== undefined) {
     await db.update(users).set({ displayName: patch.displayName.slice(0, 120), updatedAt: new Date() }).where(eq(users.id, userId));
   }
@@ -282,6 +282,7 @@ export async function updatePreferences(userId: string, patch: Partial<{ display
   if (patch.targetLocations !== undefined) prefPatch.targetLocations = patch.targetLocations.slice(0, 10);
   if (patch.notifyReminders !== undefined) prefPatch.notifyReminders = patch.notifyReminders;
   if (patch.notifyProduct !== undefined) prefPatch.notifyProduct = patch.notifyProduct;
+  if (patch.dailyDigestEnabled !== undefined) prefPatch.dailyDigestEnabled = patch.dailyDigestEnabled;
   if (Object.keys(prefPatch).length > 0) {
     await db.update(userPreferences).set(prefPatch).where(eq(userPreferences.userId, userId));
   }
