@@ -25,6 +25,7 @@ standalone/
 coverage/
 test-results/
 playwright-report/
+gui-test-screenshots/
 
 # misc
 .DS_Store

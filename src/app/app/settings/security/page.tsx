@@ -18,8 +18,8 @@ export default async function SettingsSecurityPage() {
           sensitive actions.
         </p>
         <p className="mt-2 text-sm text-text-secondary">
-          Signed in as <strong className="text-ink">{user.email}</strong> via the{" "}
-          {user.authMode === "dev" ? "local development session adapter" : "authentication provider"}.
+          Signed in as <strong className="text-ink">{user.email}</strong> via{" "}
+          {user.authMode === "dev" ? "email session" : "Google / Clerk authentication"}.
         </p>
       </Card>
       <Card>

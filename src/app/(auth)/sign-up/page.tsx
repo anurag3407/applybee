@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthFrame } from "@/components/auth/auth-frame";
 import { DevSignInForm } from "@/components/auth/dev-signin-form";
+import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { getSessionUser } from "@/server/auth/session";
 
 export const metadata: Metadata = { title: "Create your account" };
@@ -26,15 +27,18 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
         </>
       }
     >
-      <div className="mb-4 rounded-control border border-warning/30 bg-warning-wash px-3 py-2 text-xs leading-relaxed text-warning" role="note">
-        <strong>Development build:</strong> local labeled session adapter. Production uses Clerk — see{" "}
-        <code>docs/adr/0002-authentication.md</code>.
+      <div className="space-y-4">
+        <GoogleAuthButton mode="sign-up" />
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border-decorative" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-canvas px-2 text-text-muted">or continue with email</span>
+          </div>
+        </div>
+        <DevSignInForm mode="sign-up" redirectTo={skuParam ? `/onboarding?sku=${skuParam}` : target} />
       </div>
-      <DevSignInForm mode="sign-up" redirectTo={skuParam ? `/onboarding?sku=${skuParam}` : target} />
-      <p className="mt-4 text-xs text-text-disabled">
-        Continue with Google is the production sign-in option. It is labeled “Continue”, never “Connect Gmail” — Gmail
-        authorization is separate, optional, and asked for only when you choose it.
-      </p>
     </AuthFrame>
   );
 }

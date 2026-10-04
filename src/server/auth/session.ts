@@ -34,14 +34,83 @@ export type SessionUser = {
 };
 
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
+  // 1. Check local session cookie (supports direct email sign-in)
+  const localUser = await getDevSessionUser();
+  if (localUser) return localUser;
+
+  // 2. Check Clerk session (supports Google OAuth and Clerk credentials)
   const config = getConfig();
   if (config.authMode === "clerk") {
-    // Production adapter requires @clerk/nextjs installed and keys present (docs/adr/0002-authentication.md).
-    // Fall back to dev adapter rather than crashing the worker with an unhandled exception.
-    logger.warn("auth.clerk_unwired_fallback", { message: "Clerk keys present but @clerk/nextjs is not wired yet; falling back to dev session adapter." });
-    return getDevSessionUser();
+    try {
+      const { auth, currentUser } = await import("@clerk/nextjs/server");
+      const { userId } = await auth();
+      if (userId) {
+        let rows = await db
+          .select({
+            id: users.id,
+            clerkId: users.clerkId,
+            email: users.email,
+            displayName: users.displayName,
+            status: users.status,
+            onboardingStep: users.onboardingStep,
+          })
+          .from(users)
+          .where(eq(users.clerkId, userId))
+          .limit(1);
+
+        let row = rows[0];
+        if (!row) {
+          const clerkUser = await currentUser();
+          const email =
+            clerkUser?.emailAddresses?.[0]?.emailAddress ??
+            `${userId}@accounts.clerk.dev`;
+          const displayName = clerkUser
+            ? `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() || null
+            : null;
+          const fingerprint = identityFingerprint(email);
+
+          await db.transaction(async (tx) => {
+            await tx.execute(sql`
+              SELECT provision_user_and_trial(
+                ${userId}, ${email}, ${displayName}, ${fingerprint}, 5, 2, '2026-10-04.1'
+              )
+            `);
+          });
+
+          rows = await db
+            .select({
+              id: users.id,
+              clerkId: users.clerkId,
+              email: users.email,
+              displayName: users.displayName,
+              status: users.status,
+              onboardingStep: users.onboardingStep,
+            })
+            .from(users)
+            .where(eq(users.clerkId, userId))
+            .limit(1);
+          row = rows[0];
+        }
+
+        if (row) {
+          const roles = await db
+            .select({ role: userRoleAssignments.role })
+            .from(userRoleAssignments)
+            .where(eq(userRoleAssignments.userId, row.id));
+
+          return {
+            ...row,
+            isAdmin: roles.some((r) => r.role === "admin"),
+            authMode: "clerk",
+          };
+        }
+      }
+    } catch (err) {
+      logger.warn("auth.clerk_session_check_failed", { error: String(err) });
+    }
   }
-  return getDevSessionUser();
+
+  return null;
 });
 
 async function getDevSessionUser(): Promise<SessionUser | null> {
