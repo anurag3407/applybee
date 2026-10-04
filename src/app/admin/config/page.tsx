@@ -21,7 +21,7 @@ export default async function AdminConfigPage() {
     ["FEATURE_GMAIL_ENABLED", config.FEATURE_GMAIL_ENABLED, "Kill switch for new Gmail deliveries"],
     ["FEATURE_LIVE_PURCHASES_ENABLED", config.FEATURE_LIVE_PURCHASES_ENABLED, "Launch gate: economics/legal approval required"],
     ["FEATURE_RESUME_ATTACHMENTS_ENABLED", config.FEATURE_RESUME_ATTACHMENTS_ENABLED, "Requires scanner readiness"],
-    ["AI adapter", config.aiMode, "gemini requires GEMINI_API_KEY"],
+    ["AI adapter", config.aiMode, "openrouter/gemini requires corresponding API key"],
     ["Gmail adapter", config.gmailMode, "live requires Google OAuth credentials"],
     ["Payments adapter", config.paymentsMode, "razorpay requires live/test keys"],
     ["PAYMENTS_MODE", config.PAYMENTS_MODE, "test/live mismatch with deployment blocks activation"],

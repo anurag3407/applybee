@@ -41,6 +41,15 @@ const envSchema = z.object({
   // requires an explicit 32-byte base64 key.
   TOKEN_ENCRYPTION_KEY: optional(z.string().min(1)),
 
+  OPENROUTER_API_KEY: optional(z.string().min(1)),
+  OPENROUTER_MODEL_ID: z.string().default("stealth/space-bunny-alpha"),
+  IS_OPENROUTER: z
+    .string()
+    .optional()
+    .default(() => process.env.isOpenrouter ?? process.env.isOpenRouter ?? "")
+    .transform((v) => (v === "" || v === undefined ? true : v.toLowerCase() === "true" || v === "1")),
+  AI_PROVIDER: z.enum(["openrouter", "gemini", "mock"]).optional(),
+
   GEMINI_API_KEY: optional(z.string().min(1)),
   GEMINI_MODEL_ID: optional(z.string().min(1)),
   AI_PROMPT_VERSION: z.string().default("2026-10-04.1"),
@@ -91,7 +100,7 @@ const envSchema = z.object({
 export type AppConfig = z.infer<typeof envSchema> & {
   isProduction: boolean;
   authMode: "clerk" | "dev";
-  aiMode: "gemini" | "mock";
+  aiMode: "openrouter" | "gemini" | "mock";
   gmailMode: "live" | "mock";
   paymentsMode: "razorpay" | "mock";
   storageMode: "r2" | "appwrite" | "supabase" | "neon" | "local";
@@ -113,7 +122,28 @@ export function getConfig(): AppConfig {
 
   const authMode: "clerk" | "dev" =
     env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && env.CLERK_SECRET_KEY ? "clerk" : "dev";
-  const aiMode: "gemini" | "mock" = env.GEMINI_API_KEY ? "gemini" : "mock";
+
+  // AI Priority: if IS_OPENROUTER=true (or isOpenrouter=true) or AI_PROVIDER="openrouter",
+  // openrouter is primary. Otherwise gemini is primary.
+  let aiMode: "openrouter" | "gemini" | "mock" = "mock";
+  const isOpenrouter =
+    env.IS_OPENROUTER ||
+    process.env.isOpenrouter === "true" ||
+    process.env.isOpenRouter === "true" ||
+    env.AI_PROVIDER === "openrouter";
+
+  if (env.AI_PROVIDER === "gemini" && env.GEMINI_API_KEY) {
+    aiMode = "gemini";
+  } else if (isOpenrouter && env.OPENROUTER_API_KEY) {
+    aiMode = "openrouter";
+  } else if (env.GEMINI_API_KEY) {
+    aiMode = "gemini";
+  } else if (env.OPENROUTER_API_KEY) {
+    aiMode = "openrouter";
+  } else {
+    aiMode = "mock";
+  }
+
   const gmailMode: "live" | "mock" =
     env.GOOGLE_OAUTH_CLIENT_ID && env.GOOGLE_OAUTH_CLIENT_SECRET ? "live" : "mock";
   const paymentsMode: "razorpay" | "mock" =
