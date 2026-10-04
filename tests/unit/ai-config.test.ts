@@ -1,5 +1,8 @@
-import { describe, it, expect } from "vitest";
-import { validateGroundedDraft, type GroundedDraftInput } from "@/server/adapters/ai";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
+
+import { validateGroundedDraft, getDraftModel, type GroundedDraftInput } from "@/server/adapters/ai";
 
 describe("AI validation and parser tests", () => {
   const dummyInput: GroundedDraftInput = {
@@ -46,5 +49,12 @@ describe("AI validation and parser tests", () => {
       warnings: [],
     };
     expect(() => validateGroundedDraft(raw, dummyInput)).toThrow("outside the confirmed snapshot");
+  });
+
+  it("resolves OpenRouter model correctly when configured", () => {
+    const { model, isMock, modelId } = getDraftModel();
+    expect(isMock).toBe(false);
+    expect(modelId).toBe("stealth/space-bunny-alpha");
+    expect(model).toBeDefined();
   });
 });
