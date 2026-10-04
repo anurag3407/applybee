@@ -2,8 +2,33 @@
 
 import { useState } from "react";
 import { useClerk } from "@clerk/nextjs";
+import { safeInternalPath } from "@/lib/validation";
 
-export function GoogleAuthButton({ mode }: { mode: "sign-in" | "sign-up" }) {
+const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+/**
+ * Google OAuth entry point. Only rendered when Clerk is the configured
+ * adapter; the guard below keeps the component safe if it is ever mounted
+ * without <ClerkProvider> (useClerk throws in that case).
+ */
+export function GoogleAuthButton({
+  mode,
+  redirectTo,
+}: {
+  mode: "sign-in" | "sign-up";
+  redirectTo?: string;
+}) {
+  if (!clerkPublishableKey) return null;
+  return <GoogleAuthButtonInner mode={mode} redirectTo={redirectTo} />;
+}
+
+function GoogleAuthButtonInner({
+  mode,
+  redirectTo,
+}: {
+  mode: "sign-in" | "sign-up";
+  redirectTo?: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const clerk = useClerk();
@@ -28,29 +53,27 @@ export function GoogleAuthButton({ mode }: { mode: "sign-in" | "sign-up" }) {
         throw new Error("Clerk authentication client not ready");
       }
 
-      const target = mode === "sign-up" ? client.signUp : client.signIn;
-      await target.authenticateWithRedirect({
+      const target = safeInternalPath(redirectTo);
+      // The callback route reads `next` and uses it once the flow completes;
+      // protocol-relative and external targets were already rejected above.
+      const redirectUrl = target
+        ? `/sso-callback?next=${encodeURIComponent(target)}`
+        : "/sso-callback";
+      const redirectUrlComplete = target ?? (mode === "sign-up" ? "/onboarding" : "/app");
+
+      // Clerk automatically transfers an OAuth sign-in to sign-up when the
+      // account does not exist (see sso-callback), so a failed attempt is a
+      // real failure and must not be retried as a different resource.
+      const resource = mode === "sign-up" ? client.signUp : client.signIn;
+      await resource.authenticateWithRedirect({
         strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/app",
+        redirectUrl,
+        redirectUrlComplete,
       });
       return;
     } catch (err: unknown) {
       console.error("Google authentication error:", err);
-      // If sign-in failed (e.g. user does not have an account yet), attempt sign-up
-      if (mode === "sign-in" && clerk.client) {
-        try {
-          await clerk.client.signUp.authenticateWithRedirect({
-            strategy: "oauth_google",
-            redirectUrl: "/sso-callback",
-            redirectUrlComplete: "/app",
-          });
-          return;
-        } catch (signUpErr) {
-          console.error("Google sign-up fallback error:", signUpErr);
-        }
-      }
-      setErrorMsg("Google authentication could not be completed. Please try again or use direct email.");
+      setErrorMsg("Google authentication could not be completed. Please try again.");
       setLoading(false);
     }
   }

@@ -10,6 +10,10 @@ import { z } from "zod";
  * available when Clerk is configured or in production (config-validated).
  */
 export async function POST(req: Request) {
+  const config = getConfig();
+  if (config.authMode !== "dev" || config.isProduction) {
+    return apiError(403, "FORBIDDEN", "Developer sign-in is only available in local development.");
+  }
   const body = (await req.json().catch(() => null)) as { email?: string; name?: string } | null;
   const parsed = z.object({ email: safeEmail, name: z.string().max(120).optional() }).safeParse(body);
   if (!parsed.success) {

@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Input, Label, InlineError } from "@/components/ui/primitives";
-import { safeEmail } from "@/lib/validation";
+import { safeEmail, safeInternalPath } from "@/lib/validation";
 
 /**
  * Development session adapter sign-in (labeled). When Clerk is configured in
@@ -38,7 +38,7 @@ export function DevSignInForm({ mode, redirectTo }: { mode: "sign-in" | "sign-up
         const body = (await res.json()) as { error?: { message?: string } };
         throw new Error(body.error?.message ?? "Sign-in failed.");
       }
-      const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/app";
+      const target = safeInternalPath(redirectTo) ?? "/app";
       router.push(target);
       router.refresh();
     } catch (err) {

@@ -3,6 +3,7 @@ import {
   fillTemplate,
   findUnknownTemplateVariables,
   safeEmail,
+  safeInternalPath,
   bodySchema,
   draftPatchSchema,
 } from "@/lib/validation";
@@ -40,6 +41,20 @@ describe("input validation", () => {
   it("validates draft patch shape", () => {
     expect(draftPatchSchema.safeParse({ expectedVersion: 3, subject: "Hi" }).success).toBe(true);
     expect(draftPatchSchema.safeParse({ expectedVersion: -1 }).success).toBe(false);
+  });
+
+  it("accepts only same-origin return paths for auth redirects", () => {
+    expect(safeInternalPath("/app/drafts/1?tab=body")).toBe("/app/drafts/1?tab=body");
+    expect(safeInternalPath(undefined)).toBeNull();
+    expect(safeInternalPath("")).toBeNull();
+    expect(safeInternalPath("https://evil.example/app")).toBeNull();
+    // Protocol-relative and backslash tricks are external navigations.
+    expect(safeInternalPath("//evil.example/app")).toBeNull();
+    expect(safeInternalPath("/\\evil.example")).toBeNull();
+    expect(safeInternalPath("/app\r\nLocation: https://evil.example")).toBeNull();
+    expect(safeInternalPath("relative/path")).toBeNull();
+    // Repeated query params arrive as arrays; they are never valid paths.
+    expect(safeInternalPath(["/app"])).toBeNull();
   });
 });
 

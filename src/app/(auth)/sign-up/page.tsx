@@ -5,6 +5,8 @@ import { AuthFrame } from "@/components/auth/auth-frame";
 import { DevSignInForm } from "@/components/auth/dev-signin-form";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { getSessionUser } from "@/server/auth/session";
+import { getConfig } from "@/server/config";
+import { safeInternalPath } from "@/lib/validation";
 
 export const metadata: Metadata = { title: "Create your account" };
 export const dynamic = "force-dynamic";
@@ -14,6 +16,10 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
   if (user) redirect("/app");
   const { sku, redirect: target } = await searchParams;
   const skuParam = typeof sku === "string" && /^[a-z0-9_]+$/i.test(sku) ? sku : null;
+  const safeTarget = safeInternalPath(target) ?? undefined;
+  const destination = skuParam ? `/onboarding?sku=${skuParam}` : safeTarget;
+  const { authMode } = getConfig();
+  const isClerk = authMode === "clerk";
   return (
     <AuthFrame
       title="Create your account"
@@ -28,16 +34,20 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
       }
     >
       <div className="space-y-4">
-        <GoogleAuthButton mode="sign-up" />
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border-decorative" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-canvas px-2 text-text-muted">or continue with email</span>
-          </div>
-        </div>
-        <DevSignInForm mode="sign-up" redirectTo={skuParam ? `/onboarding?sku=${skuParam}` : target} />
+        {isClerk ? (
+          <GoogleAuthButton mode="sign-up" redirectTo={destination} />
+        ) : (
+          <>
+            <div
+              className="rounded-control border border-warning/30 bg-warning-wash px-3 py-2 text-xs leading-relaxed text-warning"
+              role="note"
+            >
+              <strong>Development build:</strong> local labeled session adapter. Production uses Clerk — see{" "}
+              <code>docs/adr/0001-platform.md</code>.
+            </div>
+            <DevSignInForm mode="sign-up" redirectTo={destination} />
+          </>
+        )}
       </div>
     </AuthFrame>
   );

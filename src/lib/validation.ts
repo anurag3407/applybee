@@ -29,6 +29,21 @@ export const safeUrl = z
   .max(2_000)
   .refine((v) => v === "" || /^https?:\/\//i.test(v), "Use an http(s) URL");
 
+/**
+ * Safe same-origin return path for auth redirects (§11.3): rejects absolute
+ * URLs, protocol-relative URLs (`//evil.example`), backslash tricks, and
+ * control characters. Accepts a same-origin path or returns null.
+ */
+export function safeInternalPath(value: unknown): string | null {
+  // Search params can arrive as arrays (`?next=a&next=b`); only a single
+  // string value is ever a valid return path.
+  if (typeof value !== "string" || !value) return null;
+  if (!value.startsWith("/") || value.startsWith("//")) return null;
+  if (value.includes("\\")) return null;
+  if (/[\r\n\x00-\x1f\x7f]/.test(value)) return null;
+  return value;
+}
+
 export const subjectSchema = z.string().max(SUBJECT_MAX);
 export const bodySchema = z
   .string()

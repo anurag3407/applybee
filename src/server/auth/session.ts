@@ -2,22 +2,23 @@ import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { db, pool } from "@/db/client";
 import { authSessions, userRoleAssignments, users } from "@/db/schema";
 import { getConfig } from "@/server/config";
 import { identityFingerprint, randomToken, sha256Hex } from "@/server/crypto";
 import { logger } from "@/server/logger";
-import { sql } from "drizzle-orm";
+import { provisionUserAndTrial } from "@/server/services/provisioning";
 
 /**
  * Authentication boundary. Two adapters behind one interface (plan §3.1, §27.2):
  *
  * - `clerk`: production adapter — enabled when Clerk keys are configured.
- *   Wiring steps are documented in docs/adr/0002-authentication.md; this build
- *   activates it only with real keys present.
+ *   Wired through `clerkMiddleware()` (src/proxy.ts), `ClerkProvider`
+ *   (src/app/layout.tsx), and `auth()`; see docs/adr/0001-platform.md.
  * - `dev`: labeled local development session adapter used when no keys exist.
- *   It is never available in production (enforced in config validation).
+ *   It is never available in production (enforced by the dev-signin route and
+ *   by only being consulted when `authMode === "dev"`).
  */
 
 export const SESSION_COOKIE = "ab_session";
@@ -33,84 +34,84 @@ export type SessionUser = {
   authMode: "clerk" | "dev";
 };
 
+type SessionUserRow = Pick<
+  SessionUser,
+  "id" | "clerkId" | "email" | "displayName" | "status" | "onboardingStep"
+>;
+
+const userColumns = {
+  id: users.id,
+  clerkId: users.clerkId,
+  email: users.email,
+  displayName: users.displayName,
+  status: users.status,
+  onboardingStep: users.onboardingStep,
+} as const;
+
+async function withRoles(row: SessionUserRow, authMode: "clerk" | "dev"): Promise<SessionUser> {
+  const roles = await db
+    .select({ role: userRoleAssignments.role })
+    .from(userRoleAssignments)
+    .where(eq(userRoleAssignments.userId, row.id));
+  return {
+    ...row,
+    isAdmin: roles.some((r) => r.role === "admin"),
+    authMode,
+  };
+}
+
+async function selectUserByClerkId(clerkId: string): Promise<SessionUserRow | null> {
+  const rows = await db.select(userColumns).from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  return rows[0] ?? null;
+}
+
 export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
-  // 1. Check local session cookie (supports direct email sign-in)
-  const localUser = await getDevSessionUser();
-  if (localUser) return localUser;
-
-  // 2. Check Clerk session (supports Google OAuth and Clerk credentials)
   const config = getConfig();
-  if (config.authMode === "clerk") {
-    try {
-      const { auth, currentUser } = await import("@clerk/nextjs/server");
-      const { userId } = await auth();
-      if (userId) {
-        let rows = await db
-          .select({
-            id: users.id,
-            clerkId: users.clerkId,
-            email: users.email,
-            displayName: users.displayName,
-            status: users.status,
-            onboardingStep: users.onboardingStep,
-          })
-          .from(users)
-          .where(eq(users.clerkId, userId))
-          .limit(1);
 
-        let row = rows[0];
-        if (!row) {
-          const clerkUser = await currentUser();
-          const email =
-            clerkUser?.emailAddresses?.[0]?.emailAddress ??
-            `${userId}@accounts.clerk.dev`;
-          const displayName = clerkUser
-            ? `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() || null
-            : null;
-          const fingerprint = identityFingerprint(email);
-
-          await db.transaction(async (tx) => {
-            await tx.execute(sql`
-              SELECT provision_user_and_trial(
-                ${userId}, ${email}, ${displayName}, ${fingerprint}, 5, 2, '2026-10-04.1'
-              )
-            `);
-          });
-
-          rows = await db
-            .select({
-              id: users.id,
-              clerkId: users.clerkId,
-              email: users.email,
-              displayName: users.displayName,
-              status: users.status,
-              onboardingStep: users.onboardingStep,
-            })
-            .from(users)
-            .where(eq(users.clerkId, userId))
-            .limit(1);
-          row = rows[0];
-        }
-
-        if (row) {
-          const roles = await db
-            .select({ role: userRoleAssignments.role })
-            .from(userRoleAssignments)
-            .where(eq(userRoleAssignments.userId, row.id));
-
-          return {
-            ...row,
-            isAdmin: roles.some((r) => r.role === "admin"),
-            authMode: "clerk",
-          };
-        }
-      }
-    } catch (err) {
-      logger.warn("auth.clerk_session_check_failed", { error: String(err) });
-    }
+  // Exactly one adapter is active per deployment. The local cookie must never
+  // authenticate against a Clerk deployment: only consult it when the dev
+  // adapter is the configured one.
+  if (config.authMode === "dev") {
+    return getDevSessionUser();
   }
 
-  return null;
+  // Clerk session (Google OAuth and Clerk-hosted credentials). `auth()` reads
+  // the request state set by `clerkMiddleware` in src/proxy.ts.
+  try {
+    const { auth, currentUser } = await import("@clerk/nextjs/server");
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    let row = await selectUserByClerkId(userId);
+    if (!row) {
+      const clerkUser = await currentUser();
+      // Use the primary email, not whichever address happens to be first.
+      const email =
+        clerkUser?.primaryEmailAddress?.emailAddress ??
+        clerkUser?.emailAddresses?.[0]?.emailAddress ??
+        `${userId}@accounts.clerk.dev`;
+      const displayName = clerkUser
+        ? `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim() || null
+        : null;
+
+      // First authenticated request provisions the account; the Clerk webhook
+      // converges on the same service so one user/trial is granted (§17.2).
+      await provisionUserAndTrial({
+        clerkId: userId,
+        email,
+        displayName,
+        fingerprint: identityFingerprint(email),
+      });
+
+      row = await selectUserByClerkId(userId);
+    }
+
+    if (!row) return null;
+    return withRoles(row, "clerk");
+  } catch (err) {
+    logger.warn("auth.clerk_session_check_failed", { error: String(err) });
+    return null;
+  }
 });
 
 async function getDevSessionUser(): Promise<SessionUser | null> {
@@ -119,29 +120,14 @@ async function getDevSessionUser(): Promise<SessionUser | null> {
   if (!raw) return null;
   const tokenHash = sha256Hex(raw);
   const rows = await db
-    .select({
-      id: users.id,
-      clerkId: users.clerkId,
-      email: users.email,
-      displayName: users.displayName,
-      status: users.status,
-      onboardingStep: users.onboardingStep,
-    })
+    .select(userColumns)
     .from(authSessions)
     .innerJoin(users, eq(users.id, authSessions.userId))
     .where(and(eq(authSessions.tokenHash, tokenHash), gt(authSessions.expiresAt, new Date())))
     .limit(1);
   const row = rows[0];
   if (!row) return null;
-  const roles = await db
-    .select({ role: userRoleAssignments.role })
-    .from(userRoleAssignments)
-    .where(eq(userRoleAssignments.userId, row.id));
-  return {
-    ...row,
-    isAdmin: roles.some((r) => r.role === "admin"),
-    authMode: "dev",
-  };
+  return withRoles(row, "dev");
 }
 
 /** Provision (idempotently) and open a dev session. Trial grant happens once. */
@@ -157,17 +143,21 @@ export async function devSignIn(input: {
   const fingerprint = identityFingerprint(email);
 
   const preExisting = await db
-    .select({ id: users.id, status: users.status })
+    .select({ id: users.id })
     .from(users)
     .where(eq(users.clerkId, clerkId))
     .limit(1);
-  const trialGrantedBefore =
-    preExisting.length === 0 &&
+  const isNewAccount = preExisting.length === 0;
+  // A new auth subject can still reuse an identity whose trial was already
+  // consumed (delete + re-register); returning users keep their own account.
+  const identityAlreadyClaimed =
+    isNewAccount &&
     (
       await db.execute(
         sql`SELECT 1 FROM trial_entitlements WHERE program_id = 'free_trial_v1' AND identity_fingerprint = ${fingerprint}`,
       )
     ).rows.length > 0;
+  const trialGranted = isNewAccount && !identityAlreadyClaimed;
 
   const result = await db.transaction(async (tx) => {
     const res = await tx.execute(sql`
@@ -178,7 +168,7 @@ export async function devSignIn(input: {
     return (res.rows[0] as { user_id: string }).user_id;
   });
 
-  if (trialGrantedBefore) {
+  if (identityAlreadyClaimed) {
     logger.info("trial.entitlement_already_consumed", { userId: result });
   }
 
@@ -197,12 +187,14 @@ export async function devSignIn(input: {
     path: "/",
     expires: expiresAt,
   });
-  if (!trialGrantedBefore) {
+  // Welcome email only when this request actually granted the trial — not on
+  // every returning sign-in.
+  if (trialGranted) {
     const { sendWelcomeEmail } = await import("@/server/services/email");
     sendWelcomeEmail(email, input.displayName).catch(() => {});
   }
 
-  return { userId: result, trialGranted: !trialGrantedBefore };
+  return { userId: result, trialGranted };
 }
 
 export async function signOut() {
@@ -212,6 +204,21 @@ export async function signOut() {
     await db.delete(authSessions).where(eq(authSessions.tokenHash, sha256Hex(raw)));
   }
   jar.delete(SESSION_COOKIE);
+
+  // Clerk keeps its own session cookies; without revoking that session the
+  // user is silently signed straight back in.
+  if (getConfig().authMode === "clerk") {
+    try {
+      const { auth, clerkClient } = await import("@clerk/nextjs/server");
+      const { sessionId } = await auth();
+      if (sessionId) {
+        const client = await clerkClient();
+        await client.sessions.revokeSession(sessionId);
+      }
+    } catch (err) {
+      logger.warn("auth.clerk_signout_failed", { error: String(err) });
+    }
+  }
 }
 
 export async function requireUser(): Promise<SessionUser> {
