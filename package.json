@@ -16,7 +16,9 @@
     "db:migrate": "tsx scripts/db-migrate.ts",
     "db:seed:test": "tsx scripts/db-seed.ts",
     "worker:once": "tsx scripts/worker-once.ts",
-    "worker:dev": "tsx scripts/worker-dev.ts"
+    "worker:dev": "tsx scripts/worker-dev.ts",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "deploy:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@gsap/react": "2.1.2",
@@ -30,6 +32,7 @@
     "lucide-react": "0.549.0",
     "next": "16.0.0",
     "pg": "8.16.3",
+    "pg-cloudflare": "^1.4.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "server-only": "0.0.1",
@@ -37,6 +40,7 @@
     "zod": "4.1.13"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.8",
     "@tailwindcss/postcss": "4.1.16",
     "@testing-library/react": "16.3.0",
     "@types/node": "24.10.1",
@@ -50,7 +54,8 @@
     "tailwindcss": "4.1.16",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
-    "vitest": "4.0.6"
+    "vitest": "4.0.6",
+    "wrangler": "^4.147.0"
   },
   "engines": {
     "node": ">=24"

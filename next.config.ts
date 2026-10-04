@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   reactStrictMode: true,
   poweredByHeader: false,
+  serverExternalPackages: ["pg", "pg-cloudflare"],
   // Secrets and provider wiring are validated server-side at startup
   // through src/server/config.ts — nothing sensitive is inlined here.
   async headers() {

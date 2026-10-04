@@ -2,10 +2,12 @@
 node_modules/
 .pnpm-store/
 
-# next.js
+# next.js & cloudflare
 .next/
 out/
 next-env.d.ts
+.open-next/
+.wrangler/
 
 # build/standalone
 standalone/
