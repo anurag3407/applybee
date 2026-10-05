@@ -34,18 +34,26 @@ export function ProfileFactsEditor({
 
   async function approveRevision() {
     setBusy(true);
-    await fetch("/api/v1/profile", {
+    setSaved(null);
+    const res = await fetch("/api/v1/profile", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ revisionId }),
     });
     setBusy(false);
+    // Checked, unlike before: reporting "confirmed" after a failed request left
+    // the user believing their facts were usable in AI drafts when they were not.
+    if (!res.ok) {
+      setSaved("We couldn't confirm those facts. Please try again.");
+      return;
+    }
     setSaved("Facts confirmed — they're now usable in AI drafts.");
     router.refresh();
   }
 
   async function saveAsRevision() {
     setBusy(true);
+    setSaved(null);
     const res = await fetch("/api/v1/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,6 +66,8 @@ export function ProfileFactsEditor({
     if (res.ok) {
       setSaved("Saved as a new revision.");
       router.refresh();
+    } else {
+      setSaved("We couldn't save those facts. Please try again.");
     }
   }
 

@@ -66,6 +66,9 @@ export const recipientSchema = z.union([
     email: safeEmail,
     name: z.string().trim().max(120).optional(),
   }),
+  // Explicit clear, so removing a recipient is a distinct intent rather than
+  // an empty string that happens to be falsy.
+  z.object({ kind: z.literal("none") }),
 ]);
 
 export const generationInputSchema = z.object({

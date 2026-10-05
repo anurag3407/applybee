@@ -27,6 +27,7 @@ export default async function PricingPage() {
           <ul className="mt-3 space-y-2 text-sm text-text-secondary">
             <li>• Reveal a directory email once — reopen/copy it free, forever.</li>
             <li>• One validated AI draft = one AI credit. Failed generations release automatically.</li>
+            <li>• Up to 10 AI drafts per day per account, whatever your balance. Credits don&apos;t expire from this.</li>
             <li>• Manual writing, templates, and export are always free.</li>
             <li>• Gmail draft creation is not an AI charge.</li>
           </ul>

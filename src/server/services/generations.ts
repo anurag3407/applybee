@@ -91,7 +91,33 @@ export async function startGeneration(params: {
       .limit(1)
   )[0];
   if (!draft) throw new GenerationPreflightError("DRAFT_NOT_FOUND", "This draft no longer exists.");
-  if (draft.status !== "active") throw new GenerationPreflightError("DRAFT_INACTIVE", "This draft can no longer be edited.");
+
+  // Self-heal a draft abandoned in "generating". The status is set when a
+  // generation is queued and only cleared by the job handler on a terminal
+  // outcome. If the job exhausts its attempts (or the worker dies), nothing
+  // clears it — and since the preflight below rejects anything not "active",
+  // two failed provider calls would permanently lock the user out of their own
+  // draft with no way to recover. Release the editor when nothing is actually
+  // working on it; the orphaned credit is returned by the credits.reconcile
+  // sweeper once its reservation deadline passes.
+  let draftStatus = draft.status;
+  if (draftStatus === "generating") {
+    const live = await db.execute(sql`
+      SELECT 1 FROM jobs
+      WHERE kind = 'draft.generate'
+        AND entity_id IN (SELECT id::text FROM generation_requests WHERE draft_id = ${params.draftId}::uuid)
+        AND state IN ('queued','running','retry_wait','deferred')
+      LIMIT 1
+    `);
+    if (live.rows.length === 0) {
+      await db.update(drafts).set({ status: "active" }).where(eq(drafts.id, params.draftId));
+      logger.info("generation.abandoned_draft_released", { draftId: params.draftId, userId: params.userId });
+      draftStatus = "active";
+    }
+  }
+  if (draftStatus !== "active") {
+    throw new GenerationPreflightError("DRAFT_INACTIVE", "This draft can no longer be edited.");
+  }
   if (!draft.contactId && !draft.ownRecipientEmail) {
     throw new GenerationPreflightError("NO_RECIPIENT", "Choose a recipient before generating.");
   }
@@ -101,6 +127,27 @@ export async function startGeneration(params: {
     throw new GenerationPreflightError(
       "NO_CONFIRMED_FACTS",
       "Confirm a few profile facts first — AI drafts are written only from details you have confirmed.",
+    );
+  }
+
+  // Hard daily ceiling: 10 drafts per rolling 24 hours, independent of balance.
+  // One credit buys one draft, so this also bounds how quickly a large balance
+  // can be spent on model calls.
+  //
+  // Deliberately placed AFTER the deterministic preflight checks above. The
+  // daily budget is a user-visible quota, so it must only be spent on an
+  // attempt that would really have started a generation — otherwise clicking
+  // "Generate" before choosing a recipient burned a slot and still errored.
+  const dayAdmission = await admitWithPreCheck({
+    policy: LIMITS.aiGenerateDaily,
+    principal: params.userId,
+    operationRef: `genday:${opSeed}`,
+  });
+  if (!dayAdmission.admitted) {
+    throw new GenerationPreflightError(
+      "DAILY_LIMIT_REACHED",
+      "You've used all 10 AI drafts for today. Your copilot credits are safe — come back tomorrow, or buy a pack for more.",
+      LIMITS.aiGenerateDaily.windowSeconds,
     );
   }
 
@@ -153,8 +200,11 @@ export async function startGeneration(params: {
           kind: "draft.generate",
           userId: params.userId,
           entityId: gen.id,
-          maxAttempts: 2,
-          deadlineSeconds: 90,
+          // Retries are free for the user: the credit is only consumed once a
+          // validated artifact is committed, so transient provider failures
+          // should be retried rather than surfaced as a failed draft.
+          maxAttempts: 4,
+          deadlineSeconds: 300,
           tx,
         });
         return gen.id;

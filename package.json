@@ -17,6 +17,7 @@
     "db:seed:test": "tsx scripts/db-seed.ts",
     "worker:once": "tsx scripts/worker-once.ts",
     "worker:dev": "tsx scripts/worker-dev.ts",
+    "ai:check": "tsx scripts/check-ai.ts",
     "digest:dispatch": "tsx scripts/dispatch-digest.ts",
     "build:cloudflare": "opennextjs-cloudflare build",
     "deploy:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"

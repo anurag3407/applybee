@@ -63,6 +63,30 @@ Secrets belong in `wrangler secret put <NAME>` — never in `wrangler.jsonc`.
 or the token-encryption key are missing, and logs a loud summary for secrets
 that only degrade a single feature.
 
+## AI drafting
+
+One copilot credit buys exactly one draft, and a credit is only consumed when a
+validated artifact is durably saved — a failed generation releases it
+automatically. Accepting a draft costs nothing extra. On top of that, drafting
+is capped at **10 drafts per rolling 24 hours per account**, regardless of
+balance, to bound provider spend.
+
+Verify the provider end to end without spending a credit:
+
+```
+pnpm ai:check
+```
+
+It reports the resolved `aiMode` and model, calls the provider with a probe
+prompt, and runs the result through the same `validateGroundedDraft` gate the
+job uses — so a pass means drafting will work, and a failure names the cause
+(missing key, unknown `OPENROUTER_MODEL_ID`, unreachable provider).
+
+Provider selection in `src/server/config.ts` prefers Gemini when
+`AI_PROVIDER=gemini` and a key is present, otherwise OpenRouter, otherwise a
+clearly labeled offline sample model. Rate limits (5/min, 30/hour, 10/day) and
+concurrency slots are defined in `src/server/adapters/ratelimit.ts`.
+
 ## What is enforced in code (not just policy)
 
 - **Draft-only Gmail:** the HTTP allowlist inside the Gmail adapter rejects any send path; a structural test asserts no send capability is exported.

@@ -189,6 +189,11 @@ export class DraftConflictError extends Error {
   }
 }
 
+export type DraftRecipientPatch =
+  | { kind: "directory"; contactId: string }
+  | { kind: "own"; email: string; name?: string | null }
+  | { kind: "none" };
+
 export async function autosaveDraft(params: {
   userId: string;
   draftId: string;
@@ -197,6 +202,7 @@ export async function autosaveDraft(params: {
   body?: string;
   intent?: string;
   mode?: string;
+  recipient?: DraftRecipientPatch;
 }): Promise<{ version: number }> {
   const admission = await admitWithPreCheck({
     policy: LIMITS.autosave,
@@ -240,10 +246,42 @@ export async function autosaveDraft(params: {
         listSubject: subject,
         ...(params.intent ? { intent: params.intent as "intro" } : {}),
         ...(params.mode ? { mode: params.mode as "manual" } : {}),
+        ...(await recipientColumns(params.recipient)),
       })
       .where(eq(drafts.id, draft.id));
     return { version: draft.currentVersion };
   });
+}
+
+/**
+ * Recipient columns to merge into the draft update.
+ *
+ * The composer could not set a recipient at all: draftPatchSchema accepted one,
+ * the PATCH route dropped it, and a draft created from the dashboard's "Create
+ * an introduction" button had none — leaving the primary call to action unable
+ * to generate anything. Setting one kind clears the other so a draft never
+ * carries a stale directory id alongside a manual address.
+ */
+async function recipientColumns(
+  recipient: DraftRecipientPatch | undefined,
+): Promise<Partial<{ contactId: string | null; ownRecipientEmail: string | null; ownRecipientName: string | null }>> {
+  if (!recipient) return {};
+  if (recipient.kind === "none") {
+    return { contactId: null, ownRecipientEmail: null, ownRecipientName: null };
+  }
+  if (recipient.kind === "directory") {
+    // Verified outside the caller's transaction so this helper needs no
+    // transaction type; a directory contact disappearing mid-save is not a
+    // realistic race.
+    const contact = (await db.select({ id: contacts.id }).from(contacts).where(eq(contacts.id, recipient.contactId)).limit(1))[0];
+    if (!contact) throw new Error("CONTACT_NOT_FOUND");
+    return { contactId: contact.id, ownRecipientEmail: null, ownRecipientName: null };
+  }
+  return {
+    contactId: null,
+    ownRecipientEmail: recipient.email.trim().toLowerCase(),
+    ownRecipientName: recipient.name?.trim() || null,
+  };
 }
 
 export async function deleteDraft(userId: string, draftId: string): Promise<void> {

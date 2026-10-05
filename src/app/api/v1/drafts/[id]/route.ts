@@ -66,6 +66,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       body: body.body,
       intent: body.intent,
       mode: body.mode,
+      // draftPatchSchema accepts a recipient patch; it was silently dropped
+      // here, which is why a draft created from the dashboard could never be
+      // given a recipient.
+      recipient: body.recipient,
     });
     return ok(result);
   } catch (err) {

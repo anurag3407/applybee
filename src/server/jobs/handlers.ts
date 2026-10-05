@@ -29,7 +29,7 @@ import {
   fulfillCapturedPayment,
 } from "@/server/services/credits";
 import { enqueueJob, enqueueOutboxEvent } from "@/server/services/jobs";
-import { getDraftModel, ModelOutputError, validateGroundedDraft, type GroundedDraftInput } from "@/server/adapters/ai";
+import { getDraftModel, ModelOutputError, TransientModelError, validateGroundedDraft, type GroundedDraftInput } from "@/server/adapters/ai";
 import { getGmailGateway, refreshAccessToken, decryptTokenEnvelope, encryptTokenEnvelope } from "@/server/adapters/gmail";
 import { buildMimeMessage } from "@/server/adapters/mime";
 import { getObjectStore } from "@/server/adapters/objectStore";
@@ -215,6 +215,22 @@ const draftGenerate: Handler = async (ctx) => {
     return { status: "succeeded", result: { generationId: gen.id, proposedRevisionId: proposedId } };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    // Rate limits, timeouts and provider 5xx are retried inside the job budget.
+    // The credit is only consumed when a validated artifact is committed, so a
+    // retry costs the user nothing.
+    if (err instanceof TransientModelError) {
+      logger.warn("generation.provider_transient", { generationId: gen.id, error: message });
+      await db
+        .update(generationRequests)
+        .set({ state: "generating", failureCode: "PROVIDER_TRANSIENT", failureMessage: "The model provider is temporarily unavailable — retrying." })
+        .where(eq(generationRequests.id, gen.id));
+      return {
+        status: "retry",
+        retryAfterSeconds: err.retryAfterSeconds,
+        errorCode: "PROVIDER_TRANSIENT",
+        errorMessage: message,
+      };
+    }
     if (err instanceof ModelOutputError) {
       // Permanent output problem: release once, no pointless retries (§20.4).
       await releaseGeneration(gen.id).catch(() => {});
@@ -889,7 +905,16 @@ const creditsReconcile: Handler = async () => {
       await releaseGeneration(row.operation_ref).catch(() => {});
       continue;
     }
-    if (gen.state === "reserved" || gen.state === "queued" || gen.state === "preparing") {
+    // "generating" is included deliberately: that is the state a generation is
+    // left in when its job exhausts its attempts mid-flight. Without this, the
+    // reservation is never returned AND the parent draft stays locked in
+    // "generating" forever, so the user can no longer edit or regenerate it.
+    if (
+      gen.state === "reserved" ||
+      gen.state === "queued" ||
+      gen.state === "preparing" ||
+      gen.state === "generating"
+    ) {
       const jobRow = await db.execute(sql`
         SELECT 1 FROM jobs WHERE kind = 'draft.generate' AND entity_id = ${gen.id}::uuid
           AND state IN ('queued','running','retry_wait','deferred')
@@ -901,6 +926,17 @@ const creditsReconcile: Handler = async () => {
           .set({ state: "failed", failureCode: "RESERVATION_SWEEP", failureMessage: "Generation timed out; your credit was released.", completedAt: new Date() })
           .where(eq(generationRequests.id, gen.id));
         await releaseGeneration(row.operation_ref).catch(() => {});
+        // Hand the draft back to the user so it is editable again.
+        const draftRow = await db.execute(sql`
+          SELECT draft_id FROM generation_requests WHERE id = ${gen.id}::uuid
+        `);
+        const draftId = (draftRow.rows[0] as { draft_id: string } | undefined)?.draft_id;
+        if (draftId) {
+          await db
+            .update(drafts)
+            .set({ status: "active" })
+            .where(and(eq(drafts.id, draftId), eq(drafts.status, "generating")));
+        }
       }
     }
   }

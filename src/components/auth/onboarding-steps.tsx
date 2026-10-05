@@ -17,39 +17,45 @@ export function ProfileStep() {
     setBusy(true);
     setError(null);
     const form = new FormData(e.currentTarget);
+    const targetRole = String(form.get("targetRole") ?? "");
+    const careerStage = String(form.get("careerStage") ?? "early_career");
     try {
-      await fetch("/api/v1/me/preferences", {
+      const prefsRes = await fetch("/api/v1/me/preferences", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           displayName: String(form.get("displayName") ?? ""),
-          targetRoles: String(form.get("targetRole") ?? "")
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
-            .slice(0, 5),
+          targetRoles: targetRole.split(",").map((s) => s.trim()).filter(Boolean).slice(0, 5),
           targetLocations: String(form.get("location") ?? "")
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean)
             .slice(0, 5),
-          careerStage: String(form.get("careerStage") ?? "early_career"),
+          careerStage,
         }),
       });
-      await fetch("/api/v1/profile/revisions", {
+      if (!prefsRes.ok) throw new Error("preferences");
+
+      // The revision endpoint is POST /api/v1/profile. This previously posted
+      // to /api/v1/profile/revisions, which does not exist — the 404 was never
+      // checked, so no profile revision was created and the user went on to a
+      // workspace where every AI generation failed with NO_CONFIRMED_FACTS.
+      const profileRes = await fetch("/api/v1/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          targetRole: String(form.get("targetRole") ?? ""),
-          careerStage: String(form.get("careerStage") ?? "early_career"),
+          targetRole,
+          careerStage,
           facts: [],
           approve: true,
         }),
       });
+      if (!profileRes.ok) throw new Error("profile");
+
       router.push("/onboarding/resume");
       router.refresh();
     } catch {
-      setError("Saving failed. Please try again.");
+      setError("Saving failed. Please try again — your details were not saved.");
       setBusy(false);
     }
   }

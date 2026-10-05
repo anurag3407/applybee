@@ -37,6 +37,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         NO_CONFIRMED_FACTS: 422,
         NO_RECIPIENT: 422,
         RATE_LIMITED: 429,
+        DAILY_LIMIT_REACHED: 429,
         AI_DISABLED: 503,
         IDEMPOTENCY_CONFLICT: 409,
       };

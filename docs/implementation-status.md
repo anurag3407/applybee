@@ -65,5 +65,7 @@
 1. Set real credentials (`.env.example` inventory) via `wrangler secret put`, set `APP_ENV=production` in `wrangler.jsonc` vars. Config validation refuses to boot on a missing auth adapter, database, or encryption key, and logs a loud list of any feature-degrading gaps (missing webhook secrets, no AI key, no document processor).
 2. If the deployment serves more than one custom domain, set `EXTRA_ALLOWED_ORIGINS` so users on the non-canonical host are not blocked from every form.
 3. Register `CRON_SECRET` as a repository secret and `APP_URL` as a repository variable so the scheduled workflow can drive the job queue and digest.
-4. Flip flags only after their gates: `FEATURE_AI_ENABLED` (AI terms + eval), `FEATURE_GMAIL_ENABLED` (Google verification), `FEATURE_LIVE_PURCHASES_ENABLED` (economics + legal), `FEATURE_RESUME_ATTACHMENTS_ENABLED` (scanner).
-5. Run `docs/runbooks/deployment.md` with a real staging drill incl. restore + payment/Gmail reconciliation.
+4. Confirm AI drafting works before launch: `pnpm ai:check`. It exercises the real provider through the same validation gate the job uses and spends no credit. A 404 here means `OPENROUTER_MODEL_ID` is not a model the key can use.
+5. Drafting is capped at 10 drafts per rolling 24 hours per account on top of the one-credit-per-draft model. The cap is enforced in `startGeneration` after the deterministic preflight checks, so a click that would have failed validation does not consume a daily slot.
+6. Flip flags only after their gates: `FEATURE_AI_ENABLED` (AI terms + eval), `FEATURE_GMAIL_ENABLED` (Google verification), `FEATURE_LIVE_PURCHASES_ENABLED` (economics + legal), `FEATURE_RESUME_ATTACHMENTS_ENABLED` (scanner).
+7. Run `docs/runbooks/deployment.md` with a real staging drill incl. restore + payment/Gmail reconciliation.

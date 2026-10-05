@@ -32,6 +32,10 @@ export const LIMITS = {
   contactReport: { operationKind: "contact.report", windowSeconds: 3600, limit: 10, failClosed: true },
   aiGenerate: { operationKind: "ai.generate", windowSeconds: 60, limit: 5, failClosed: true },
   aiGenerateHour: { operationKind: "ai.generate.hour", windowSeconds: 3600, limit: 30, failClosed: true },
+  // One copilot credit buys one draft, so this is also a hard ceiling of ten
+  // drafts per rolling 24 hours regardless of how many credits are held. It
+  // bounds provider spend and keeps a runaway client from draining a balance.
+  aiGenerateDaily: { operationKind: "ai.generate.daily", windowSeconds: 86400, limit: 10, failClosed: true },
   gmailCreate: { operationKind: "gmail.create", windowSeconds: 60, limit: 5, failClosed: true },
   gmailCreateDaily: { operationKind: "gmail.create.daily", windowSeconds: 86400, limit: 15, failClosed: true },
   gmailReconcile: { operationKind: "gmail.reconcile", windowSeconds: 60, limit: 3, failClosed: false },

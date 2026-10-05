@@ -57,6 +57,27 @@ export class ModelOutputError extends Error {
   }
 }
 
+/**
+ * A provider failure that is worth retrying (rate limit, timeout, 5xx).
+ *
+ * Without this distinction every provider hiccup was raised as a
+ * ModelOutputError, which the job handler treats as permanent: the job failed,
+ * the credit was released, and the user got nothing for a transient 429. A
+ * retry inside the existing job budget costs nothing extra because the credit
+ * is only consumed once a validated artifact exists.
+ */
+export class TransientModelError extends Error {
+  readonly retryAfterSeconds: number;
+  constructor(message: string, retryAfterSeconds = 20) {
+    super(message);
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+function isTransientStatus(status: number): boolean {
+  return status === 408 || status === 409 || status === 429 || status >= 500;
+}
+
 /* ------------------------------------------------------------------ */
 /* Shared output validation                                            */
 /* ------------------------------------------------------------------ */
@@ -308,10 +329,22 @@ class GeminiDraftModel implements DraftModel {
         }),
         signal: AbortSignal.timeout(32_000),
       },
-    );
+    ).catch((err: unknown) => {
+      throw new TransientModelError(
+        `Gemini request failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    });
     if (!res.ok) {
-      const text = await res.text();
+      const text = await res.text().catch(() => "");
       logger.error("gemini.call_failed", { status: res.status, model: this.modelId });
+      if (isTransientStatus(res.status)) {
+        throw new TransientModelError(`Gemini ${res.status}: ${text.slice(0, 200)}`);
+      }
+      if (res.status === 404) {
+        throw new ModelOutputError(
+          `Gemini has no model "${this.modelId}" (404). Set GEMINI_MODEL_ID to a real model id.`,
+        );
+      }
       throw new ModelOutputError(`Provider error ${res.status}: ${text.slice(0, 200)}`);
     }
     const body = (await res.json()) as {
@@ -440,27 +473,61 @@ ${resumeContent.slice(0, 24_000) || "[No readable text extracted from document]"
   }
 
   private async call(messages: Array<{ role: string; content: string }>): Promise<unknown> {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${this.apiKey}`,
-        "HTTP-Referer": "https://applybee.sayalabs.in",
-        "X-Title": "Apply Bee",
-      },
-      body: JSON.stringify({
-        model: this.modelId,
-        messages,
-        temperature: 0.4,
-        max_tokens: 4_000,
-        response_format: { type: "json_object" },
-      }),
-      signal: AbortSignal.timeout(60_000),
-    });
+    const send = (useJsonMode: boolean) =>
+      fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${this.apiKey}`,
+          "HTTP-Referer": "https://applybee.sayalabs.in",
+          "X-Title": "Apply Bee",
+        },
+        body: JSON.stringify({
+          model: this.modelId,
+          messages,
+          temperature: 0.4,
+          max_tokens: 4_000,
+          // Not every model behind OpenRouter implements JSON mode; when it is
+          // rejected we retry once without it and rely on the prompt plus the
+          // output extractor instead.
+          ...(useJsonMode ? { response_format: { type: "json_object" } } : {}),
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+
+    let res: Response;
+    try {
+      res = await send(true);
+    } catch (err) {
+      // Network failure / timeout: worth another attempt.
+      throw new TransientModelError(
+        `OpenRouter request failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+
+    if (!res.ok && res.status === 400) {
+      // The usual cause is an unsupported response_format on this model.
+      res = await send(false);
+    }
 
     if (!res.ok) {
-      const text = await res.text();
+      const text = await res.text().catch(() => "");
       logger.error("openrouter.call_failed", { status: res.status, model: this.modelId });
+      if (isTransientStatus(res.status)) {
+        const retryAfter = Number(res.headers.get("retry-after"));
+        throw new TransientModelError(
+          `OpenRouter ${res.status}: ${text.slice(0, 200)}`,
+          Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 20,
+        );
+      }
+      if (res.status === 401 || res.status === 403) {
+        throw new ModelOutputError(`OpenRouter rejected the API key (${res.status}). Check OPENROUTER_API_KEY.`);
+      }
+      if (res.status === 404) {
+        throw new ModelOutputError(
+          `OpenRouter has no model "${this.modelId}" (404). Set OPENROUTER_MODEL_ID to a model your key can use.`,
+        );
+      }
       throw new ModelOutputError(`OpenRouter error ${res.status}: ${text.slice(0, 200)}`);
     }
 
@@ -468,6 +535,9 @@ ${resumeContent.slice(0, 24_000) || "[No readable text extracted from document]"
       choices?: Array<{ message?: { content?: string } }>;
     };
     const content = body.choices?.[0]?.message?.content ?? "";
+    if (!content.trim()) {
+      throw new TransientModelError("OpenRouter returned an empty completion");
+    }
     return extractJsonFromModelOutput(content);
   }
 }

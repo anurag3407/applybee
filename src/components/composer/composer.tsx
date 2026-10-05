@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Check, Copy, Download, Sparkles, ShieldCheck, AlertTriangle, RefreshCw, Mail, FileDown } from "lucide-react";
 import { Button, Badge, InlineError, Textarea, Input, Label, Select } from "@/components/ui/primitives";
 import { Dialog } from "@/components/ui/dialog";
@@ -71,6 +72,12 @@ const INTENTS = [
   { value: "referral", label: "Referral request" },
   { value: "follow_up", label: "Follow-up" },
 ];
+
+/**
+ * Daily AI draft ceiling, mirrored from LIMITS.aiGenerateDaily in
+ * src/server/adapters/ratelimit.ts. Display only — the server is authoritative.
+ */
+const AI_DRAFTS_PER_DAY = 10;
 
 export function Composer({ draftId, initial, recipient, balances, gmail, hasApprovedProfile, resumeOptions, initialGeneration, initialDelivery }: ComposerProps) {
   const router = useRouter();
@@ -143,6 +150,62 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
   function markDirty() {
     dirtyRef.current = true;
     setSaveState("idle");
+  }
+
+  /* Recipient: a draft created from the dashboard's "Create an introduction"
+     button starts with none, and without this the primary call to action
+     dead-ended — the composer told users to choose a recipient but offered no
+     control to do it, so nothing could be generated. */
+  const [rcptName, setRcptName] = useState("");
+  const [rcptEmail, setRcptEmail] = useState("");
+  const [rcptBusy, setRcptBusy] = useState(false);
+  const [rcptError, setRcptError] = useState<string | null>(null);
+  const [editingRcpt, setEditingRcpt] = useState(false);
+
+  async function patchRecipient(recipient: Record<string, unknown>) {
+    setRcptBusy(true);
+    setRcptError(null);
+    try {
+      const res = await fetch(`/api/v1/drafts/${draftId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ expectedVersion: savedVersion.current, recipient }),
+      });
+      if (!res.ok) {
+        setRcptError("We couldn't save that recipient. Please try again.");
+        return false;
+      }
+      const data = (await res.json()) as { data?: { version: number } };
+      if (data.data?.version) {
+        savedVersion.current = data.data.version;
+        setVersion(data.data.version);
+      }
+      return true;
+    } catch {
+      setRcptError("We couldn't save that recipient. Please try again.");
+      return false;
+    } finally {
+      setRcptBusy(false);
+      router.refresh();
+    }
+  }
+
+  async function setOwnRecipient() {
+    const email = rcptEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setRcptError("Enter a valid email address.");
+      return;
+    }
+    const okSave = await patchRecipient({
+      kind: "own",
+      email,
+      name: rcptName.trim() || undefined,
+    });
+    if (okSave) {
+      setRcptEmail("");
+      setRcptName("");
+      setEditingRcpt(false);
+    }
   }
 
   // Cancel any in-flight polling when this draft is left or a new poll starts.
@@ -371,7 +434,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
       <aside className="order-2 space-y-4 xl:order-1">
         <div className="rounded-card border border-border-decorative bg-surface p-4">
           <h3 className="text-xs font-bold uppercase tracking-wide text-text-disabled">Recipient</h3>
-          {recipient ? (
+          {recipient && !editingRcpt ? (
             <div className="mt-2 text-sm">
               <p className="font-bold text-ink">{recipient.name ?? recipient.email}</p>
               {recipient.title ? <p className="text-text-secondary">{recipient.title}</p> : null}
@@ -379,9 +442,87 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
               {recipient.kind === "directory" && !recipient.unlocked ? (
                 <Badge tone="warning">Email locked — reveal in directory before Gmail delivery</Badge>
               ) : null}
+              <div className="mt-2 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-ink underline"
+                  disabled={rcptBusy}
+                  onClick={() => {
+                    setRcptError(null);
+                    setEditingRcpt(true);
+                  }}
+                >
+                  Change
+                </button>
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-text-secondary underline"
+                  disabled={rcptBusy}
+                  onClick={async () => {
+                    if (await patchRecipient({ kind: "none" })) setEditingRcpt(false);
+                  }}
+                >
+                  {rcptBusy ? "Clearing…" : "Clear"}
+                </button>
+              </div>
             </div>
           ) : (
-            <p className="mt-2 text-sm text-text-secondary">No recipient yet.</p>
+            <div className="mt-2 space-y-2">
+              <p className="text-sm text-text-secondary">
+                Choose who this is for. Without a recipient you can still write manually.
+              </p>
+              <div>
+                <Label htmlFor="rcpt-name">Name (optional)</Label>
+                <Input
+                  id="rcpt-name"
+                  value={rcptName}
+                  onChange={(e) => setRcptName(e.target.value)}
+                  placeholder="Priya Sharma"
+                  maxLength={120}
+                />
+              </div>
+              <div>
+                <Label htmlFor="rcpt-email">Email</Label>
+                <Input
+                  id="rcpt-email"
+                  type="email"
+                  value={rcptEmail}
+                  onChange={(e) => setRcptEmail(e.target.value)}
+                  placeholder="priya@company.com"
+                  autoComplete="off"
+                />
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => void setOwnRecipient()}
+                disabled={rcptBusy}
+              >
+                {rcptBusy ? "Saving…" : "Set recipient"}
+              </Button>
+              <p className="text-xs text-text-disabled">
+                Or{" "}
+                <Link href="/app/contacts" className="underline">
+                  pick someone from the directory
+                </Link>{" "}
+                to use a verified work address.
+              </p>
+              {recipient && editingRcpt ? (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-text-secondary underline"
+                  onClick={() => {
+                    setRcptError(null);
+                    setEditingRcpt(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              ) : null}
+              {rcptError ? (
+                <p className="text-xs text-danger" role="alert">{rcptError}</p>
+              ) : null}
+            </div>
           )}
         </div>
         <div className="rounded-card border border-border-decorative bg-surface p-4">
@@ -559,11 +700,22 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
                 <p className="text-xs text-warning">
                   No AI credits left. <a href="/app/billing/plans" className="underline">Add credits</a> or keep writing manually — manual is free.
                 </p>
+              ) : !hasApprovedProfile ? (
+                // Matches the server rule: drafting needs at least one confirmed
+                // fact, so point at the editor instead of letting them click and
+                // fail.
+                <p className="text-xs text-warning">
+                  Confirm at least one profile fact before generating — drafts are written only from details you
+                  have verified. <a href="/app/profile" className="underline">Open career profile</a>
+                </p>
               ) : !recipient ? (
                 <p className="text-xs text-text-secondary">Choose a recipient first (directory or your own contact).</p>
               ) : (
                 <p className="text-xs text-text-disabled">Gmail is not required. You can copy the result or export it.</p>
               )}
+              <p className="text-xs text-text-disabled">
+                One copilot credit buys one draft. Up to {AI_DRAFTS_PER_DAY} AI drafts a day.
+              </p>
             </div>
           )}
         </div>

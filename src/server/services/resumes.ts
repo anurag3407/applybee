@@ -259,11 +259,26 @@ export async function approveProfileRevision(userId: string, revisionId: string)
   });
 }
 
+/**
+ * Whether AI drafting is unlocked for this user.
+ *
+ * An approved revision with zero facts is NOT enough: startGeneration requires
+ * at least one confirmed fact (NO_CONFIRMED_FACTS), and onboarding creates an
+ * empty approved revision. Checking the same condition here keeps the composer
+ * button and the server rule in agreement, so users get a disabled button with
+ * guidance instead of an error after clicking.
+ */
 export async function hasApprovedProfile(userId: string): Promise<boolean> {
   const profile = (await db.select().from(candidateProfiles).where(eq(candidateProfiles.userId, userId)).limit(1))[0];
   if (!profile?.currentRevisionId) return false;
   const revision = (await db.select().from(candidateProfileRevisions).where(eq(candidateProfileRevisions.id, profile.currentRevisionId)).limit(1))[0];
-  return Boolean(revision?.approvedAt);
+  if (!revision?.approvedAt) return false;
+  const facts = await db
+    .select({ id: candidateFacts.id })
+    .from(candidateFacts)
+    .where(and(eq(candidateFacts.profileRevisionId, revision.id), eq(candidateFacts.approved, true)))
+    .limit(1);
+  return facts.length > 0;
 }
 
 /* ------------------------------------------------------------------ */
