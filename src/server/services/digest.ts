@@ -43,6 +43,8 @@ export type DigestHiringPost = {
   hiringManagerTitle: string | null;
   contactId?: string | null;
   companyId?: string | null;
+  /** Real verification state from the directory, when this maps to a contact. */
+  verificationStatus?: string | null;
   postedAt: Date;
 };
 
@@ -51,165 +53,181 @@ export type DigestHiringPost = {
 /* ------------------------------------------------------------------ */
 
 export const INITIAL_CURATED_POSTS = [
+  // Sample content only. These are deliberately fictional companies and people,
+  // matching the rest of the seed data.
+  //
+  // The earlier version of this list named real companies and real, named
+  // executives with invented job openings. It was emailed to every opted-in user
+  // every morning, which meant fabricating hiring claims about identifiable
+  // people — indefensible for a product whose entire pitch is truthful contact
+  // data. Replace with licensed, real listings before enabling the digest in
+  // production (see docs/implementation-status.md, "licensed contact data").
   {
-    title: "Founding Full-Stack Engineer (Next.js & AI)",
-    companyName: "HyperGro AI",
-    location: "Bengaluru, India (Hybrid)",
-    roleCategory: "engineering",
-    department: "engineering",
-    sourcePlatform: "twitter",
-    sourceUrl: "https://x.com/hypergro/status/hiring",
-    postSnippet: "We are hiring our first founding full-stack engineer to build autonomous marketing agents. You will own the entire stack from Next.js App Router to LLM inference pipelines.",
-    techStack: ["Next.js", "TypeScript", "Python", "PostgreSQL", "FastAPI"],
-    hiringManagerName: "Prashant Kumar",
-    hiringManagerTitle: "Co-Founder & CTO",
-  },
-  {
-    title: "Senior Backend Engineer (Distributed Systems)",
-    companyName: "Zepto",
-    location: "Bengaluru, India",
-    roleCategory: "engineering",
-    department: "engineering",
-    sourcePlatform: "reachbee",
-    sourceUrl: null,
-    postSnippet: "Looking for high-ownership backend engineers who can scale sub-10-minute order routing systems. Deep experience with event-driven architectures and PostgreSQL concurrency.",
-    techStack: ["Go", "PostgreSQL", "Kafka", "Redis", "Docker"],
-    hiringManagerName: "Aadit Palicha",
-    hiringManagerTitle: "CEO & Co-Founder",
-  },
-  {
-    title: "Founding AI / LLM Engineer",
-    companyName: "Perplexity AI",
-    location: "Remote / Hybrid",
-    roleCategory: "engineering",
-    department: "engineering",
-    sourcePlatform: "twitter",
-    sourceUrl: "https://x.com/perplexity/status/hiring",
-    postSnippet: "Looking for engineers passionate about real-time index retrieval, reranking, and low-latency LLM serving. If you built custom RAG or fast search systems, we want you.",
-    techStack: ["Python", "PyTorch", "vLLM", "C++", "FastAPI"],
-    hiringManagerName: "Aravind Srinivas",
-    hiringManagerTitle: "CEO",
-  },
-  {
-    title: "Frontend Lead (Next.js & Design Systems)",
-    companyName: "Razorpay",
-    location: "Bengaluru, India",
-    roleCategory: "engineering",
-    department: "engineering",
-    sourcePlatform: "reachbee",
-    sourceUrl: null,
-    postSnippet: "Hiring a Frontend Lead to spearhead merchant checkout performance. Zero bundle creep, sub-50ms interaction latencies, and world-class payment UI components.",
-    techStack: ["React 19", "Next.js", "Tailwind CSS", "TypeScript"],
-    hiringManagerName: "Harshil Mathur",
-    hiringManagerTitle: "CEO & Co-Founder",
-  },
-  {
-    title: "Full-Stack Product Engineer",
-    companyName: "Supabase",
+    title: "Founding Full-Stack Engineer",
+    companyName: "Northwind Labs",
     location: "Remote (Global)",
     roleCategory: "engineering",
     department: "engineering",
-    sourcePlatform: "wellfound",
-    sourceUrl: "https://wellfound.com/jobs/supabase-fullstack",
-    postSnippet: "We are looking for full-stack product engineers to build open-source database dashboards, edge function tooling, and AI vector store workflows.",
-    techStack: ["Next.js", "TypeScript", "Elixir", "PostgreSQL", "Tailwind"],
-    hiringManagerName: "Paul Copplestone",
-    hiringManagerTitle: "CEO & Co-Founder",
+    sourcePlatform: "reachbee",
+    sourceUrl: null,
+    postSnippet: "Sample listing. A small team building internal developer tooling, shipping weekly with a very short feedback loop.",
+    techStack: ["TypeScript", "PostgreSQL", "React"],
+    hiringManagerName: "Alex Moreau",
+    hiringManagerTitle: "Co-founder",
+  },
+  {
+    title: "Senior Backend Engineer (Distributed Systems)",
+    companyName: "Riverbend Systems",
+    location: "Bengaluru, India / Hybrid",
+    roleCategory: "engineering",
+    department: "engineering",
+    sourcePlatform: "reachbee",
+    sourceUrl: null,
+    postSnippet: "Sample listing. Event-driven order processing with strict consistency guarantees and heavy PostgreSQL concurrency.",
+    techStack: ["Go", "PostgreSQL", "Kafka"],
+    hiringManagerName: "Priya Raman",
+    hiringManagerTitle: "VP Engineering",
+  },
+  {
+    title: "Platform Engineer (Developer Experience)",
+    companyName: "Lumengrid",
+    location: "Remote (Global)",
+    roleCategory: "engineering",
+    department: "engineering",
+    sourcePlatform: "reachbee",
+    sourceUrl: null,
+    postSnippet: "Sample listing. Owning build tooling, CI, and the paved road that keeps dozens of engineers unblocked.",
+    techStack: ["Bazel", "Go", "Kubernetes"],
+    hiringManagerName: "Marcus Feld",
+    hiringManagerTitle: "Head of Platform",
+  },
+  {
+    title: "Frontend Engineer (Design Systems)",
+    companyName: "Cartwheel",
+    location: "Bengaluru, India",
+    roleCategory: "engineering",
+    department: "engineering",
+    sourcePlatform: "reachbee",
+    sourceUrl: null,
+    postSnippet: "Sample listing. Component libraries and accessibility work on a consumer product with strict performance budgets.",
+    techStack: ["React", "TypeScript", "Tailwind CSS"],
+    hiringManagerName: "Dana Whitfield",
+    hiringManagerTitle: "Director of Design",
+  },
+  {
+    title: "AI Application Engineer",
+    companyName: "Foundry Health",
+    location: "Remote (Global)",
+    roleCategory: "engineering",
+    department: "engineering",
+    sourcePlatform: "reachbee",
+    sourceUrl: null,
+    postSnippet: "Sample listing. Retrieval-augmented assistants over de-identified documentation, with human review on every output.",
+    techStack: ["Python", "LLMs", "FastAPI"],
+    hiringManagerName: "Omar Haddad",
+    hiringManagerTitle: "Head of AI",
   },
   {
     title: "Staff Infrastructure Engineer",
-    companyName: "Swiggy",
+    companyName: "Blue Harbour",
+    location: "Bengaluru, India / Hybrid",
+    roleCategory: "engineering",
+    department: "engineering",
+    sourcePlatform: "reachbee",
+    sourceUrl: null,
+    postSnippet: "Sample listing. Multi-region Kubernetes and observability work for a high-traffic payments platform.",
+    techStack: ["Kubernetes", "Go", "Terraform"],
+    hiringManagerName: "Sofia Bergström",
+    hiringManagerTitle: "Principal Engineer",
+  },
+  {
+    title: "Founding Engineer (Agentic Workflows)",
+    companyName: "Sable Studio",
+    location: "Remote (Global)",
+    roleCategory: "engineering",
+    department: "engineering",
+    sourcePlatform: "reachbee",
+    sourceUrl: null,
+    postSnippet: "Sample listing. You would own an entire product surface, from data model through deployment, in a team of three.",
+    techStack: ["TypeScript", "PostgreSQL", "LLMs"],
+    hiringManagerName: "Jordan Okafor",
+    hiringManagerTitle: "Founder",
+  },
+  {
+    title: "Senior Engineer (Payments Core)",
+    companyName: "Kettle Payments",
     location: "Bengaluru, India",
     roleCategory: "engineering",
     department: "engineering",
     sourcePlatform: "reachbee",
     sourceUrl: null,
-    postSnippet: "Seeking a Staff Engineer to architect multi-region Kubernetes clusters handling peak IPL flash delivery volumes (100k+ RPS). High scale, zero downtime.",
-    techStack: ["Kubernetes", "Golang", "AWS", "Terraform", "Prometheus"],
-    hiringManagerName: "Sriharsha Majety",
-    hiringManagerTitle: "Managing Director & CEO",
+    postSnippet: "Sample listing. Ledger and settlement correctness, double-entry accounting, and reconciliation tooling.",
+    techStack: ["Java", "Kotlin", "PostgreSQL"],
+    hiringManagerName: "Mei Lin",
+    hiringManagerTitle: "Engineering Manager",
   },
   {
-    title: "Founding Agentic AI Engineer",
-    companyName: "SayaLabs Studio",
-    location: "Bengaluru, India / Remote",
-    roleCategory: "engineering",
-    department: "engineering",
-    sourcePlatform: "reachbee",
-    sourceUrl: "https://sayalabs.in",
-    postSnippet: "Building autonomous career and sales workflows that automate decision-maker outreach. Looking for hands-on full-stack builders who love Next.js, Node.js, and Google Gemini.",
-    techStack: ["Next.js", "Node.js", "PostgreSQL", "Gemini 2.0 Flash"],
-    hiringManagerName: "Anurag Mishra",
-    hiringManagerTitle: "Founder & Lead Architect",
-  },
-  {
-    title: "Senior Software Engineer (Payments Core)",
-    companyName: "CRED",
-    location: "Bengaluru, India",
+    title: "Backend Engineer (Realtime)",
+    companyName: "Sundial",
+    location: "Remote (Global)",
     roleCategory: "engineering",
     department: "engineering",
     sourcePlatform: "reachbee",
     sourceUrl: null,
-    postSnippet: "Hiring backend engineers to drive UPI and credit card settlement engines. Requires rock-solid mastery of distributed transactions and transactional consistency.",
-    techStack: ["Java", "Kotlin", "Spring Boot", "Kafka", "PostgreSQL"],
-    hiringManagerName: "Kunal Shah",
-    hiringManagerTitle: "Founder & CEO",
+    postSnippet: "Sample listing. WebSocket fan-out and presence for a collaboration product used by distributed teams.",
+    techStack: ["Rust", "WebSockets", "Redis"],
+    hiringManagerName: "Tomas Vidal",
+    hiringManagerTitle: "Staff Engineer",
   },
   {
-    title: "Mobile Engineer (React Native & Performance)",
-    companyName: "Blinkit",
-    location: "Gurugram / NCR, India",
-    roleCategory: "engineering",
-    department: "engineering",
-    sourcePlatform: "linkedin",
-    sourceUrl: "https://linkedin.com/jobs/blinkit-mobile",
-    postSnippet: "We are scaling Blinkit instant delivery app to 50+ cities. Looking for React Native engineers obsessive about 60 FPS scroll performance and offline-first state sync.",
-    techStack: ["React Native", "TypeScript", "Redux Toolkit", "iOS", "Android"],
-    hiringManagerName: "Albinder Dhindsa",
-    hiringManagerTitle: "CEO",
-  },
-  {
-    title: "Backend Platform Engineer",
-    companyName: "Postman",
-    location: "Bengaluru / Hybrid",
+    title: "Full-Stack Engineer (Growth)",
+    companyName: "Copperleaf",
+    location: "Remote (Global)",
     roleCategory: "engineering",
     department: "engineering",
     sourcePlatform: "reachbee",
     sourceUrl: null,
-    postSnippet: "Join our API Network Platform team. Scaling the world's most popular API collaborative tool to 35+ million developers.",
-    techStack: ["Node.js", "TypeScript", "Docker", "Redis", "MySQL"],
-    hiringManagerName: "Abhinav Asthana",
-    hiringManagerTitle: "CEO & Co-Founder",
+    postSnippet: "Sample listing. Fast experimentation on onboarding flows, with direct ownership of the metrics that follow.",
+    techStack: ["React", "TypeScript", "PostgreSQL"],
+    hiringManagerName: "Aisha Bello",
+    hiringManagerTitle: "Head of Growth",
   },
   {
-    title: "Full Stack Engineer (Growth & Experiments)",
-    companyName: "Groww",
-    location: "Bengaluru, India",
+    title: "Full-Stack Engineer (Experimentation)",
+    companyName: "Meridian Analytics",
+    location: "Remote (Global)",
     roleCategory: "engineering",
     department: "engineering",
     sourcePlatform: "reachbee",
     sourceUrl: null,
-    postSnippet: "Hiring high-velocity product engineers for our investment onboarding flow. Fast experimentation, clean code, and immediate direct user impact.",
-    techStack: ["React", "TypeScript", "Spring Boot", "PostgreSQL"],
-    hiringManagerName: "Lalit Keshre",
-    hiringManagerTitle: "CEO & Co-Founder",
+    postSnippet: "Sample listing. Experimenting on onboarding and activation flows, with direct ownership of the metrics that follow.",
+    techStack: ["React", "TypeScript", "PostgreSQL"],
+    hiringManagerName: "Yuki Tanaka",
+    hiringManagerTitle: "Head of Product",
   },
   {
     title: "AI Systems & Inference Engineer",
-    companyName: "Sarvam AI",
-    location: "Bengaluru, India",
+    companyName: "Vector Foundry",
+    location: "Remote (Global)",
     roleCategory: "engineering",
     department: "engineering",
-    sourcePlatform: "twitter",
-    sourceUrl: "https://x.com/sarvamai/status/hiring",
-    postSnippet: "Building foundational Indian language models and speech synthesis. We are hiring engineers to optimize CUDA kernels, TensorRT-LLM, and low-latency API serving.",
-    techStack: ["Python", "CUDA", "Triton", "PyTorch", "LLMs"],
-    hiringManagerName: "Vivek Raghavan",
+    sourcePlatform: "reachbee",
+    sourceUrl: null,
+    postSnippet: "Sample listing. Optimising inference kernels and low-latency serving for retrieval workloads.",
+    techStack: ["Python", "PyTorch", "LLMs"],
+    hiringManagerName: "Rafael Costa",
     hiringManagerTitle: "Co-Founder",
   },
 ];
 
-/** Seed initial hiring posts if table is empty or low */
+/**
+ * Seed initial hiring posts if table is empty or low.
+ *
+ * NOTE: this only inserts when the table holds fewer than 10 rows. It does not
+ * replace existing content. If you seeded before the fictional-company change,
+ * clear `hiring_posts` once (`TRUNCATE hiring_posts;`) so the fabricated
+ * real-company listings stop being emailed.
+ */
 export async function seedInitialHiringPostsIfEmpty(): Promise<number> {
   const existing = await db.execute(sql`SELECT count(*) as c FROM hiring_posts`);
   const count = Number((existing.rows[0] as { c: string })?.c ?? 0);
@@ -321,6 +339,7 @@ export async function getDigestPostsForUser(userId: string, limit = 10): Promise
         roleCategory: contacts.roleCategory,
         location: contacts.location,
         companyId: contacts.companyId,
+        verificationStatus: contacts.verificationStatus,
         companyName: companies.name,
         companyLocation: companies.location,
       })
@@ -344,12 +363,13 @@ export async function getDigestPostsForUser(userId: string, limit = 10): Promise
         department: "engineering",
         sourcePlatform: "reachbee",
         sourceUrl: null,
-        postSnippet: `${c.name} (${c.title}) is actively hiring engineers for ${c.companyName}. Direct verified outreach contact verified in ReachBee.`,
+        postSnippet: `${c.name} (${c.title}) at ${c.companyName}. Outreach contact in the ReachBee directory — mailbox checked at the last verification pass.`,
         techStack: ["Next.js", "Node.js", "PostgreSQL", "Full-Stack"],
         hiringManagerName: c.name,
         hiringManagerTitle: c.title,
         contactId: c.id,
         companyId: c.companyId,
+        verificationStatus: c.verificationStatus,
         postedAt: new Date(),
       });
     }
@@ -393,7 +413,15 @@ export function renderDailyDigestHtml(params: {
           ? `<span style="background:#e0f2fe; color:#0369a1; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">🐦 X / Founder Post</span>`
           : p.sourcePlatform === "wellfound"
             ? `<span style="background:#fef3c7; color:#92400e; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">🔥 Startup Lead</span>`
-            : `<span style="background:#dcfce7; color:#166534; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">✨ Verified Decision-Maker</span>`;
+            : // Only claim verification when the directory actually verified the
+              // mailbox. Previously every backfilled contact got a "Verified
+              // Decision-Maker" badge, including ones marked unknown or
+              // catch-all — a false claim in an email sent to every user.
+              p.verificationStatus === "verified"
+              ? `<span style="background:#dcfce7; color:#166534; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">✅ Verified mailbox</span>`
+              : p.verificationStatus === "catch_all"
+                ? `<span style="background:#fef3c7; color:#92400e; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">⚠️ Catch-all domain</span>`
+                : `<span style="background:#f3f4f6; color:#374151; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">Directory contact</span>`;
 
       return `
       <div style="border:1px solid #e5e7eb; border-radius:10px; padding:16px; margin-bottom:14px; background:#ffffff;">
@@ -493,7 +521,7 @@ export function renderDailyDigestHtml(params: {
 
     <div class="footer">
       <p>
-        ReachBee AI by SayaLabs Studio • applybee.sayalabs.in<br/>
+        ReachBee AI by SayaLabs Studio • ${escapeHtml(baseUrl.replace(/^https?:\/\//, ""))}<br/>
         Autonomous Career Outreach & Decision-Maker Intelligence<br/>
         <a href="${baseUrl}/app/settings" style="color:#6b7280; text-decoration:underline;">Update morning digest preferences or unsubscribe</a>
       </p>

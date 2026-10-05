@@ -43,6 +43,36 @@ describe("input validation", () => {
     expect(draftPatchSchema.safeParse({ expectedVersion: -1 }).success).toBe(false);
   });
 
+  it("accepts every recipient patch kind the composer can send", () => {
+    // A draft created from the dashboard has no recipient, so setting one —
+    // or clearing it — has to be expressible. This path was previously
+    // unreachable: the PATCH route dropped recipient, which dead-ended the
+    // primary "Create an introduction" call to action.
+    expect(
+      draftPatchSchema.safeParse({
+        expectedVersion: 1,
+        recipient: { kind: "own", email: "priya@acme.example", name: "Priya" },
+      }).success,
+    ).toBe(true);
+    expect(
+      draftPatchSchema.safeParse({
+        expectedVersion: 1,
+        recipient: { kind: "directory", contactId: "3f1b7c66-2f2a-4a5e-9a2c-6f0f3d2a1b44" },
+      }).success,
+    ).toBe(true);
+    expect(draftPatchSchema.safeParse({ expectedVersion: 1, recipient: { kind: "none" } }).success).toBe(true);
+  });
+
+  it("rejects malformed recipient patches", () => {
+    expect(
+      draftPatchSchema.safeParse({ expectedVersion: 1, recipient: { kind: "own", email: "not-an-email" } }).success,
+    ).toBe(false);
+    // A directory recipient must be a real uuid, not an arbitrary string.
+    expect(
+      draftPatchSchema.safeParse({ expectedVersion: 1, recipient: { kind: "directory", contactId: "abc" } }).success,
+    ).toBe(false);
+  });
+
   it("accepts only same-origin return paths for auth redirects", () => {
     expect(safeInternalPath("/app/drafts/1?tab=body")).toBe("/app/drafts/1?tab=body");
     expect(safeInternalPath(undefined)).toBeNull();

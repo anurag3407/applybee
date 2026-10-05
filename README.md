@@ -68,8 +68,9 @@ that only degrade a single feature.
 One copilot credit buys exactly one draft, and a credit is only consumed when a
 validated artifact is durably saved — a failed generation releases it
 automatically. Accepting a draft costs nothing extra. On top of that, drafting
-is capped at **10 drafts per rolling 24 hours per account**, regardless of
-balance, to bound provider spend.
+is capped at **10 drafts per day per account**, regardless of balance, to bound
+provider spend. The window is a fixed UTC bucket (the quota table keys on
+`window_start`), so it resets at midnight UTC.
 
 Verify the provider end to end without spending a credit:
 

@@ -76,6 +76,8 @@ const INTENTS = [
 /**
  * Daily AI draft ceiling, mirrored from LIMITS.aiGenerateDaily in
  * src/server/adapters/ratelimit.ts. Display only — the server is authoritative.
+ * The window is a fixed UTC bucket (the quota table keys on window_start), so it
+ * resets at midnight UTC rather than 24h after the first draft.
  */
 const AI_DRAFTS_PER_DAY = 10;
 
@@ -426,7 +428,13 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
   }
 
   const words = useMemo(() => wordCount(body), [body]);
-  const canGenerate = balances.ai.available > 0 && recipient !== null;
+  // A generation in flight owns the draft: the server sets the draft to
+// "generating" and rejects a second start, so leaving the button live turned a
+// double-click into a confusing "This draft can no longer be edited".
+const GENERATION_IN_FLIGHT_STATES = ["queued", "reserved", "preparing", "generating"];
+const generationInFlight =
+  generation !== null && GENERATION_IN_FLIGHT_STATES.includes(generation.state);
+const canGenerate = balances.ai.available > 0 && recipient !== null && !generationInFlight;
 
   return (
     <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)_19rem]">
@@ -659,6 +667,16 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
                   {generation.failureMessage ?? "Your credit was released automatically."}
                 </p>
               ) : null}
+              {generation.state === "generating" || generation.state === "queued" ||
+              generation.state === "reserved" || generation.state === "preparing" ? (
+                // Reopening a draft whose job died leaves it in one of these
+                // states. Say so, and make the recovery explicit — pressing
+                // Generate again releases the stuck draft and starts fresh.
+                <p className="text-xs text-text-secondary">
+                  If this has been sitting a while, the background worker may not be running. Press Generate again to
+                  restart it — your credit is only spent once a draft is actually saved.
+                </p>
+              ) : null}
               {generation.state === "ready" && generation.acceptanceState === "pending" ? (
                 <div className="space-y-2">
                   {proposal ? (
@@ -700,6 +718,11 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
                 <p className="text-xs text-warning">
                   No AI credits left. <a href="/app/billing/plans" className="underline">Add credits</a> or keep writing manually — manual is free.
                 </p>
+              ) : generationInFlight ? (
+                <p className="text-xs text-text-secondary">
+                  A draft is already being written for this introduction. Wait for it to finish — one credit buys one
+                  draft, so a second request would be rejected.
+                </p>
               ) : !hasApprovedProfile ? (
                 // Matches the server rule: drafting needs at least one confirmed
                 // fact, so point at the editor instead of letting them click and
@@ -714,7 +737,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
                 <p className="text-xs text-text-disabled">Gmail is not required. You can copy the result or export it.</p>
               )}
               <p className="text-xs text-text-disabled">
-                One copilot credit buys one draft. Up to {AI_DRAFTS_PER_DAY} AI drafts a day.
+                One copilot credit buys one draft. Up to {AI_DRAFTS_PER_DAY} AI drafts a day (resets at midnight UTC).
               </p>
             </div>
           )}

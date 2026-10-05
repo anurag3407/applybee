@@ -130,9 +130,10 @@ export async function startGeneration(params: {
     );
   }
 
-  // Hard daily ceiling: 10 drafts per rolling 24 hours, independent of balance.
-  // One credit buys one draft, so this also bounds how quickly a large balance
-  // can be spent on model calls.
+  // Hard daily ceiling: 10 drafts per day, independent of balance. One credit
+  // buys one draft, so this also bounds how quickly a large balance can be
+  // spent on model calls. The quota window is a fixed UTC bucket (the admissions
+  // table keys on window_start), so it resets at midnight UTC.
   //
   // Deliberately placed AFTER the deterministic preflight checks above. The
   // daily budget is a user-visible quota, so it must only be spent on an
@@ -146,7 +147,7 @@ export async function startGeneration(params: {
   if (!dayAdmission.admitted) {
     throw new GenerationPreflightError(
       "DAILY_LIMIT_REACHED",
-      "You've used all 10 AI drafts for today. Your copilot credits are safe — come back tomorrow, or buy a pack for more.",
+      "You've used all 10 AI drafts for today. Your copilot credits are safe — the limit resets at midnight UTC, or buy a pack for more.",
       LIMITS.aiGenerateDaily.windowSeconds,
     );
   }

@@ -512,7 +512,13 @@ export const digestDispatches = pgTable(
     dispatchDate: text("dispatch_date").notNull(),
     postIds: jsonb("post_ids").notNull().default(sql`'[]'::jsonb`),
     emailId: text("email_id"),
-    status: text("status").notNull().default("sent").$type<"sent" | "failed" | "skipped">(),
+    // "pending" is the claim marker: the row is written before the email is
+    // sent so a concurrent run cannot double-send, and is updated to "sent"
+    // (or deleted, to release the claim) once the outcome is known.
+    status: text("status")
+      .notNull()
+      .default("sent")
+      .$type<"sent" | "failed" | "skipped" | "pending">(),
     dispatchedAt: timestamp("dispatched_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

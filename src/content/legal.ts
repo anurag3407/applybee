@@ -71,7 +71,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Credits",
         body: [
-          "Contact reveals and AI generations consume credits as displayed before each action. One validated AI artifact costs one AI credit; failed generations are released automatically. AI drafting is additionally limited to 10 drafts per day per account, which caps how quickly a credit balance can be spent. Packs are one-time purchases and do not expire during ordinary service.",
+          "Contact reveals and AI generations consume credits as displayed before each action. One validated AI artifact costs one AI credit; failed generations are released automatically. AI drafting is additionally limited to 10 drafts per day per account (resetting at midnight UTC), which caps how quickly a credit balance can be spent. Packs are one-time purchases and do not expire during ordinary service.",
         ],
       },
       {
