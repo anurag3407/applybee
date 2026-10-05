@@ -83,7 +83,29 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
+function getAppBaseUrl(): string {
+  try {
+    const config = getConfig();
+    if (config.APP_BASE_URL) {
+      return config.APP_BASE_URL.replace(/\/+$/, "");
+    }
+  } catch {
+    // fallback if config isn't initialized yet
+  }
+  return "https://reachbee.sayalabs.in";
+}
+
+function getAppDisplayDomain(baseUrl: string): string {
+  try {
+    return new URL(baseUrl).hostname;
+  } catch {
+    return "reachbee.sayalabs.in";
+  }
+}
+
 function emailWrapper(content: string): string {
+  const baseUrl = getAppBaseUrl();
+  const domain = getAppDisplayDomain(baseUrl);
   return `
 <!DOCTYPE html>
 <html>
@@ -105,11 +127,11 @@ function emailWrapper(content: string): string {
 <body>
   <div class="card">
     <div class="header">
-      <a href="https://applybee.sayalabs.in" class="logo">ReachBee <span>AI</span></a>
+      <a href="${baseUrl}" class="logo">ReachBee <span>AI</span></a>
     </div>
     ${content}
     <div class="footer">
-      <p>ReachBee AI by SayaLabs Studio • applybee.sayalabs.in<br/>Autonomous Career Outreach & Decision-Maker Intelligence</p>
+      <p>ReachBee AI by SayaLabs Studio • ${domain}<br/>Autonomous Career Outreach & Decision-Maker Intelligence</p>
     </div>
   </div>
 </body>
@@ -119,6 +141,7 @@ function emailWrapper(content: string): string {
 
 /** 1. Welcome & Free Trial Confirmation */
 export async function sendWelcomeEmail(email: string, displayName?: string | null): Promise<SendEmailResult> {
+  const baseUrl = getAppBaseUrl();
   const name = displayName?.trim() || "there";
   const html = emailWrapper(`
     <h2 style="margin-top: 0; font-size: 22px;">Welcome to ReachBee, ${name}!</h2>
@@ -135,14 +158,14 @@ export async function sendWelcomeEmail(email: string, displayName?: string | nul
     <p style="font-size: 14px; color: #403e38;">
       Upload your resume PDF in the workspace, browse contacts in your target roles, and let the AI draft your introduction before anything leaves your hands.
     </p>
-    <a href="https://applybee.sayalabs.in/app" class="button">Go to Workspace &rarr;</a>
+    <a href="${baseUrl}/app" class="button">Go to Workspace &rarr;</a>
   `);
 
   return sendEmail({
     to: email,
     subject: "Welcome to ReachBee AI — Your 5 Free Credits are Ready",
     html,
-    text: `Welcome to ReachBee! Your workspace is ready with 5 free contact reveals and 2 AI drafts. Visit https://applybee.sayalabs.in/app to get started.`,
+    text: `Welcome to ReachBee! Your workspace is ready with 5 free contact reveals and 2 AI drafts. Visit ${baseUrl}/app to get started.`,
   });
 }
 
@@ -237,6 +260,7 @@ export async function sendPaymentReceiptEmail(params: {
   contactCredits: number;
   aiCredits: number;
 }): Promise<SendEmailResult> {
+  const baseUrl = getAppBaseUrl();
   const inr = (params.amountPaise / 100).toFixed(0);
   const html = emailWrapper(`
     <h2 style="margin-top: 0; font-size: 20px; color: #166534;">Payment Confirmed — Credits Added!</h2>
@@ -250,7 +274,7 @@ export async function sendPaymentReceiptEmail(params: {
       <p style="margin: 0;"><strong>AI Resume Drafts Added:</strong> +${params.aiCredits}</p>
     </div>
     <p style="font-size: 14px; color: #403e38;">Your new balances are active immediately in your workspace.</p>
-    <a href="https://applybee.sayalabs.in/app/billing" class="button">View My Balances &rarr;</a>
+    <a href="${baseUrl}/app/billing" class="button">View My Balances &rarr;</a>
   `);
 
   return sendEmail({

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildMimeMessage,
   encodeHeaderValue,
+  formatAddressHeader,
   sanitizeDisplayName,
   sanitizeFilename,
   validateEmailAddress,
@@ -81,6 +82,26 @@ describe("MIME builder", () => {
     expect(sanitizeDisplayName('Evil" <script>')).toBe("Evil script");
     expect(sanitizeFilename('../../weird "name".pdf')).toBe(".._.._weird _name_.pdf");
     expect(sanitizeFilename("")).toBe("resume.pdf");
+  });
+
+  it("formats address headers complying with RFC 2047 and RFC 5322", () => {
+    expect(formatAddressHeader(null, "user@example.com")).toBe("<user@example.com>");
+    expect(formatAddressHeader("Alice Smith", "alice@example.com")).toBe('"Alice Smith" <alice@example.com>');
+    // Non-ASCII display name must be encoded as RFC 2047 encoded-word, but <email> must remain unencoded
+    const formatted = formatAddressHeader("Jürgen Müller", "jurgen@example.com");
+    expect(formatted).toMatch(/^=\?UTF-8\?B\?[A-Za-z0-9+/=]+\?= <jurgen@example.com>$/);
+    expect(formatted).not.toContain('"=?UTF-8?B?');
+  });
+
+  it("builds message with non-ASCII sender without corrupting addr-spec", () => {
+    const out = buildMimeMessage({
+      ...base,
+      fromName: "René Descartes",
+      toName: "François Viète",
+    });
+    expect(out.raw).toContain("<sender@lumen-analytics.example>\r\n");
+    expect(out.raw).toContain("<priya.sharma@lumen-analytics.example>\r\n");
+    expect(out.raw).not.toContain("<?UTF-8?");
   });
 
   it("produces a safe opaque marker header (no PII)", () => {

@@ -46,25 +46,63 @@ export async function withIdempotency<T>(params: {
   }
 
   const operationRef = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + (params.responseRetentionDays ?? 7) * 24 * 3600 * 1000);
+
+  // Atomically claim the idempotency slot before running side-effects
+  const claimed = await db
+    .insert(idempotencyRecords)
+    .values({
+      actorId: params.actorId,
+      scope: params.scope,
+      key: params.key,
+      requestHash: params.requestHash,
+      operationRef,
+      responseMeta: null,
+      expiresAt,
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  if (claimed.length === 0) {
+    // Another concurrent request claimed this slot first; re-fetch its record
+    const concurrent = (
+      await db
+        .select()
+        .from(idempotencyRecords)
+        .where(
+          and(
+            eq(idempotencyRecords.actorId, params.actorId),
+            eq(idempotencyRecords.scope, params.scope),
+            eq(idempotencyRecords.key, params.key),
+          ),
+        )
+        .limit(1)
+    )[0];
+
+    if (!concurrent) {
+      return withIdempotency(params);
+    }
+    if (concurrent.requestHash !== params.requestHash) {
+      return { kind: "conflict" };
+    }
+    return {
+      kind: "replay",
+      operationRef: concurrent.operationRef ?? concurrent.id,
+      responseMeta: (concurrent.responseMeta as T) ?? null,
+    };
+  }
+
   try {
     const result = await params.run(operationRef);
     const responseMeta = result as unknown as Record<string, unknown>;
     await db
-      .insert(idempotencyRecords)
-      .values({
-        actorId: params.actorId,
-        scope: params.scope,
-        key: params.key,
-        requestHash: params.requestHash,
-        operationRef,
-        responseMeta,
-        expiresAt: new Date(Date.now() + (params.responseRetentionDays ?? 7) * 24 * 3600 * 1000),
-      })
-      .onConflictDoNothing();
+      .update(idempotencyRecords)
+      .set({ responseMeta })
+      .where(eq(idempotencyRecords.id, claimed[0]!.id));
     return { kind: "new", operationRef, result };
   } catch (err) {
-    // The operation failed before any durable effect; allow a clean retry
-    // with the same key.
+    // The operation failed before any durable effect; release the claim so caller can retry
+    await db.delete(idempotencyRecords).where(eq(idempotencyRecords.id, claimed[0]!.id)).catch(() => {});
     throw err;
   }
 }

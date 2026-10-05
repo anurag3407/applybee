@@ -35,6 +35,23 @@ export function sanitizeFilename(name: string): string {
   return (cleaned.length > 0 ? cleaned : "resume.pdf").slice(0, 120);
 }
 
+/**
+ * Format an RFC 5322 mailbox address header (From / To).
+ * RFC 2047 §5 explicitly forbids encoded-words inside addr-spec (<email>).
+ * If the display name contains non-ASCII characters, only the display name phrase
+ * is encoded with RFC 2047, leaving the addr-spec untouched.
+ */
+export function formatAddressHeader(name: string | undefined | null, email: string): string {
+  const sanitized = sanitizeDisplayName(name);
+  if (!sanitized) return `<${email}>`;
+  // RFC 2047: encoded-words must not appear in a quoted string.
+  // eslint-disable-next-line no-control-regex
+  if (!/^[\x20-\x7e]*$/.test(sanitized) || sanitized.includes("=?")) {
+    return `${encodeHeaderValue(sanitized)} <${email}>`;
+  }
+  return `"${sanitized}" <${email}>`;
+}
+
 /** RFC 2047 encoded-word for non-ASCII headers (B-encoding).
  * Encoded values are returned unfolded: B-words contain no spaces to fold on,
  * and a ≤160-char subject stays far below the RFC 5322 998-char line limit. */
@@ -103,9 +120,9 @@ export function buildMimeMessage(input: MimeInput): MimeOutput {
   const boundary = `=_ab_${Buffer.from(crypto.randomUUID()).toString("hex")}`;
 
   const headers: Array<[string, string]> = [
-    ["From", `${sanitizeDisplayName(input.fromName) ? `"${sanitizeDisplayName(input.fromName)}" ` : ""}<${input.fromEmail}>`],
-    ["To", `${sanitizeDisplayName(input.toName) ? `"${sanitizeDisplayName(input.toName)}" ` : ""}<${input.toEmail}>`],
-    ["Subject", subject],
+    ["From", formatAddressHeader(input.fromName, input.fromEmail)],
+    ["To", formatAddressHeader(input.toName, input.toEmail)],
+    ["Subject", encodeHeaderValue(subject)],
     ["Date", new Date().toUTCString().replace("GMT", "+0000")],
     ["MIME-Version", "1.0"],
     ["X-ApplyBee-Operation", marker],
@@ -140,7 +157,7 @@ export function buildMimeMessage(input: MimeInput): MimeOutput {
     ].join("\r\n");
   }
 
-  const raw = headers.map(([n, v]) => foldHeader(n, encodeHeaderValue(v))).join("\r\n") + "\r\n" + content;
+  const raw = headers.map(([n, v]) => foldHeader(n, v)).join("\r\n") + "\r\n" + content;
 
   return {
     raw,

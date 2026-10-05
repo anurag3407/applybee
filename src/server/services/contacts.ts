@@ -93,7 +93,7 @@ export async function searchDirectory(userId: string, filters: DirectoryFilters)
 
   // Parameterized query through the pool (sql.raw cannot bind values).
   const { rows } = await pool.query(`
-    SELECT c.id, c.name, c.title, c.role_category, c.department, c.location, c.verification_status, c.status,
+    SELECT c.id, c.name, c.title, c.role_category, c.department, c.location, c.verification_status, c.status, c.updated_at,
            c.last_email_checked_at, c.employment_checked_at, c.is_hiring_manager,
            co.name AS company_name, co.domain AS company_domain, co.stage AS company_stage,
            cu.id IS NOT NULL AS unlocked, sv.id IS NOT NULL AS saved
@@ -127,7 +127,8 @@ export async function searchDirectory(userId: string, filters: DirectoryFilters)
   let nextCursor: string | null = null;
   if (rows.length > pageSize && mapped.length > 0) {
     const last = rows[pageSize - 1]!;
-    nextCursor = `${new Date(last.updated_at as Date).toISOString()}|${last.id as string}`;
+    const lastUpdatedAt = last.updated_at ? new Date(last.updated_at as Date) : new Date();
+    nextCursor = `${lastUpdatedAt.toISOString()}|${last.id as string}`;
   }
   return { rows: mapped, nextCursor };
 }

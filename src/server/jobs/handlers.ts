@@ -2,6 +2,7 @@ import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
+  authSessions,
   candidateFacts,
   candidateProfileRevisions,
   candidateProfiles,
@@ -17,7 +18,9 @@ import {
   gmailDeliveries,
   notifications,
   opportunities,
+  privacyRequests,
   resumes,
+  templates,
   users,
 } from "@/db/schema";
 import { getConfig } from "@/server/config";
@@ -541,11 +544,18 @@ const gmailCreateDraft: Handler = async (ctx) => {
   return { status: "succeeded", result: { state: "unknown", note: "Reconciliation scheduled" } };
 };
 
-async function ensureAccessToken(connection: { id: string; userId: string; tokenEnvelopeEnc: string | null; accessTokenExpiresAt: Date | null; version: number }): Promise<string | null> {
+async function ensureAccessToken(connection: { id: string; userId: string; googleEmail: string; tokenEnvelopeEnc: string | null; accessTokenExpiresAt: Date | null; version: number }): Promise<string | null> {
   if (!connection.tokenEnvelopeEnc) return null;
   const stillValid = connection.accessTokenExpiresAt && connection.accessTokenExpiresAt.getTime() > Date.now() + 60_000;
-  const binding = `gmail-connection:${connection.id}`;
-  const tokens = decryptTokenEnvelope<{ refreshToken?: string | null; accessToken?: string | null }>(connection.tokenEnvelopeEnc, binding);
+  // Binding matches handleConnectCallback & connectSandbox in src/server/services/gmail.ts
+  const binding = `gmail-connection:${connection.userId}:${connection.googleEmail}`;
+  let tokens: { refreshToken?: string | null; accessToken?: string | null };
+  try {
+    tokens = decryptTokenEnvelope<{ refreshToken?: string | null; accessToken?: string | null }>(connection.tokenEnvelopeEnc, binding);
+  } catch (err) {
+    logger.error("gmail.token_decrypt_failed", { connectionId: connection.id, error: String(err) });
+    return null;
+  }
   if (stillValid && tokens.accessToken) return tokens.accessToken;
   if (!tokens.refreshToken) return null;
 
@@ -877,6 +887,85 @@ const privacyExport: Handler = async (ctx) => {
 };
 
 /* ------------------------------------------------------------------ */
+/* privacy.delete                                                     */
+/* ------------------------------------------------------------------ */
+
+const privacyDelete: Handler = async (ctx) => {
+  const targetUserId = ctx.userId ?? ctx.entityId;
+  if (!targetUserId) return { status: "failed", errorCode: "NO_ENTITY", errorMessage: "Missing user id" };
+
+  const user = (await db.select().from(users).where(eq(users.id, targetUserId)).limit(1))[0];
+  if (!user) return { status: "succeeded", result: { note: "user already deleted" } };
+
+  try {
+    // 1. Purge all uploaded resumes from object stores (clean & quarantine)
+    const userResumes = await db.select().from(resumes).where(eq(resumes.userId, targetUserId));
+    const quarantineStore = getObjectStore("quarantine");
+    const cleanStore = getObjectStore("clean");
+    for (const r of userResumes) {
+      if (r.objectKey) {
+        if (r.objectKey.startsWith("clean/")) {
+          await cleanStore.delete(r.objectKey).catch(() => {});
+        } else {
+          await quarantineStore.delete(r.objectKey).catch(() => {});
+        }
+      }
+    }
+
+    // 2. Purge exported privacy archives if any
+    const exportStore = getObjectStore("export");
+    const exportReqs = await db
+      .select()
+      .from(privacyRequests)
+      .where(and(eq(privacyRequests.userId, targetUserId), eq(privacyRequests.kind, "export")));
+    for (const exp of exportReqs) {
+      if (exp.resultRef) {
+        await exportStore.delete(exp.resultRef).catch(() => {});
+      }
+    }
+
+    // 3. Revoke all Gmail connections
+    await db
+      .update(gmailConnections)
+      .set({ status: "revoked", tokenEnvelopeEnc: null, updatedAt: new Date() })
+      .where(eq(gmailConnections.userId, targetUserId));
+
+    // 4. Invalidate all auth sessions
+    await db.delete(authSessions).where(eq(authSessions.userId, targetUserId));
+
+    // 5. Delete user drafts, revisions, templates, opportunities, and resumes
+    await db.delete(drafts).where(eq(drafts.userId, targetUserId));
+    await db.delete(templates).where(eq(templates.userId, targetUserId));
+    await db.delete(opportunities).where(eq(opportunities.userId, targetUserId));
+    await db.delete(resumes).where(eq(resumes.userId, targetUserId));
+
+    // 6. Complete the deletion privacy request
+    await db
+      .update(privacyRequests)
+      .set({ state: "completed", completedAt: new Date() })
+      .where(and(eq(privacyRequests.userId, targetUserId), eq(privacyRequests.kind, "delete_account")));
+
+    // 7. Anonymize/tombstone the user row (financial ledger/payment tables hold restrictive FKs)
+    await db
+      .update(users)
+      .set({
+        status: "deleted",
+        email: `deleted-${targetUserId}@deleted.local`,
+        displayName: "Deleted User",
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, targetUserId));
+
+    logger.info("privacy.account_deleted", { userId: targetUserId });
+    return { status: "succeeded", result: { deletedUserId: targetUserId } };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error("privacy.deletion_failed", { userId: targetUserId, error: message });
+    return { status: "failed", errorCode: "DELETION_FAILED", errorMessage: message };
+  }
+};
+
+/* ------------------------------------------------------------------ */
 /* credits.reconcile                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -997,6 +1086,7 @@ export const HANDLERS: Record<string, Handler> = {
   "resume.scan_parse": resumeScanParse,
   "reminders.materialize": remindersMaterialize,
   "privacy.export": privacyExport,
+  "privacy.delete": privacyDelete,
   "credits.reconcile": creditsReconcile,
   "digest.dispatch_daily": digestDispatchDaily,
 };
