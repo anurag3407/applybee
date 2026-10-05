@@ -178,7 +178,7 @@ export default async function DashboardPage() {
           </Card>
           <Card>
             <h3 className="font-bold text-ink">Your pipeline</h3>
-            <p className="mt-1 text-xs text-text-secondary">Stages are updated by you. Apply Bee doesn’t read your inbox.</p>
+            <p className="mt-1 text-xs text-text-secondary">Stages are updated by you. ReachBee doesn’t read your inbox.</p>
             <ol className="mt-3 space-y-1 text-sm">
               {STAGES.map((s, i) => (
                 <li key={s.key} className="flex items-center gap-2 text-text-secondary">

@@ -38,7 +38,7 @@ export function MobileNav({ links, bottomLinks, title }: { links: NavLink[]; bot
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm font-bold text-ink">Apply Bee</p>
+              <p className="text-sm font-bold text-ink">ReachBee</p>
               <button onClick={() => setOpen(false)} aria-label="Close navigation" className="rounded-control p-1.5 text-ink">
                 <X size={20} aria-hidden />
               </button>

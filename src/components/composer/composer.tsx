@@ -610,7 +610,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           <Textarea id="body" value={body} onChange={(e) => { setBody(e.target.value); markDirty(); }} rows={14} maxLength={20000} className="font-[inherit] leading-relaxed" />
           <div className="mt-2 flex items-center justify-between text-xs text-text-disabled">
             <span className={words > 180 ? "font-bold text-warning" : ""}>{words} words</span>
-            <span>No Send button — Apply Bee never sends email.</span>
+            <span>No Send button — ReachBee never sends email.</span>
           </div>
         </div>
 

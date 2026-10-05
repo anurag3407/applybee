@@ -3,9 +3,9 @@ import { Hero, ProductFacts, Problem, DirectoryFeature, ResumeIntelligence, Agen
 import { getMarketingCatalog, getTrialAllowance } from "@/server/services/catalog";
 
 export const metadata: Metadata = {
-  title: "Apply Bee — Get your work in front of the right people",
+  title: "ReachBee AI — Direct Outreach Beyond Saturated Job Portals",
   description:
-    "Find relevant hiring contacts, write a truthful, well-grounded introduction, and prepare a Gmail draft you review. You send it yourself.",
+    "Bypass the 500-applicant portal black hole. Ground your real achievements into bespoke cold introductions and stage drafts directly into your Gmail.",
 };
 
 export const revalidate = 300;

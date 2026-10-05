@@ -19,14 +19,14 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   title: {
-    default: "Apply Bee — Get your work in front of the right people",
-    template: "%s · Apply Bee",
+    default: "ReachBee AI — Direct Outreach Beyond Saturated Job Portals",
+    template: "%s · ReachBee",
   },
   description:
-    "Find relevant hiring contacts, write a truthful, well-grounded introduction, and prepare a Gmail draft you review before anything happens. You send it yourself.",
+    "Find verified engineering decision-makers, ground your proven technical achievements into bespoke introductions without hallucination, and stage drafts directly into your personal Gmail.",
   openGraph: {
-    title: "Apply Bee",
-    description: "Relevant contacts. Resume-grounded introductions. You review before sending.",
+    title: "ReachBee AI",
+    description: "Verified engineering decision-makers. Grounded introductions. You review before sending.",
     type: "website",
   },
   icons: {

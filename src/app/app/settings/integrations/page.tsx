@@ -25,7 +25,7 @@ export default async function IntegrationsPage() {
           <div>
             <h3 className="font-bold text-ink">Gmail</h3>
             <p className="mt-1 max-w-xl text-sm text-text-secondary">
-              “Google’s permission allows managing drafts and sending email. Apply Bee uses this connection to create
+              “Google’s permission allows managing drafts and sending email. ReachBee uses this connection to create
               drafts you approve. We do not send email automatically or read your inbox. You can disconnect at any time.”
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">

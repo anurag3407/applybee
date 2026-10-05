@@ -60,10 +60,10 @@ export function Hero({ trial }: { trial: { contact: number; ai: number } | null 
             style={{ fontSize: "clamp(2.75rem, 6vw, 5.5rem)", lineHeight: 1.04 }}
             data-motion="reveal"
           >
-            Get your work in front of the <span className="font-editorial font-medium text-ink">right people.</span>
+            Skip the 500-applicant black hole. Reach <span className="font-editorial font-medium text-ink">engineering leaders directly.</span>
           </h1>
           <p className="prose-measure mt-6 text-lg text-text-secondary" data-motion="reveal">
-            Find relevant hiring contacts, write a thoughtful introduction, and prepare a draft you’re proud to send.
+            Public job boards on LinkedIn and Indeed have become algorithmic dead ends. ReachBee AI grounds your proven engineering achievements into bespoke introductions staged directly in your personal Gmail Drafts.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3" data-motion="reveal">
             <Link href="/sign-up">
@@ -128,13 +128,14 @@ function HeroScene() {
 /* 2. Product facts */
 export function ProductFacts() {
   const facts = [
-    { title: "Relevant contacts", body: "A directory of hiring managers, tech leads, recruiters, and founders — with source freshness and verification labels shown plainly." },
-    { title: "Resume-grounded introductions", body: "AI drafts are written only from details you have confirmed. If a metric isn’t there, we don’t invent one." },
-    { title: "You review before sending", body: "Apply Bee prepares drafts in your Gmail. You edit, approve, and press send yourself — or just copy the text." },
+    { title: "Verified decision-makers", body: "Direct directory of Engineering Managers, Tech Leads, and Founders — with source freshness and verification labels shown plainly." },
+    { title: "Grounding Engine (Zero Hallucination)", body: "AI drafts are written only from details you have confirmed. If a metric isn’t in your resume, we never invent one." },
+    { title: "Deliverability Shield (10/day cap)", body: "Capped at 10 drafts/day by design to protect your personal Gmail domain reputation, avoid spam traps, and maximize open rates." },
+    { title: "You review before sending", body: "ReachBee prepares drafts in your personal Gmail. You edit, approve, and press send yourself — nothing leaves without your eyes on it." },
   ];
   return (
-    <SectionShell tone="surface" id="features" heading="What Apply Bee actually does" headingClass="text-[clamp(1.8rem,3vw,2.6rem)]">
-      <div className="grid gap-6 md:grid-cols-3" data-motion="stagger">
+    <SectionShell tone="surface" id="features" heading="What ReachBee actually does" headingClass="text-[clamp(1.8rem,3vw,2.6rem)]">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4" data-motion="stagger">
         {facts.map((f) => (
           <div key={f.title} data-motion="stagger-item" className="rounded-card border border-border-decorative bg-surface p-5 shadow-card">
             <h3 className="text-lg font-bold text-ink">{f.title}</h3>
@@ -160,20 +161,34 @@ export function ProductFacts() {
 /* 3. Problem */
 export function Problem() {
   const frictions = [
-    { title: "Finding the right person", body: "Job boards route you into applicant piles. The useful next step is usually a specific person — an EM, a tech lead, a founder — not another portal form." },
-    { title: "Explaining relevant work", body: "Every outreach needs the same grounding: who you are, what you built, and why it matters here. Doing that well by hand, repeatedly, is exhausting." },
-    { title: "Keeping track", body: "Conversations start in threads and die in tabs. Follow-ups, notes, and next steps end up scattered across inboxes and sticky notes." },
+    {
+      title: "The 500+ Applicant Black Hole",
+      body: "Public job postings on LinkedIn and Indeed receive 500+ automated submissions within minutes. Opaque ATS keyword filters discard competent Tier-2/3 grads and experienced engineers before a human ever looks.",
+    },
+    {
+      title: "Direct Engineering Alignment",
+      body: "Corporate HR recruiters are evaluated on gatekeeping and compliance; Engineering Managers and Founders are motivated by tech stack fit, code quality, and immediate problem-solving. ReachBee bridges you directly to technical peers.",
+    },
+    {
+      title: "Deterministic Grounding vs. AI Slop",
+      body: "Hiring managers instantly delete generic AI cover letters. ReachBee's Grounding Engine strictly binds your verified project achievements to target tech stacks—no fabricated percentages, no fake claims.",
+    },
   ];
   return (
-    <SectionShell id="problem" heading={<>Less copying and pasting.<br />More relevant conversations.</>}>
+    <SectionShell
+      id="problem"
+      eyebrow="Market Problem & Positioning"
+      heading={<>Beyond saturated job portals.<br />Direct to technical decision-makers.</>}
+    >
       <div className="grid gap-8 md:grid-cols-[1fr_1.4fr]">
         <div data-motion="reveal" className="rounded-card border border-border-decorative bg-surface p-5 shadow-card">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-text-secondary">The old way</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wide text-text-secondary">The Portal Breakdown</h3>
           <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-            Scattered tabs and files: one spreadsheet of “HR emails”, a folder of resume versions, templates pasted
-            from notes, sent one by one with no record of who you wrote to, or when.
+            Traditional application funnels have broken down under bot spam and algorithmic black holes. Applying into portal forms leaves your career to chance in a 500-resume stack.
           </p>
-          <p className="mt-4 text-sm font-semibold text-ink">Apply Bee is a complement to your applications — not a replacement for every channel.</p>
+          <p className="mt-4 text-sm font-semibold text-ink">
+            ReachBee is your precision alternative: direct, truthful outreach to the engineering leads who evaluate technical merit.
+          </p>
         </div>
         <div className="grid gap-4" data-motion="stagger">
           {frictions.map((f) => (
@@ -293,9 +308,9 @@ export function ResumeIntelligence() {
 /* 6. Agentic workflow */
 export function AgenticWorkflow() {
   const steps = [
-    { title: "Choose your context", body: "Pick the intent — advertised role, internship, referral, or speculative intro — and paste a job description if you have one." },
-    { title: "Prepare with evidence", body: "A bounded preparation step selects relevant confirmed facts and approved, dated company context. You see what it used." },
-    { title: "Review your draft", body: "The draft arrives with its evidence panel: which fact supports which sentence, and what could not be verified." },
+    { title: "Choose your context", body: "Pick the intent — advertised role, internship, referral, or speculative intro — and paste a job description or role notes if you have one." },
+    { title: "Prepare with evidence", body: "A bounded preparation step selects relevant confirmed facts and approved, dated company context. You see exactly what was used." },
+    { title: "Review with Soft-Bypass", body: "The draft arrives with its evidence references and an optional Soft-Bypass closing line ('Happy to route this through your official careers portal if preferred') to eliminate HR friction." },
   ];
   return (
     <SectionShell tone="surface" id="agentic" heading="A little preparation. A much better introduction.">
@@ -316,6 +331,9 @@ export function AgenticWorkflow() {
           </li>
           <li className="flex flex-wrap items-center gap-2">
             <Badge tone="info">Company note</Badge> “Public job posts mention Kafka, Flink, and Go services.” — source: careers page snapshot, Sep 2026
+          </li>
+          <li className="flex flex-wrap items-center gap-2">
+            <Badge tone="success">Soft-Bypass Option</Badge> Includes polite official portal routing offer to eliminate recruiter protocol pushback.
           </li>
           <li className="flex flex-wrap items-center gap-2">
             <Badge tone="warning">Uncertainty</Badge> No public evidence the team is hiring right now — the draft doesn’t claim it.
@@ -342,7 +360,7 @@ export function WritingModes() {
     },
     {
       key: "Quick AI",
-      body: "Give the intent, the recipient, and optional job description. A validated, editable draft appears with its supporting facts.",
+      body: "Give the intent, the recipient, and optional job description. A validated, editable draft appears with its supporting facts and optional soft-bypass.",
       chip: "1 AI credit per generation",
       tone: "honey" as const,
     },
@@ -408,7 +426,7 @@ export function WorkspaceTeaser() {
         </div>
         <div className="flex flex-col justify-center gap-4" data-motion="reveal">
           <p className="text-white/80">
-            Notes and next-action dates matter more than vanity charts. Reminders appear inside Apply Bee — nothing is
+            Notes and next-action dates matter more than vanity charts. Reminders appear inside ReachBee — nothing is
             sent automatically, and no reply metrics are inferred.
           </p>
           <Link href="/sign-up">
@@ -426,6 +444,7 @@ export function WorkspaceTeaser() {
 export function Trust() {
   const principles = [
     { title: "Explicit Gmail connection", body: "Connecting Gmail is optional and separate from signing in. You choose when — and you can disconnect any time." },
+    { title: "Deliverability Shield (10/day)", body: "Capped at 10 drafts/day per account to protect your personal Gmail domain reputation, avoid Google spam triggers, and maintain high open rates." },
     { title: "Private resumes", body: "Your files sit in private storage, scanned and gated. Downloads require your signed-in session. Nothing becomes public." },
     { title: "Truthful AI", body: "Drafts cite the facts they use. Unsupported claims are rejected, not dressed up." },
     { title: "Visible costs", body: "Every action shows its price before you confirm. Balances, reservations, and history are in the open." },
@@ -434,14 +453,14 @@ export function Trust() {
     <SectionShell id="trust" heading="Your review. Your account. Your decision.">
       <div className="rounded-card border border-border-decorative bg-surface p-6 shadow-card" data-motion="reveal">
         <p className="prose-measure text-lg font-medium text-ink">
-          “Google’s permission allows managing drafts and sending email. Apply Bee uses this connection to create drafts
+          “Google’s permission allows managing drafts and sending email. ReachBee uses this connection to create drafts
           you approve. We do not send email automatically or read your inbox. You can disconnect at any time.”
         </p>
         <p className="mt-3 text-sm text-text-secondary">
           We say this plainly because the permission technically permits sending; our product and code do not. Nothing
           leaves your account without your explicit review.
         </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2" data-motion="stagger">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-motion="stagger">
           {principles.map((p) => (
             <div key={p.title} data-motion="stagger-item" className="rounded-control border border-border-decorative bg-canvas p-4">
               <h3 className="font-bold text-ink">{p.title}</h3>
@@ -542,8 +561,10 @@ export function Pricing({ catalog }: { catalog: CatalogView | null }) {
 
 /* 11. FAQ */
 const FAQS: Array<{ q: string; a: string }> = [
-  { q: "Does Apply Bee send emails for me?", a: "No. Apply Bee prepares drafts. You review, edit, and send them yourself — or copy the text anywhere." },
-  { q: "What exactly does the Gmail permission allow?", a: "Google’s gmail.compose permission allows managing drafts and sending email. Apply Bee uses it only to create drafts you approved. We don’t read your inbox or send mail automatically." },
+  { q: "Does ReachBee send emails for me?", a: "No. ReachBee prepares drafts. You review, edit, and send them yourself — or copy the text anywhere." },
+  { q: "Why is there a daily limit of 10 AI drafts?", a: "To protect your personal Gmail domain reputation. Sending dozens of cold emails triggers Google's automated abuse filters and burns your personal address. A 10/day limit enforces quality and keeps your outreach landing directly in the recipient's primary inbox." },
+  { q: "Won't recruiters get upset if I reach out to engineering managers directly?", a: "ReachBee supports a 'Soft-Bypass' protocol. Drafts focus strictly on technical stack alignment and can include a courteous closing line offering to route through their official careers portal if preferred. This transforms outreach from an aggressive bypass into a professional peer introduction." },
+  { q: "What exactly does the Gmail permission allow?", a: "Google’s gmail.compose permission allows managing drafts and sending email. ReachBee uses it only to create drafts you approved. We don’t read your inbox or send mail automatically." },
   { q: "Can I use it without connecting Gmail?", a: "Yes. Manual writing, quick AI, templates, copy/export, and the pipeline all work without Gmail. Connecting is only for creating drafts in your mailbox." },
   { q: "Can I draft manually for free?", a: "Yes. The manual editor, templates, saving, and copying use no AI credits and require no purchase beyond browsing/reveals." },
   { q: "When is a credit consumed?", a: "A reveal credit when a directory email is unlocked the first time. An AI credit when a validated draft is saved to your account — not when generation starts and not when Gmail succeeds." },
@@ -553,7 +574,7 @@ const FAQS: Array<{ q: string; a: string }> = [
   { q: "Are these subscriptions?", a: "No. Packs are one-time purchases. No auto-renewal, no cancellation dates." },
   { q: "Do credits expire, and how do refunds work?", a: "Paid credits don’t expire during ordinary service. Unused purchased allowance is refundable under our published refunds policy." },
   { q: "Can I delete my resume and profile?", a: "Yes — delete files or the whole account from settings. Deleting app content doesn’t remove copies you already created in Gmail." },
-  { q: "Will this guarantee interviews or a job?", a: "No. Nothing can. Apply Bee helps you prepare relevant, truthful introductions — outcomes depend on you and the market." },
+  { q: "Will this guarantee interviews or a job?", a: "No. Nothing can. ReachBee helps you prepare relevant, truthful introductions — outcomes depend on you and the market." },
 ];
 
 export function FAQ() {

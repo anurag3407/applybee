@@ -13,10 +13,16 @@ export default function SecurityPage() {
         <section>
           <h2 className="text-xl font-bold text-ink">Permissions we ask for</h2>
           <ul className="prose-measure mt-2 space-y-2 text-[0.95rem] leading-relaxed text-text-secondary">
-            <li>• <strong>Sign-in:</strong> your Apply Bee account. Signing in with Google is separate from connecting Gmail.</li>
-            <li>• <strong>Gmail (optional):</strong> the gmail.compose scope from a dedicated OAuth project. Google documents it as permitting managing drafts and sending email. Apply Bee only creates drafts you approved — our code has no send path, and the HTTP layer rejects send endpoints even by mistake.</li>
+            <li>• <strong>Sign-in:</strong> your ReachBee account. Signing in with Google is separate from connecting Gmail.</li>
+            <li>• <strong>Gmail (optional):</strong> the gmail.compose scope from a dedicated OAuth project. Google documents it as permitting managing drafts and sending email. ReachBee only creates drafts you approved — our code has no send path, and the HTTP layer rejects send endpoints even by mistake.</li>
             <li>• <strong>Nothing else:</strong> no mailbox reads, no contacts reads, no drive access.</li>
           </ul>
+        </section>
+        <section>
+          <h2 className="text-xl font-bold text-ink">Gmail Deliverability & Reputation Shield (10 drafts/day cap)</h2>
+          <p className="prose-measure mt-2 text-[0.95rem] leading-relaxed text-text-secondary">
+            Unlike bulk cold-email tools that blast hundreds of emails and burn personal email domains, ReachBee strictly caps generations at 10 drafts per day per account. This deliberate rate limit safeguards your personal Gmail sender score, prevents Google automated abuse flags, and ensures your outreach lands directly in the recipient&apos;s primary inbox rather than their spam folder.
+          </p>
         </section>
         <section>
           <h2 className="text-xl font-bold text-ink">Storage and files</h2>
@@ -56,6 +62,7 @@ export default function SecurityPage() {
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge tone="warning">Pre-launch: compliance certifications not yet held</Badge>
             <Badge tone="info">Draft-only Gmail enforcement in code and tests</Badge>
+            <Badge tone="success">10 drafts/day deliverability rate-limiting active</Badge>
             <Badge tone="success">Transactional credit ledger with automated consistency checks</Badge>
           </div>
         </section>

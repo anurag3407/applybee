@@ -316,7 +316,7 @@ export async function approveDraftDelivery(params: {
     sql`SELECT 1 FROM contact_suppressions WHERE email_fingerprint = ${emailFingerprint(recipientEmail)} AND state = 'active' AND scope = 'delivery_wide'`,
   );
   if (suppression.rows.length > 0) {
-    throw new DeliveryPreflightError("RECIPIENT_SUPPRESSED", "This recipient asked not to be contacted through Apply Bee.");
+    throw new DeliveryPreflightError("RECIPIENT_SUPPRESSED", "This recipient asked not to be contacted through ReachBee.");
   }
 
   // Immutable approval snapshot: revision + mailbox version + attachment hash.

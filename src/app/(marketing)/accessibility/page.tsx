@@ -9,7 +9,7 @@ export default function AccessibilityPage() {
     <div className="mx-auto max-w-3xl px-5 py-16">
       <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">Accessibility</h1>
       <p className="prose-measure mt-3 text-lg text-text-secondary">
-        Apply Bee targets WCAG 2.2 AA. This page states our actual current status, including known limitations.
+        ReachBee targets WCAG 2.2 AA. This page states our actual current status, including known limitations.
       </p>
       <div className="mt-8 space-y-8">
         <section>

@@ -40,7 +40,7 @@ export function DeleteResumeButton({ resumeId }: { resumeId: string }) {
         }
       >
         <p className="text-sm text-text-secondary">
-          The stored file is deleted. Existing Gmail drafts with this attachment keep their copies — Apply Bee cannot
+          The stored file is deleted. Existing Gmail drafts with this attachment keep their copies — ReachBee cannot
           remove those. Pending approvals that reference this file are invalidated.
         </p>
       </Dialog>

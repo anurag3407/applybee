@@ -37,7 +37,7 @@ export default async function SettingsNotificationsPage() {
       <Card>
         <h3 className="font-bold text-ink">What we will never send</h3>
         <p className="mt-2 text-sm text-text-secondary">
-          Automatic follow-ups to your contacts, outreach on your behalf, or inbox-derived notifications. Apply Bee
+          Automatic follow-ups to your contacts, outreach on your behalf, or inbox-derived notifications. ReachBee
           doesn’t read your inbox.
         </p>
       </Card>

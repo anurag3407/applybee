@@ -372,8 +372,8 @@ export async function exportEml(userId: string, draftId: string): Promise<{ file
   if (!data || !data.currentRevision) return null;
   const toEmail = data.recipient?.email ?? "undisclosed-recipient@invalid";
   const mime = buildMimeMessage({
-    fromEmail: "draft@applybee.local",
-    fromName: "Apply Bee export (not sent)",
+    fromEmail: "draft@reachbee.local",
+    fromName: "ReachBee export (not sent)",
     toEmail,
     toName: data.recipient?.name ?? null,
     subject: data.currentRevision.subject || "(no subject)",
@@ -383,7 +383,7 @@ export async function exportEml(userId: string, draftId: string): Promise<{ file
   });
   // Never expose private object URLs in the export (§13.2). Attachments are
   // delivered only through the approved Gmail path, not .eml export.
-  return { filename: `applybee-draft-${draftId.slice(0, 8)}.eml`, content: mime.raw };
+  return { filename: `reachbee-draft-${draftId.slice(0, 8)}.eml`, content: mime.raw };
 }
 
 export { CreditError };

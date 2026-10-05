@@ -44,7 +44,7 @@ export async function AppShell({ children, title }: { children: React.ReactNode;
         <aside className="sticky top-0 hidden h-screen w-[15rem] shrink-0 flex-col border-r border-border-decorative bg-surface px-4 py-5 lg:flex">
           <Link href="/app" className="mb-6 flex items-center gap-2 font-bold text-ink">
             <BrandMark size={24} />
-            Apply Bee
+            ReachBee
           </Link>
           <nav aria-label="Workspace" className="flex-1 overflow-y-auto">
             <NavList links={links} />

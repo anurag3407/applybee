@@ -37,7 +37,7 @@ export function AuthFrame({
       </div>
       <aside className="on-ink hidden flex-col justify-center bg-ink px-12 text-surface lg:flex" aria-hidden>
         <div className="max-w-md">
-          <p className="text-sm font-bold uppercase tracking-[0.14em] text-honey">Apply Bee</p>
+          <p className="text-sm font-bold uppercase tracking-[0.14em] text-honey">ReachBee</p>
           <p className="mt-4 text-3xl font-bold leading-snug">
             Find the right person. Write something true. Review it before anything happens.
           </p>

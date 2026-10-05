@@ -10,7 +10,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "get-started",
     category: "Getting started",
-    title: "Getting started with Apply Bee",
+    title: "Getting started with ReachBee",
     body: [
       "Create an account — no card required. You get a small trial allowance of contact reveals and AI generations.",
       "Confirm a few profile facts (from your resume or typed by hand). AI drafts use only confirmed facts.",
@@ -26,7 +26,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     body: [
       "Contact reveals: one credit the first time you reveal a directory email. Reopening or copying it later is always free.",
       "AI generations: one credit when a validated draft is saved to your account. If generation fails, the credit is released automatically.",
-      "AI drafting is capped at 10 drafts per day per account, whatever your balance. The limit resets at midnight UTC. Unused credits are never lost.",
+      "AI drafting is capped at 10 drafts per day per account (Deliverability Shield), whatever your balance. The limit resets at midnight UTC. Unused credits are never lost.",
       "Manual editing, templates, saving, copying, .eml export, and the pipeline: always free.",
       "Gmail draft creation: no AI credit. Delivery quotas apply to prevent abuse.",
     ],
@@ -35,10 +35,10 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "use-without-gmail",
     category: "Gmail",
-    title: "Using Apply Bee without Gmail",
+    title: "Using ReachBee without Gmail",
     body: [
       "Everything except mailbox draft creation works without connecting Gmail: writing, AI drafts, templates, saving, copying, .eml export, and the pipeline.",
-      "When you connect Gmail, Google’s permission allows managing drafts and sending email. Apply Bee uses it only to create drafts you approved — we never send automatically or read your inbox.",
+      "When you connect Gmail, Google’s permission allows managing drafts and sending email. ReachBee uses it only to create drafts you approved — we never send automatically or read your inbox.",
       "You can disconnect at any time from Settings → Integrations. Your drafts stay saved here.",
     ],
     related: ["gmail-failed"],
@@ -48,7 +48,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     category: "Gmail",
     title: "What if Gmail draft creation fails?",
     body: [
-      "Known failure (permission, quota): your draft stays saved in Apply Bee. Fix the cause (e.g. reconnect) and retry, or copy the text.",
+      "Known failure (permission, quota): your draft stays saved in ReachBee. Fix the cause (e.g. reconnect) and retry, or copy the text.",
       "Uncertain outcome: if Gmail accepted the request but we lost the confirmation, we mark it “checking” and try a bounded reconciliation. If it stays unresolved you’ll see “Needs confirmation” — check your Gmail Drafts folder before creating another copy.",
       "We never blindly retry a Gmail creation, because that could duplicate drafts.",
     ],

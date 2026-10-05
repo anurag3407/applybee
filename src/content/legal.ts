@@ -36,7 +36,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Gmail access",
         body: [
-          "If you connect Gmail, we request the gmail.compose scope from a dedicated OAuth project. Google documents this scope as permitting managing drafts and sending email. Apply Bee uses it only to create drafts you explicitly approved; we do not read your inbox or send messages automatically.",
+          "If you connect Gmail, we request the gmail.compose scope from a dedicated OAuth project. Google documents this scope as permitting managing drafts and sending email. ReachBee uses it only to create drafts you explicitly approved; we do not read your inbox or send messages automatically.",
           "We store the minimum tokens needed, encrypted (AES-256-GCM), and you can disconnect at any time from Settings → Integrations.",
         ],
       },
@@ -59,13 +59,13 @@ export const LEGAL_DOCS: LegalDoc[] = [
   {
     slug: "terms",
     title: "Terms of service",
-    summary: "The agreement between you and Apply Bee.",
+    summary: "The agreement between you and ReachBee.",
     updated: "2026-10-04",
     sections: [
       {
         heading: "The service",
         body: [
-          "Apply Bee is a career outreach workspace: a contact directory, drafting tools, and a personal pipeline. Apply Bee never sends email on your behalf; drafts are created only after your explicit approval, and sending is always your action.",
+          "ReachBee is a career outreach workspace: a contact directory, drafting tools, and a personal pipeline. ReachBee never sends email on your behalf; drafts are created only after your explicit approval, and sending is always your action.",
         ],
       },
       {
@@ -83,7 +83,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "No outcome guarantee",
         body: [
-          "Apply Bee does not guarantee interviews, replies, hiring, or email deliverability. Directory verification describes mailbox checks at a point in time, not hiring intent or consent.",
+          "ReachBee does not guarantee interviews, replies, hiring, or email deliverability. Directory verification describes mailbox checks at a point in time, not hiring intent or consent.",
         ],
       },
       {
@@ -129,7 +129,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
   {
     slug: "acceptable-use",
     title: "Acceptable use policy",
-    summary: "What you may not do with Apply Bee.",
+    summary: "What you may not do with ReachBee.",
     updated: "2026-10-04",
     sections: [
       {
@@ -181,7 +181,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
   {
     slug: "cookies",
     title: "Cookie notice",
-    summary: "The actual cookies Apply Bee sets.",
+    summary: "The actual cookies ReachBee sets.",
     updated: "2026-10-04",
     sections: [
       {

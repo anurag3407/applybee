@@ -160,12 +160,12 @@ export function GmailStep() {
         <h2 className="text-xl font-bold text-ink">Connect Gmail — optional</h2>
         <div className="mt-3 rounded-control border border-info/30 bg-info-wash px-4 py-3 text-sm leading-relaxed text-ink">
           <p>
-            “Google’s permission allows managing drafts and sending email. Apply Bee uses this connection to create
+            “Google’s permission allows managing drafts and sending email. ReachBee uses this connection to create
             drafts you approve. We do not send email automatically or read your inbox. You can disconnect at any time.”
           </p>
         </div>
         <p className="mt-3 text-sm text-text-secondary">
-          Everything in Apply Bee works without Gmail: writing, AI drafts, copying, and export. Connecting only adds
+          Everything in ReachBee works without Gmail: writing, AI drafts, copying, and export. Connecting only adds
           draft creation inside your mailbox. Connecting is separate from signing in.
         </p>
         {error ? (

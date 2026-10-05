@@ -68,7 +68,7 @@ export function CheckoutLauncher({ sku, priceLabel, salesLive }: { sku: string; 
       const rzp = new Razorpay({
         key: keyId || (window as unknown as { __rzpKeyId?: string }).__rzpKeyId || "",
         order_id: providerOrderId,
-        name: "Apply Bee",
+        name: "ReachBee",
         description: "One-time credit pack",
         handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
           const verify = await fetch(`/api/v1/billing/orders/${orderId}/verify`, {

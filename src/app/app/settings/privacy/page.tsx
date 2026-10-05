@@ -28,7 +28,7 @@ export default async function SettingsPrivacyPage() {
         </p>
         <p className="mt-2 text-sm text-text-secondary">
           <strong className="text-ink">What stays:</strong> drafts already created in your Gmail remain in your mailbox —
-          Apply Bee cannot remove external copies. Copied files on your devices remain yours.
+          ReachBee cannot remove external copies. Copied files on your devices remain yours.
         </p>
         <ExportDeletionPanel mode="delete" />
       </Card>

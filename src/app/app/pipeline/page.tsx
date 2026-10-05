@@ -18,7 +18,7 @@ export default async function PipelinePage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-ink">Pipeline</h2>
           <p className="text-sm text-text-secondary">
-            Stages are updated by you — Apply Bee doesn’t read your inbox or infer progress. Follow-up reminders appear
+            Stages are updated by you — ReachBee doesn’t read your inbox or infer progress. Follow-up reminders appear
             in-app only.
           </p>
         </div>

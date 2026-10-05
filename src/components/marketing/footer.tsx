@@ -65,9 +65,9 @@ export function MarketingFooter() {
           ))}
         </div>
         <div className="mt-10 flex flex-col gap-2 border-t border-border-decorative pt-6 text-xs text-text-disabled md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} Apply Bee. Get your work in front of the right people.</p>
+          <p>© {new Date().getFullYear()} ReachBee. Direct outreach beyond saturated job portals.</p>
           <p>
-            Apply Bee never sends email on your behalf. Gmail draft creation requires your explicit approval. We don’t
+            ReachBee never sends email on your behalf. Gmail draft creation requires your explicit approval. We don’t
             guarantee interviews, replies, or hiring outcomes.
           </p>
         </div>

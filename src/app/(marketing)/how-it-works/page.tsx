@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AgenticWorkflow, WritingModes, DirectoryFeature, ResumeIntelligence } from "@/components/marketing/landing";
 import { Button } from "@/components/ui/primitives";
 
-export const metadata: Metadata = { title: "How it works" };
+export const metadata: Metadata = { title: "How it works · ReachBee AI" };
 
 export default function HowItWorksPage() {
   return (
@@ -29,6 +29,7 @@ export default function HowItWorksPage() {
             <li>You open the approval panel — it shows the recipient, mailbox, subject/body, and attachment, and says “Nothing will be sent.”</li>
             <li>Approving locks that exact version into an immutable delivery record.</li>
             <li>A background task creates the draft in your Gmail. If the result is uncertain, we reconcile; we never blindly recreate.</li>
+            <li>ReachBee enforces a 10 drafts/day Deliverability Shield to safeguard your personal sender score and prevent spam traps.</li>
             <li>You see “Created in Gmail. Nothing has been sent.” and you send it yourself.</li>
           </ol>
         </div>

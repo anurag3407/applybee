@@ -69,7 +69,7 @@ export function BrandMark({ className, size = 28, variant = "brand" }: BrandMark
 export function Wordmark({
   href = "/",
   className,
-  label = "Apply Bee",
+  label = "ReachBee",
 }: {
   href?: string;
   className?: string;

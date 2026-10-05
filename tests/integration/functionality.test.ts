@@ -176,7 +176,7 @@ describe("Core Functionality Suite", () => {
       // Export as .eml
       const eml = await exportEml(userId, draftId);
       expect(eml).not.toBeNull();
-      expect(eml?.filename).toMatch(/^applybee-draft-.*\.eml$/);
+      expect(eml?.filename).toMatch(/^(?:reachbee|applybee)-draft-.*\.eml$/);
       expect(eml?.content).toContain("Subject: Updated Subject");
       expect(eml?.content).toContain("Updated Body content");
     });

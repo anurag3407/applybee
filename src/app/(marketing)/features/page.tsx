@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ProductFacts, DirectoryFeature, WorkspaceTeaser, Trust } from "@/components/marketing/landing";
 import { Button } from "@/components/ui/primitives";
 
-export const metadata: Metadata = { title: "Features" };
+export const metadata: Metadata = { title: "Features · ReachBee AI" };
 
 export default function FeaturesPage() {
   return (
