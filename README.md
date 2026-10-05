@@ -50,11 +50,16 @@ POST /api/v1/cron/run
 Authorization: Bearer $CRON_SECRET
 ```
 
-That call seeds the recurring housekeeping jobs, runs the recovery sweep,
-drains due jobs and the outbox, and (during `CRON_DIGEST_HOUR_UTC`) sends the
-daily hiring digest. It is safe to call frequently: jobs are claimed under
-leases and the digest is claimed by a unique `(user_id, dispatch_date)` row
-before any email is sent, so a repeated call cannot double-send.
+That call seeds the recurring housekeeping jobs, runs the recovery sweep, and
+drains due jobs and the outbox. During `CRON_DIGEST_HOUR_UTC` it enqueues a
+single `digest.dispatch_daily` job rather than emailing everyone inline — that
+handler works through the queue in bounded batches (`DIGEST_BATCH_SIZE`,
+default 25) and re-enqueues itself with a cursor, so a large user base cannot
+blow the Worker wall-clock limit and strand the remainder.
+
+The endpoint is safe to call frequently: jobs are claimed under leases and the
+digest is claimed by a unique `(user_id, dispatch_date)` row before any email
+is sent, so a repeated call cannot double-send.
 `.github/workflows/scheduled-jobs.yml` runs it every 5 minutes; it needs the
 `CRON_SECRET` repository secret and an `APP_URL` repository variable.
 
@@ -98,6 +103,7 @@ concurrency slots are defined in `src/server/adapters/ratelimit.ts`.
 ## Documentation
 
 - [`docs/implementation-status.md`](./docs/implementation-status.md) — milestone evidence and external launch gates
+- [`docs/launch-audit.md`](./docs/launch-audit.md) — pre-launch defect audit: what was fixed, what is config-only, what is left open
 - [`docs/adr/0001-platform.md`](./docs/adr/0001-platform.md) — platform, auth, Gmail, credits, storage ADRs
 - [`docs/runbooks/operations.md`](./docs/runbooks/operations.md) — deployment, payments/credits, Gmail uncertainty, queues/files, privacy, restore drill
 - [`.env.example`](./.env.example) — full configuration inventory (names only; never commit credentials)

@@ -894,8 +894,8 @@ const creditsReconcile: Handler = async () => {
     WHERE r.state = 'reserved' AND r.purpose = 'generation' AND r.deadline_at < now()
   `);
   for (const row of stale.rows as Array<{ operation_ref: string }>) {
-    const genRow = await db.execute(sql`SELECT id, state FROM generation_requests WHERE id = ${row.operation_ref}::uuid`);
-    const gen = genRow.rows[0] as { id: string; state: string } | undefined;
+    const genRow = await db.execute(sql`SELECT id, state, draft_id FROM generation_requests WHERE id = ${row.operation_ref}::uuid`);
+    const gen = genRow.rows[0] as { id: string; state: string; draft_id: string } | undefined;
     if (!gen) {
       // No generation row at all: orphaned reservation, safe to release.
       await releaseGeneration(row.operation_ref).catch(() => {});
@@ -927,15 +927,11 @@ const creditsReconcile: Handler = async () => {
           .where(eq(generationRequests.id, gen.id));
         await releaseGeneration(row.operation_ref).catch(() => {});
         // Hand the draft back to the user so it is editable again.
-        const draftRow = await db.execute(sql`
-          SELECT draft_id FROM generation_requests WHERE id = ${gen.id}::uuid
-        `);
-        const draftId = (draftRow.rows[0] as { draft_id: string } | undefined)?.draft_id;
-        if (draftId) {
+        if (gen.draft_id) {
           await db
             .update(drafts)
             .set({ status: "active" })
-            .where(and(eq(drafts.id, draftId), eq(drafts.status, "generating")));
+            .where(and(eq(drafts.id, gen.draft_id), eq(drafts.status, "generating")));
         }
       }
     }
@@ -947,10 +943,46 @@ const creditsReconcile: Handler = async () => {
 /* digest.dispatch_daily                                              */
 /* ------------------------------------------------------------------ */
 
-const digestDispatchDaily: Handler = async () => {
+/**
+ * Daily digest, batched through the queue.
+ *
+ * Dispatching every user's email inside a single invocation would exceed the
+ * Worker wall-clock limit once the user base grows, and a timeout mid-loop
+ * silently strands the remainder. Each run takes a bounded batch and re-enqueues
+ * itself with the last user id as the cursor until nobody is left.
+ */
+const digestDispatchDaily: Handler = async (ctx) => {
   const { dispatchAllDueDigests } = await import("@/server/services/digest");
-  const result = await dispatchAllDueDigests();
-  return { status: "succeeded", result };
+  const batchSize = Number(process.env.DIGEST_BATCH_SIZE ?? 25);
+  const result = await dispatchAllDueDigests({
+    batchSize: Number.isFinite(batchSize) ? batchSize : 25,
+    afterUserId: ctx.entityId,
+  });
+
+  if (result.nextCursor) {
+    await enqueueJob({
+      kind: "digest.dispatch_daily",
+      entityId: result.nextCursor,
+      maxAttempts: 3,
+      deadlineSeconds: 120,
+      // A digest batch sends real emails and is slow (~200ms each). Staggering
+      // keeps several from becoming due at once, so a single drain pass does
+      // not spend the whole request budget on email alone. Slower for a very
+      // large audience, but it always completes instead of timing out.
+      availableAfter: new Date(Date.now() + 30_000),
+    });
+  }
+
+  return {
+    status: "succeeded",
+    result: {
+      processed: result.totalEligible,
+      dispatched: result.dispatched,
+      skipped: result.skipped,
+      failed: result.failed,
+      moreRemaining: Boolean(result.nextCursor),
+    },
+  };
 };
 
 /* ------------------------------------------------------------------ */

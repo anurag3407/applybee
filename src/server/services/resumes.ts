@@ -85,7 +85,9 @@ export async function finalizeUpload(params: {
       .where(and(eq(uploadIntents.id, params.uploadIntentId), eq(uploadIntents.userId, params.userId)))
       .limit(1)
   )[0];
-  if (!intent || intent.state === "finalized") throw new UploadError("INTENT_INVALID", "This upload link has expired. Start again.");
+  if (!intent || intent.state === "finalized") {
+    throw new UploadError("INTENT_INVALID", "This upload link has expired. Start again.");
+  }
   if (intent.expiresAt.getTime() < Date.now()) throw new UploadError("INTENT_EXPIRED", "This upload link has expired. Start again.");
 
   // Server verifies actual stored size/type — never the client claim (§14.2).
@@ -101,27 +103,59 @@ export async function finalizeUpload(params: {
     );
   }
 
+  // Claim the intent only once the file is known to be acceptable, and claim it
+  // atomically. This used to check state, then store and insert with no
+  // transaction and no claim, so a double-submitted upload (double click, a
+  // retry, two tabs) created two resume rows from one intent and burned two of
+  // the user's three active slots. Claiming after validation also means a
+  // rejected file does not consume the user's upload link.
+  const claimed = await db
+    .update(uploadIntents)
+    .set({ state: "finalized", finalizedAt: new Date() })
+    .where(
+      and(
+        eq(uploadIntents.id, params.uploadIntentId),
+        eq(uploadIntents.userId, params.userId),
+        sql`${uploadIntents.state} <> 'finalized'`,
+      ),
+    )
+    .returning({ id: uploadIntents.id });
+  if (claimed.length === 0) {
+    throw new UploadError("INTENT_INVALID", "This upload link has already been used. Start again.");
+  }
+
   const store = getObjectStore("quarantine");
-  const metadata = await store.put(intent.objectKey, params.bytes, "application/pdf");
+  // If anything from here fails, release the claim so the user can retry the
+  // same upload instead of being told the link expired because of a transient
+  // storage error.
+  try {
+    const metadata = await store.put(intent.objectKey, params.bytes, "application/pdf");
 
-  const resume = (
+    const resume = (
+      await db
+        .insert(resumes)
+        .values({
+          userId: params.userId,
+          objectKey: intent.objectKey,
+          displayFilename: params.displayFilename.replace(/[/\\:*?"<>|\r\n\x00-\x1f]/g, "_").slice(0, 200),
+          byteSize: metadata.byteSize,
+          sha256: metadata.sha256,
+          pageCount: structure.pageCount ?? null,
+          state: "uploaded",
+        })
+        .returning({ id: resumes.id })
+    )[0]!;
+
+    await enqueueJob({ kind: "resume.scan_parse", userId: params.userId, entityId: resume.id, maxAttempts: 3, deadlineSeconds: 300 });
+    return { resumeId: resume.id };
+  } catch (err) {
     await db
-      .insert(resumes)
-      .values({
-        userId: params.userId,
-        objectKey: intent.objectKey,
-        displayFilename: params.displayFilename.replace(/[/\\:*?"<>|\r\n\x00-\x1f]/g, "_").slice(0, 200),
-        byteSize: metadata.byteSize,
-        sha256: metadata.sha256,
-        pageCount: structure.pageCount ?? null,
-        state: "uploaded",
-      })
-      .returning({ id: resumes.id })
-  )[0]!;
-
-  await db.update(uploadIntents).set({ state: "finalized", finalizedAt: new Date() }).where(eq(uploadIntents.id, intent.id));
-  await enqueueJob({ kind: "resume.scan_parse", userId: params.userId, entityId: resume.id, maxAttempts: 3, deadlineSeconds: 300 });
-  return { resumeId: resume.id };
+      .update(uploadIntents)
+      .set({ state: "pending", finalizedAt: null })
+      .where(and(eq(uploadIntents.id, intent.id), eq(uploadIntents.userId, params.userId)))
+      .catch(() => {});
+    throw err;
+  }
 }
 
 export async function listResumes(userId: string) {

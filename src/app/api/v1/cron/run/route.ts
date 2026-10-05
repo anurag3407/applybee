@@ -5,6 +5,7 @@ import { logger } from "@/server/logger";
 import { apiError, ok, errorResponse } from "@/server/http";
 import { dispatchAllDueDigests, seedInitialHiringPostsIfEmpty } from "@/server/services/digest";
 import { dispatchOutbox, processDueJobs, recoverySweep } from "@/server/jobs/runner";
+import { enqueueJob } from "@/server/services/jobs";
 
 /**
  * Scheduler entry point (POST/GET /api/v1/cron/run).
@@ -84,10 +85,29 @@ async function handle(req: Request) {
 
   let digest: { totalEligible: number; dispatched: number; skipped: number; failed: number } | null = null;
   let digestError: string | null = null;
+  let digestEnqueued = false;
   if (force || isDigestHour()) {
     try {
       await seedInitialHiringPostsIfEmpty();
-      digest = await dispatchAllDueDigests({ force });
+      if (force) {
+        // Manual trigger: run one batch inline so the caller sees a result.
+        const result = await dispatchAllDueDigests({ force: true, batchSize: 25 });
+        digest = {
+          totalEligible: result.totalEligible,
+          dispatched: result.dispatched,
+          skipped: result.skipped,
+          failed: result.failed,
+        };
+        if (result.nextCursor) {
+          // Seeded with no cursor so the queue picks up from the beginning.
+          await enqueueJob({ kind: "digest.dispatch_daily", maxAttempts: 3, deadlineSeconds: 120 });
+        }
+      } else {
+        // Scheduled run: hand the whole dispatch to the queue so it is batched
+        // and cannot exceed this request's wall-clock budget.
+        await enqueueJob({ kind: "digest.dispatch_daily", maxAttempts: 3, deadlineSeconds: 120 });
+        digestEnqueued = true;
+      }
     } catch (err) {
       digestError = err instanceof Error ? err.message : String(err);
       logger.error("cron.digest_failed", { error: digestError });
@@ -99,6 +119,7 @@ async function handle(req: Request) {
     outbox: outboxEvents,
     digestDispatched: digest?.dispatched ?? 0,
     digestFailed: digest?.failed ?? 0,
+    digestEnqueued,
     durationMs: Date.now() - startedAt,
   });
 
@@ -106,6 +127,7 @@ async function handle(req: Request) {
     jobs: dispatchedJobs,
     outbox: outboxEvents,
     digest,
+    digestEnqueued,
     digestError,
     durationMs: Date.now() - startedAt,
   });

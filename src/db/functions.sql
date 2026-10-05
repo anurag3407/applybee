@@ -508,7 +508,12 @@ BEGIN
       lease_expires_at = now() + make_interval(secs => p_lease_seconds),
       fencing_token = v_token,
       attempts = attempts + 1,
-      deadline_at = COALESCE(deadline_at, now() + make_interval(secs => p_deadline_seconds)),
+      -- Deadline is per-attempt, not per-job. It used to be COALESCE(deadline_at,
+      -- ...), which froze the budget at first claim: a generation that was
+      -- legitimately retrying on a backoff would trip recoverySweep's deadline
+      -- breach while retries were still pending, get marked needs_attention,
+      -- and have its credit released out from under a live job.
+      deadline_at = now() + make_interval(secs => p_deadline_seconds),
       updated_at = now()
   WHERE id = p_job_id;
 

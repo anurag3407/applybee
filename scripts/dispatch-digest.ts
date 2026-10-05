@@ -13,14 +13,29 @@ async function main() {
   console.log("[digest:dispatch] Checking initial hiring posts catalog...");
   const seeded = await seedInitialHiringPostsIfEmpty();
   if (seeded > 0) {
-    console.log(`[digest:dispatch] Seeded ${seeded} curated hiring posts.`);
+    console.log(`[digest:dispatch] Seeded ${seeded} sample hiring posts.`);
   }
 
   const force = process.argv.includes("--force");
   console.log(`[digest:dispatch] Starting daily dispatch (force=${force})...`);
-  const result = await dispatchAllDueDigests({ force });
+
+  // dispatchAllDueDigests is batched (the production path re-enqueues itself
+  // through the job queue), so loop through every batch here.
+  let cursor: string | null = null;
+  const totals = { eligible: 0, dispatched: 0, skipped: 0, failed: 0 };
+  let guard = 0;
+  do {
+    const result = await dispatchAllDueDigests({ force, batchSize: 50, afterUserId: cursor });
+    totals.eligible += result.totalEligible;
+    totals.dispatched += result.dispatched;
+    totals.skipped += result.skipped;
+    totals.failed += result.failed;
+    cursor = result.nextCursor;
+    if (cursor) console.log(`[digest:dispatch] …${totals.dispatched} dispatched so far, continuing.`);
+  } while (cursor && ++guard < 200);
+
   console.log(
-    `[digest:dispatch] Complete! Eligible: ${result.totalEligible}, Dispatched: ${result.dispatched}, Skipped: ${result.skipped}, Failed: ${result.failed}`,
+    `[digest:dispatch] Complete! Processed: ${totals.eligible}, Dispatched: ${totals.dispatched}, Skipped: ${totals.skipped}, Failed: ${totals.failed}`,
   );
   process.exit(0);
 }

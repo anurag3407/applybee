@@ -14,6 +14,19 @@ import { HANDLERS, type HandlerOutcome } from "./handlers";
 
 const WORKER_ID = `worker-${process.pid}-${Math.random().toString(36).slice(2, 8)}`;
 
+/**
+ * Lease and deadline for a claimed job.
+ *
+ * The lease must comfortably exceed the slowest handler, or the job is
+ * reclaimed while it is still running and a second worker processes it too.
+ * `draft.generate` is the slow one: it can make two model calls (the original
+ * plus one repair attempt), each with a 60s provider timeout, so 120s left no
+ * margin. The deadline is per-attempt (see claim_job in src/db/functions.sql),
+ * so it does not need to cover the whole retry chain.
+ */
+const JOB_LEASE_SECONDS = 300;
+const JOB_DEADLINE_SECONDS = 300;
+
 export async function processDueJobs(limit = 5): Promise<number> {
   const due = await db.execute(sql`
     SELECT id, kind FROM jobs
@@ -26,7 +39,7 @@ export async function processDueJobs(limit = 5): Promise<number> {
   let processed = 0;
   for (const row of due.rows as Array<{ id: string; kind: string }>) {
     const claimed = await db.execute(sql`
-      SELECT claim_job(${row.id}::uuid, ${WORKER_ID}, 120, 120) AS out
+      SELECT claim_job(${row.id}::uuid, ${WORKER_ID}, ${JOB_LEASE_SECONDS}, ${JOB_DEADLINE_SECONDS}) AS out
     `);
     const claim = (claimed.rows[0] as { out: { fencing_token: number } | null } | null)?.out;
     if (!claim) continue;
@@ -43,11 +56,23 @@ export async function processDueJobs(limit = 5): Promise<number> {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       logger.error("job.handler_crashed", { jobId: row.id, kind: row.kind, error: message });
-      await complete(row.id, claim.fencing_token, {
-        status: "failed",
-        errorCode: "HANDLER_CRASH",
-        errorMessage: message,
-      });
+      // Recording the crash must never itself throw out of the loop: a
+      // transient DB failure here would abort the whole pass and leave every
+      // remaining due job unprocessed this cycle. The lease will expire and
+      // the job will be reclaimed regardless.
+      try {
+        await complete(row.id, claim.fencing_token, {
+          status: "failed",
+          errorCode: "HANDLER_CRASH",
+          errorMessage: message,
+        });
+      } catch (settleErr) {
+        logger.error("job.crash_record_failed", {
+          jobId: row.id,
+          kind: row.kind,
+          error: settleErr instanceof Error ? settleErr.message : String(settleErr),
+        });
+      }
     }
   }
   return processed;
@@ -55,7 +80,9 @@ export async function processDueJobs(limit = 5): Promise<number> {
 
 async function loadContext(jobId: string): Promise<{ userId: string | null; entityId: string | null }> {
   const rows = await db.execute(sql`SELECT user_id, entity_id FROM jobs WHERE id = ${jobId}::uuid`);
-  const row = rows.rows[0] as { user_id: string | null; entity_id: string | null };
+  const row = rows.rows[0] as { user_id: string | null; entity_id: string | null } | undefined;
+  // Same guard as settle(): a missing row must not throw inside the claim loop.
+  if (!row) return { userId: null, entityId: null };
   return { userId: row.user_id, entityId: row.entity_id };
 }
 
@@ -79,7 +106,14 @@ async function settle(jobId: string, fencingToken: number, outcome: HandlerOutco
   }
   // retry: honor the attempt budget, then dead-letter to failed.
   const rows = await db.execute(sql`SELECT attempts, max_attempts FROM jobs WHERE id = ${jobId}::uuid`);
-  const job = rows.rows[0] as { attempts: number; max_attempts: number };
+  // The row can be gone (deleted, or reclaimed and completed by another worker
+  // between our handler returning and this settle). Dereferencing it blindly
+  // threw a TypeError that masked the handler's real outcome.
+  const job = rows.rows[0] as { attempts: number; max_attempts: number } | undefined;
+  if (!job) {
+    logger.warn("job.settle_missing_row", { jobId, fencingToken });
+    return;
+  }
   if (job.attempts >= job.max_attempts) {
     await complete(jobId, fencingToken, {
       status: "failed",

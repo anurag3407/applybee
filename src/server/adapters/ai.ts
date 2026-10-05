@@ -479,7 +479,7 @@ ${resumeContent.slice(0, 24_000) || "[No readable text extracted from document]"
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${this.apiKey}`,
-          "HTTP-Referer": "https://applybee.sayalabs.in",
+          "HTTP-Referer": getConfig().APP_BASE_URL,
           "X-Title": "Apply Bee",
         },
         body: JSON.stringify({
@@ -507,7 +507,13 @@ ${resumeContent.slice(0, 24_000) || "[No readable text extracted from document]"
 
     if (!res.ok && res.status === 400) {
       // The usual cause is an unsupported response_format on this model.
-      res = await send(false);
+      try {
+        res = await send(false);
+      } catch (err) {
+        throw new TransientModelError(
+          `OpenRouter retry failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
     }
 
     if (!res.ok) {

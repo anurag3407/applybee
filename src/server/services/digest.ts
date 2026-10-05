@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   companies,
@@ -709,13 +709,27 @@ export async function dispatchDigestForUser(
   return { success: true, emailId: sendResult.id, postCount: posts.length, date: dispatchDate };
 }
 
-/** Dispatches the daily digest to all active users with dailyDigestEnabled */
-export async function dispatchAllDueDigests(options?: { force?: boolean }): Promise<{
+/**
+ * Dispatches the daily digest to active users who have dailyDigestEnabled.
+ *
+ * Batched: sending every user's email synchronously inside one request blows
+ * past the Cloudflare Workers wall-clock limit as soon as the user base grows,
+ * and a timeout mid-loop leaves the remainder silently unsent. Callers pass a
+ * `afterUserId` cursor and re-invoke until `nextCursor` is null; the job
+ * handler does exactly that.
+ */
+export async function dispatchAllDueDigests(options?: {
+  force?: boolean;
+  batchSize?: number;
+  afterUserId?: string | null;
+}): Promise<{
   totalEligible: number;
   dispatched: number;
   skipped: number;
   failed: number;
+  nextCursor: string | null;
 }> {
+  const batchSize = Math.min(Math.max(options?.batchSize ?? 25, 1), 100);
   // Query all active users who have dailyDigestEnabled = true (or not opted out)
   const eligibleUsers = await db
     .select({
@@ -728,8 +742,11 @@ export async function dispatchAllDueDigests(options?: { force?: boolean }): Prom
       and(
         eq(users.status, "active"),
         sql`coalesce(${userPreferences.dailyDigestEnabled}, true) = true`,
+        ...(options?.afterUserId ? [gt(users.id, options.afterUserId)] : []),
       ),
-    );
+    )
+    .orderBy(users.id)
+    .limit(batchSize);
 
   let dispatched = 0;
   let skipped = 0;
@@ -759,5 +776,8 @@ export async function dispatchAllDueDigests(options?: { force?: boolean }): Prom
     dispatched,
     skipped,
     failed,
+    // A short batch means there are probably more users; hand the cursor back
+    // so the caller can continue rather than silently dropping the remainder.
+    nextCursor: eligibleUsers.length === batchSize ? eligibleUsers[eligibleUsers.length - 1]!.id : null,
   };
 }

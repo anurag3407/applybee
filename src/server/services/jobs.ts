@@ -19,6 +19,7 @@ export type JobKind =
   | "privacy.delete"
   | "reminders.materialize"
   | "credits.reconcile"
+  | "digest.dispatch_daily"
   | "outbox.dispatch";
 
 export async function enqueueJob(params: {

@@ -87,7 +87,15 @@ describe("grounded draft validation", () => {
 
 describe("offline sample model", () => {
   it("produces a draft that passes the same validation gate", async () => {
-    // With no provider key configured, aiMode resolves to the labeled mock.
+    // Force the labeled offline adapter. tests/setup/db.ts runs
+    // `dotenv/config`, so a developer's real .env can put OPENROUTER_API_KEY
+    // (or GEMINI_API_KEY) into process.env and silently switch the adapter to a
+    // live provider. getConfig() is lazy, so clearing them here is enough - and
+    // without it this test would either fail or spend real tokens.
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.GEMINI_API_KEY;
+    delete process.env.AI_PROVIDER;
+
     const { model, isMock } = getDraftModel();
     expect(isMock).toBe(true);
 
