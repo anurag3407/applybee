@@ -64,6 +64,13 @@
   --ab-z-overlay: 60;
   --ab-z-dialog: 70;
   --ab-z-toast: 90;
+
+  --ink: var(--ab-ink);
+  --ink-2: var(--ab-text-secondary);
+  --ink-3: var(--ab-text-disabled);
+  --line: var(--ab-border-decorative);
+  --tooltip-bg: #18231e;
+  --tooltip-muted: #8f94a2;
 }
 
 /*
@@ -100,4 +107,11 @@
   --ab-shadow-card: 0 4px 24px rgba(0, 0, 0, 0.85);
   --ab-shadow-float: 0 20px 60px rgba(0, 0, 0, 0.95);
   --ab-shadow-dialog: 0 30px 90px rgba(0, 0, 0, 0.98);
+
+  --ink: var(--ab-ink);
+  --ink-2: var(--ab-text-secondary);
+  --ink-3: var(--ab-text-disabled);
+  --line: var(--ab-border-decorative);
+  --tooltip-bg: #0c0d12;
+  --tooltip-muted: #71796f;
 }

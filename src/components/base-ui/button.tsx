@@ -10,7 +10,7 @@ export interface ButtonProps
     | "secondary"
     | "ghost"
     | "link";
-  size?: "default" | "sm" | "lg" | "icon";
+  size?: "default" | "sm" | "lg" | "icon" | "icon-lg" | "icon-sm";
 }
 
 const variantStyles: Record<NonNullable<ButtonProps["variant"]>, string> = {
@@ -30,6 +30,8 @@ const sizeStyles: Record<NonNullable<ButtonProps["size"]>, string> = {
   sm: "h-8 rounded-md px-3 text-xs",
   lg: "h-10 rounded-md px-8 text-base",
   icon: "h-9 w-9 p-0",
+  "icon-lg": "h-10 w-10 p-0",
+  "icon-sm": "h-8 w-8 p-0",
 };
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

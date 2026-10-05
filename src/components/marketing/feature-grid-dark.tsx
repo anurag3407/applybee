@@ -8,40 +8,40 @@ export interface FeatureGridDarkProps {
 
 export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
   return (
-    <section className={`relative w-full py-12 md:py-20 px-4 sm:px-6 lg:px-8 bg-[#060709] ${className}`}>
+    <section className={`relative w-full py-12 md:py-20 px-4 sm:px-6 lg:px-8 bg-canvas dark:bg-[#060709] transition-colors ${className}`}>
       {/* Outer wrapper with centered constraint */}
       <div className="relative mx-auto max-w-[1140px]">
         
         {/* Ambient Corner Auras directly behind the top corners of the outer card */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-12 -left-12 h-96 w-96 rounded-full bg-orange-600/35 blur-[100px]"
+          className="pointer-events-none absolute -top-12 -left-12 h-96 w-96 rounded-full bg-orange-500/20 dark:bg-orange-600/35 blur-[100px]"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-12 -right-12 h-[420px] w-[420px] rounded-full bg-blue-600/40 blur-[110px]"
+          className="pointer-events-none absolute -top-12 -right-12 h-[420px] w-[420px] rounded-full bg-blue-500/20 dark:bg-blue-600/40 blur-[110px]"
         />
 
-        {/* Main Dark Beveled Container matching the reference screenshot */}
-        <div className="relative overflow-hidden rounded-[2.25rem] md:rounded-[2.75rem] border border-white/[0.09] bg-[#0c0d12] p-4 sm:p-6 md:p-7 shadow-[0_30px_90px_rgba(0,0,0,0.95)]">
+        {/* Main Beveled Container */}
+        <div className="relative overflow-hidden rounded-[2.25rem] md:rounded-[2.75rem] border border-border-decorative dark:border-white/[0.09] bg-surface dark:bg-[#0c0d12] p-4 sm:p-6 md:p-7 shadow-lg dark:shadow-[0_30px_90px_rgba(0,0,0,0.95)] transition-colors">
           
           {/* Top-Left Corner Glowing Orange Border */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-2 -left-2 h-64 w-64 rounded-tl-[2.75rem] bg-gradient-to-br from-orange-500/70 via-amber-500/25 to-transparent blur-[14px]"
+            className="pointer-events-none absolute -top-2 -left-2 h-64 w-64 rounded-tl-[2.75rem] bg-gradient-to-br from-orange-500/40 via-amber-500/15 to-transparent dark:from-orange-500/70 dark:via-amber-500/25 blur-[14px]"
           />
           {/* Top-Right Corner Glowing Electric Blue Border */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-2 -right-2 h-72 w-72 rounded-tr-[2.75rem] bg-gradient-to-bl from-blue-500/80 via-sky-400/30 to-transparent blur-[16px]"
+            className="pointer-events-none absolute -top-2 -right-2 h-72 w-72 rounded-tr-[2.75rem] bg-gradient-to-bl from-blue-500/40 via-sky-400/20 to-transparent dark:from-blue-500/80 dark:via-sky-400/30 blur-[16px]"
           />
 
           {/* Subtle Dot Grid Pattern on the container header */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.14]"
+            className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.14] text-ink dark:text-white"
             style={{
-              backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px)`,
+              backgroundImage: `radial-gradient(currentColor 1px, transparent 1px)`,
               backgroundSize: "22px 22px",
               maskImage: "linear-gradient(to bottom, black 20%, transparent 80%)",
               WebkitMaskImage: "linear-gradient(to bottom, black 20%, transparent 80%)",
@@ -54,14 +54,14 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
             {/* ------------------------------------------------------------- */}
             {/* Card 1: Real-Time Analytics (Tachometer / Speedometer Gauge) */}
             {/* ------------------------------------------------------------- */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-[1.65rem] border border-white/[0.06] bg-[#121318] p-6 sm:p-8 min-h-[390px] shadow-md transition-all duration-300 hover:border-white/[0.1]">
+            <div className="group relative flex flex-col justify-between overflow-hidden rounded-[1.65rem] border border-border-decorative dark:border-white/[0.06] bg-canvas/80 dark:bg-[#121318] p-6 sm:p-8 min-h-[390px] shadow-sm dark:shadow-md transition-all duration-300 hover:border-border-control dark:hover:border-white/[0.1]">
               
               {/* Visual Display */}
               <div className="relative flex h-56 w-full items-center justify-center">
                 {/* Diffuse warm orange glow in center */}
                 <div
                   aria-hidden="true"
-                  className="absolute h-36 w-44 rounded-full bg-orange-500/25 blur-[45px] pointer-events-none"
+                  className="absolute h-36 w-44 rounded-full bg-orange-500/15 dark:bg-orange-500/25 blur-[45px] pointer-events-none"
                 />
 
                 <svg
@@ -120,23 +120,25 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
                         y1={y1}
                         x2={x2}
                         y2={y2}
-                        stroke={isLit ? "rgba(255, 255, 255, 0.42)" : "rgba(255, 255, 255, 0.12)"}
+                        stroke="currentColor"
+                        className={isLit ? "text-orange-500/80 dark:text-white/40" : "text-border-decorative dark:text-white/10"}
                         strokeWidth={isLong ? 2 : 1.25}
                         strokeLinecap="round"
                       />
                     );
                   })}
 
-                  {/* Base Track Arc (Dim background guide) */}
+                  {/* Base Track Arc (guide) */}
                   <path
                     d="M 66 160 A 104 104 0 1 1 274 160"
                     fill="none"
-                    stroke="#1c1e25"
+                    stroke="currentColor"
+                    className="text-muted/60 dark:text-[#1c1e25]"
                     strokeWidth="8.5"
                     strokeLinecap="round"
                   />
 
-                  {/* Glowing Active Arc (Sweeps from bottom-left up and over to ~2 o'clock) */}
+                  {/* Glowing Active Arc */}
                   <path
                     d="M 66 160 A 104 104 0 1 1 246 88"
                     fill="none"
@@ -175,10 +177,10 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
 
               {/* Text Block */}
               <div className="mt-4">
-                <h3 className="text-lg md:text-xl font-semibold tracking-tight text-white">
+                <h3 className="text-lg md:text-xl font-semibold tracking-tight text-ink dark:text-white">
                   Real – Time Analytics
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#8f94a2]">
+                <p className="mt-2 text-sm leading-relaxed text-text-secondary dark:text-[#8f94a2]">
                   Stay ahead with accurate, real-time performance tracking and deliverability insights.
                 </p>
               </div>
@@ -187,15 +189,15 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
             {/* ------------------------------------------------------------- */}
             {/* Card 2: AI-Driven Growth (Floating 24% HUD with side connectors) */}
             {/* ------------------------------------------------------------- */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-[1.65rem] border border-white/[0.06] bg-[#121318] p-6 sm:p-8 min-h-[390px] shadow-md transition-all duration-300 hover:border-white/[0.1]">
+            <div className="group relative flex flex-col justify-between overflow-hidden rounded-[1.65rem] border border-border-decorative dark:border-white/[0.06] bg-canvas/80 dark:bg-[#121318] p-6 sm:p-8 min-h-[390px] shadow-sm dark:shadow-md transition-all duration-300 hover:border-border-control dark:hover:border-white/[0.1]">
               
               {/* Visual Display */}
               <div className="relative flex h-56 w-full flex-col items-center justify-center">
                 
-                {/* Faint micro glyphs / data dust in the background */}
+                {/* Faint micro glyphs in the background */}
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-3 right-6 text-[10px] font-mono leading-tight tracking-widest text-sky-400/20 select-none text-right"
+                  className="pointer-events-none absolute top-3 right-6 text-[10px] font-mono leading-tight tracking-widest text-sky-600/30 dark:text-sky-400/20 select-none text-right"
                 >
                   <div>A Z K D J + &nbsp; H L</div>
                   <div>β θ θ &nbsp; μ &nbsp; B O M</div>
@@ -203,11 +205,11 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
                 </div>
 
                 {/* Top Badge: "Growth Increased" with glowing blue dot */}
-                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-[#0c182b]/90 px-3.5 py-0.5 backdrop-blur-md shadow-[0_0_12px_rgba(56,189,248,0.2)]">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky-500/30 bg-sky-100/80 dark:bg-[#0c182b]/90 px-3.5 py-0.5 backdrop-blur-md shadow-xs">
                   <span className="relative flex h-2 w-2">
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_6px_#38bdf8]" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-500 shadow-[0_0_6px_#0284c7] dark:shadow-[0_0_6px_#38bdf8]" />
                   </span>
-                  <span className="text-[11px] font-medium tracking-wide text-sky-200">
+                  <span className="text-[11px] font-medium tracking-wide text-sky-900 dark:text-sky-200">
                     Growth Increased
                   </span>
                 </div>
@@ -218,18 +220,18 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
                   {/* Horizontal Wire Line behind HUD */}
                   <div
                     aria-hidden="true"
-                    className="absolute inset-x-0 h-[1.5px] bg-sky-400/25 pointer-events-none"
+                    className="absolute inset-x-0 h-[1.5px] bg-sky-500/20 dark:bg-sky-400/25 pointer-events-none"
                   />
 
                   {/* Left Pill Node */}
-                  <div className="relative z-10 mr-[-6px] h-2 w-4 rounded-full border border-sky-400/50 bg-[#0c182b] shadow-[0_0_8px_rgba(56,189,248,0.5)]" />
+                  <div className="relative z-10 mr-[-6px] h-2 w-4 rounded-full border border-sky-400/50 bg-surface dark:bg-[#0c182b] shadow-xs" />
 
                   {/* Glassmorphic HUD Box */}
-                  <div className="relative z-20 flex items-center justify-center gap-3.5 rounded-2xl border border-sky-400/40 bg-gradient-to-b from-[#162744]/90 to-[#0c1626]/95 px-8 py-4 shadow-[0_0_35px_rgba(56,189,248,0.28)] backdrop-blur-xl">
+                  <div className="relative z-20 flex items-center justify-center gap-3.5 rounded-2xl border border-sky-400/40 bg-gradient-to-b from-sky-50/90 to-sky-100/90 dark:from-[#162744]/90 dark:to-[#0c1626]/95 px-8 py-4 shadow-md dark:shadow-[0_0_35px_rgba(56,189,248,0.28)] backdrop-blur-xl">
                     {/* Upward Chevron Icon (Double Chevron) */}
-                    <div className="flex flex-col items-center -space-y-1.5 text-sky-400">
+                    <div className="flex flex-col items-center -space-y-1.5 text-sky-600 dark:text-sky-400">
                       <svg
-                        className="h-6 w-6 stroke-[3.5] drop-shadow-[0_0_8px_rgba(56,189,248,0.9)]"
+                        className="h-6 w-6 stroke-[3.5] drop-shadow-sm"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -241,23 +243,23 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
                     </div>
 
                     {/* 24% Bold Metric */}
-                    <span className="text-4xl md:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
+                    <span className="text-4xl md:text-5xl font-extrabold tracking-tight text-ink dark:text-white drop-shadow-sm">
                       24%
                     </span>
                   </div>
 
                   {/* Right Pill Node */}
-                  <div className="relative z-10 ml-[-6px] h-2 w-4 rounded-full border border-sky-400/50 bg-[#0c182b] shadow-[0_0_8px_rgba(56,189,248,0.5)]" />
+                  <div className="relative z-10 ml-[-6px] h-2 w-4 rounded-full border border-sky-400/50 bg-surface dark:bg-[#0c182b] shadow-xs" />
                 </div>
 
               </div>
 
               {/* Text Block */}
               <div className="mt-4">
-                <h3 className="text-lg md:text-xl font-semibold tracking-tight text-white">
+                <h3 className="text-lg md:text-xl font-semibold tracking-tight text-ink dark:text-white">
                   AI – Driven Growth
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#8f94a2]">
+                <p className="mt-2 text-sm leading-relaxed text-text-secondary dark:text-[#8f94a2]">
                   Make smarter moves with accurate, real-time outreach intelligence and career insights.
                 </p>
               </div>
@@ -266,41 +268,41 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
             {/* ------------------------------------------------------------- */}
             {/* Card 3: Decision-Maker Discovery (Spotlight Avatar) */}
             {/* ------------------------------------------------------------- */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-[1.65rem] border border-white/[0.06] bg-[#121318] p-6 sm:p-8 min-h-[390px] shadow-md transition-all duration-300 hover:border-white/[0.1]">
+            <div className="group relative flex flex-col justify-between overflow-hidden rounded-[1.65rem] border border-border-decorative dark:border-white/[0.06] bg-canvas/80 dark:bg-[#121318] p-6 sm:p-8 min-h-[390px] shadow-sm dark:shadow-md transition-all duration-300 hover:border-border-control dark:hover:border-white/[0.1]">
               
               {/* Visual Display */}
               <div className="relative flex h-56 w-full items-center justify-center overflow-hidden">
                 
-                {/* Ethereal Spotlight Beam from Top (Smooth Gaussian blur ray) */}
+                {/* Spotlight Beam from Top */}
                 <div
                   aria-hidden="true"
                   className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center"
                 >
                   {/* Top glowing origin bar */}
-                  <div className="h-1.5 w-16 rounded-full bg-sky-200 blur-[1px] shadow-[0_0_18px_#38bdf8]" />
+                  <div className="h-1.5 w-16 rounded-full bg-sky-300 dark:bg-sky-200 blur-[1px] shadow-[0_0_14px_#38bdf8]" />
                   {/* Soft Gaussian blur cone of light */}
-                  <div className="h-44 w-44 bg-gradient-to-b from-sky-400/40 via-sky-500/15 to-transparent blur-2xl" />
+                  <div className="h-44 w-44 bg-gradient-to-b from-sky-400/20 via-sky-500/10 to-transparent dark:from-sky-400/40 dark:via-sky-500/15 dark:to-transparent blur-2xl" />
                 </div>
 
-                {/* 3 Avatar Profiles (Clean silhouettes with illuminated center tile) */}
+                {/* 3 Avatar Profiles */}
                 <div className="relative z-10 flex items-center justify-center gap-7 sm:gap-9">
                   
-                  {/* Left Muted Silhouette (No box frame, clean silhouette) */}
-                  <div className="opacity-25 text-[#545c6e]">
+                  {/* Left Muted Silhouette */}
+                  <div className="opacity-25 text-text-disabled dark:text-[#545c6e]">
                     <svg className="h-10 w-10" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
                   </div>
 
                   {/* Center Decision Maker Tile */}
-                  <div className="relative flex h-[84px] w-[84px] items-center justify-center rounded-[22px] border border-sky-400/50 bg-gradient-to-b from-[#1a273c] to-[#0d1522] shadow-[0_0_40px_rgba(56,189,248,0.45),inset_0_1px_2px_rgba(255,255,255,0.25)]">
+                  <div className="relative flex h-[84px] w-[84px] items-center justify-center rounded-[22px] border border-sky-400/50 bg-gradient-to-b from-sky-50 to-sky-100 dark:from-[#1a273c] dark:to-[#0d1522] shadow-[0_4px_20px_rgba(56,189,248,0.25)] dark:shadow-[0_0_40px_rgba(56,189,248,0.45)]">
                     {/* Top edge illumination line */}
-                    <div className="absolute top-0 inset-x-2 h-[2px] bg-gradient-to-r from-transparent via-sky-200 to-transparent blur-[0.5px]" />
+                    <div className="absolute top-0 inset-x-2 h-[2px] bg-gradient-to-r from-transparent via-sky-300 dark:via-sky-200 to-transparent blur-[0.5px]" />
                     
                     {/* Highlighted avatar silhouette */}
-                    <div className="text-sky-100">
+                    <div className="text-sky-700 dark:text-sky-100">
                       <svg
-                        className="h-11 w-11 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+                        className="h-11 w-11 drop-shadow-sm"
                         viewBox="0 0 24 24"
                         fill="currentColor"
                       >
@@ -310,7 +312,7 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
                   </div>
 
                   {/* Right Muted Silhouette */}
-                  <div className="opacity-25 text-[#545c6e]">
+                  <div className="opacity-25 text-text-disabled dark:text-[#545c6e]">
                     <svg className="h-10 w-10" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                     </svg>
@@ -322,10 +324,10 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
 
               {/* Text Block */}
               <div className="mt-4">
-                <h3 className="text-lg md:text-xl font-semibold tracking-tight text-white">
+                <h3 className="text-lg md:text-xl font-semibold tracking-tight text-ink dark:text-white">
                   Decision – Maker Discovery
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#8f94a2]">
+                <p className="mt-2 text-sm leading-relaxed text-text-secondary dark:text-[#8f94a2]">
                   Pinpoint relevant engineering leads and hiring managers directly, bypassing crowded application portals.
                 </p>
               </div>
@@ -334,14 +336,14 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
             {/* ------------------------------------------------------------- */}
             {/* Card 4: Advanced Security (PCB Circuit Traces + Shield Tile) */}
             {/* ------------------------------------------------------------- */}
-            <div className="group relative flex flex-col justify-between overflow-hidden rounded-[1.65rem] border border-white/[0.06] bg-[#121318] p-6 sm:p-8 min-h-[390px] shadow-md transition-all duration-300 hover:border-white/[0.1]">
+            <div className="group relative flex flex-col justify-between overflow-hidden rounded-[1.65rem] border border-border-decorative dark:border-white/[0.06] bg-canvas/80 dark:bg-[#121318] p-6 sm:p-8 min-h-[390px] shadow-sm dark:shadow-md transition-all duration-300 hover:border-border-control dark:hover:border-white/[0.1]">
               
               {/* Visual Display */}
               <div className="relative flex h-56 w-full items-center justify-center">
                 
-                {/* Thin, elegant PCB Circuit Lines without cartoon colored dots */}
+                {/* Thin, elegant PCB Circuit Lines */}
                 <svg
-                  className="absolute inset-0 h-full w-full pointer-events-none select-none"
+                  className="absolute inset-0 h-full w-full pointer-events-none select-none text-border-control/50 dark:text-[#383e4d]"
                   viewBox="0 0 320 180"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -350,19 +352,19 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
                   {/* Left Circuit Lines */}
                   <path
                     d="M 20 62 L 85 62 L 112 80 L 124 80"
-                    stroke="#383e4d"
+                    stroke="currentColor"
                     strokeWidth="1.75"
                     strokeLinecap="round"
                   />
                   <path
                     d="M 12 88 L 124 88"
-                    stroke="#434a5c"
+                    stroke="currentColor"
                     strokeWidth="1.75"
                     strokeLinecap="round"
                   />
                   <path
                     d="M 25 114 L 85 114 L 112 96 L 124 96"
-                    stroke="#383e4d"
+                    stroke="currentColor"
                     strokeWidth="1.75"
                     strokeLinecap="round"
                   />
@@ -370,35 +372,35 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
                   {/* Right Circuit Lines */}
                   <path
                     d="M 300 62 L 235 62 L 208 80 L 196 80"
-                    stroke="#383e4d"
+                    stroke="currentColor"
                     strokeWidth="1.75"
                     strokeLinecap="round"
                   />
                   <path
                     d="M 308 88 L 196 88"
-                    stroke="#434a5c"
+                    stroke="currentColor"
                     strokeWidth="1.75"
                     strokeLinecap="round"
                   />
                   <path
                     d="M 295 114 L 235 114 L 208 96 L 196 96"
-                    stroke="#383e4d"
+                    stroke="currentColor"
                     strokeWidth="1.75"
                     strokeLinecap="round"
                   />
                 </svg>
 
-                {/* Backlight Amber/Orange Glow behind the Left Side of the Shield Tile */}
+                {/* Backlight Amber/Orange Glow */}
                 <div
                   aria-hidden="true"
-                  className="absolute h-28 w-28 -translate-x-3 rounded-full bg-orange-500/35 blur-2xl pointer-events-none"
+                  className="absolute h-28 w-28 -translate-x-3 rounded-full bg-orange-500/20 dark:bg-orange-500/35 blur-2xl pointer-events-none"
                 />
 
                 {/* Metallic Shield Tile */}
-                <div className="relative z-10 flex h-[84px] w-[84px] items-center justify-center rounded-[22px] border border-white/10 bg-gradient-to-b from-[#1e212a] to-[#0f1116] shadow-[0_12px_35px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.12)]">
+                <div className="relative z-10 flex h-[84px] w-[84px] items-center justify-center rounded-[22px] border border-border-decorative dark:border-white/10 bg-gradient-to-b from-surface-raised to-surface dark:from-[#1e212a] dark:to-[#0f1116] shadow-md dark:shadow-[0_12px_35px_rgba(0,0,0,0.85)]">
                   {/* Security Shield with Padlock Cutout */}
                   <svg
-                    className="h-10 w-10 text-white drop-shadow-md"
+                    className="h-10 w-10 text-ink dark:text-white drop-shadow-sm"
                     viewBox="0 0 24 24"
                     fill="currentColor"
                   >
@@ -414,10 +416,10 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
 
               {/* Text Block */}
               <div className="mt-4">
-                <h3 className="text-lg md:text-xl font-semibold tracking-tight text-white">
+                <h3 className="text-lg md:text-xl font-semibold tracking-tight text-ink dark:text-white">
                   Advanced Security
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#8f94a2]">
+                <p className="mt-2 text-sm leading-relaxed text-text-secondary dark:text-[#8f94a2]">
                   Enterprise-grade encryption and threat modeling to keep your data safe.
                 </p>
               </div>
@@ -431,3 +433,5 @@ export function FeatureGridDark({ className = "" }: FeatureGridDarkProps) {
     </section>
   );
 }
+
+export default FeatureGridDark;

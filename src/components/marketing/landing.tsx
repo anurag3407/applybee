@@ -396,36 +396,36 @@ export function WritingModes() {
 export function WorkspaceTeaser() {
   const stages = ["Interested", "Draft ready", "Contacted", "Conversation", "Interview", "Offer"];
   return (
-    <SectionShell tone="ink" id="workspace" heading="Keep your next move in view.">
+    <SectionShell tone="surface" id="workspace" heading="Keep your next move in view.">
       <div className="grid gap-8 md:grid-cols-[1.5fr_1fr]">
-        <div className="rounded-scene border border-white/10 bg-white/5 p-5" data-motion="reveal">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/60">Pipeline · Illustrative</p>
+        <div className="rounded-scene border border-border-decorative bg-canvas p-5 shadow-card" data-motion="reveal">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-text-secondary">Pipeline · Illustrative</p>
           <div className="flex flex-wrap gap-2">
             {stages.map((s, i) => (
               <span
                 key={s}
                 className={`rounded-pill px-3 py-1.5 text-xs font-semibold ${
-                  i === 1 ? "bg-honey text-ink" : "border border-white/20 text-white/80"
+                  i === 1 ? "bg-honey text-ink" : "border border-border-control/40 text-text-secondary"
                 }`}
               >
                 {s}
               </span>
             ))}
           </div>
-          <div className="mt-5 space-y-2 text-sm text-white/80">
-            <p className="rounded-control border border-white/10 bg-white/5 px-3 py-2">
+          <div className="mt-5 space-y-2 text-sm text-ink">
+            <p className="rounded-control border border-border-decorative bg-surface px-3 py-2">
               Meridian Cloud — Platform engineer · draft ready · next step: follow up Thu
             </p>
-            <p className="rounded-control border border-white/10 bg-white/5 px-3 py-2">
+            <p className="rounded-control border border-border-decorative bg-surface px-3 py-2">
               Arambh Fintech — Backend role · conversation started · note: spoke to Meera on Tue
             </p>
           </div>
-          <p className="mt-4 text-xs font-semibold text-honey">
+          <p className="mt-4 text-xs font-semibold text-honey-deep dark:text-honey">
             Stages are updated by you. We don’t read your inbox.
           </p>
         </div>
         <div className="flex flex-col justify-center gap-4" data-motion="reveal">
-          <p className="text-white/80">
+          <p className="text-text-secondary">
             Notes and next-action dates matter more than vanity charts. Reminders appear inside ReachBee — nothing is
             sent automatically, and no reply metrics are inferred.
           </p>

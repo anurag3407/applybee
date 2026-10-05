@@ -64,6 +64,74 @@
   --shadow-card: var(--ab-shadow-card);
   --shadow-float: var(--ab-shadow-float);
   --shadow-dialog: var(--ab-shadow-dialog);
+  --shadow-overlay: 0 16px 48px rgb(0 0 0 / 0.18);
+
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-inset: var(--ab-surface-subtle);
+  --color-red: #ef4444;
+  --color-green: #22c55e;
+  --color-red-tint: rgba(239, 68, 68, 0.12);
+  --color-green-tint: rgba(34, 197, 94, 0.12);
+}
+
+@keyframes pixel-on {
+  0%, 100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer-text {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes caret-blink {
+  0%, 70%, 100% {
+    opacity: 1;
+  }
+  20%, 50% {
+    opacity: 0;
+  }
 }
 
 html {

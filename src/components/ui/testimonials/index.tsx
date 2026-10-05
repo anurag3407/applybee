@@ -132,7 +132,7 @@ export default function Testimonials1() {
                   key={testimonial.id}
                   className="basis-full md:basis-1/2 lg:basis-1/3"
                 >
-                  <Card className="bg-muted/50 dark:bg-[#121318] dark:border dark:border-white/[0.06] dark:hover:border-white/[0.12] dark:shadow-md transition-all flex h-full min-h-[320px] flex-col justify-between rounded-4xl p-6 ring-0 select-none">
+                  <Card className="bg-muted/50 border border-border-decorative/80 dark:border-white/[0.06] dark:bg-[#121318] dark:hover:border-white/[0.12] dark:shadow-md transition-all flex h-full min-h-[320px] flex-col justify-between rounded-4xl p-6 ring-0 select-none">
                     <div>
                       <h3 className="text-foreground mb-2 text-2xl leading-tight font-medium md:text-2xl">
                         {testimonial.heading}
