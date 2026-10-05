@@ -3,7 +3,7 @@
  * reserved example domains only. Production directory seeds require licensed
  * source evidence (§23.3) — this script must never run against production.
  */
-import "dotenv/config";
+import "./env";
 import { createCipheriv, createHash, createHmac, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";

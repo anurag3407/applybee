@@ -5,7 +5,7 @@
  *
  * Run: `pnpm ai:check`
  */
-import "dotenv/config";
+import "./env";
 import Module from "node:module";
 
 // Stub 'server-only' for Node CLI execution

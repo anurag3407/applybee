@@ -10,6 +10,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params;
     const data = await getDraftForUser(user.id, id);
     if (!data) return errorResponse(new Error("DRAFT_NOT_FOUND"));
+    // Soft-deleted drafts keep their rows for audit, but their content must
+    // stop being served (the composer page applies the same rule).
+    if (data.draft.status === "deleting" || data.draft.status === "deleted") {
+      return errorResponse(new Error("DRAFT_DELETED"));
+    }
     return ok({
       draft: {
         id: data.draft.id,

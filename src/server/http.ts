@@ -56,6 +56,12 @@ export function errorResponse(err: unknown): NextResponse {
   }
   const message = err instanceof Error ? err.message : String(err);
   const map: Array<[RegExp, number, string]> = [
+    // Exact sentinel codes thrown by routes/services; must match the whole
+    // message so loose patterns below can never swallow them.
+    [/^NOT_CONFIGURED$/, 503, "NOT_CONFIGURED"],
+    [/^UNSUPPORTED_ACTION$/, 400, "UNSUPPORTED_ACTION"],
+    [/^IDEMPOTENCY_KEY_REQUIRED$/, 400, "IDEMPOTENCY_KEY_REQUIRED"],
+    [/^DRAFT_DELETED$/, 410, "DRAFT_DELETED"],
     [/NOT_FOUND/i, 404, "NOT_FOUND"],
     [/UNAUTHORIZED|SESSION_EXPIRED/i, 401, "UNAUTHENTICATED"],
     [/FORBIDDEN|ACCESS_DENIED/i, 403, "FORBIDDEN"],
@@ -86,6 +92,9 @@ function safeMessage(message: string): string {
     ORDER_NOT_FOUND: "Order not found.",
     ACCOUNT_DELETED: "This account is closed.",
     UNSAFE_RETURN_PATH: "The return address is not allowed.",
+    NOT_CONFIGURED: "This integration is not configured yet.",
+    UNSUPPORTED_ACTION: "This action is not supported.",
+    IDEMPOTENCY_KEY_REQUIRED: "An idempotency key is required for this request.",
   };
   return curated[message] ?? message.replace(/\s*\(.*?\)\s*$/, "");
 }

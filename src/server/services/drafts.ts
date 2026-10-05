@@ -367,7 +367,10 @@ export async function dismissProposal(userId: string, generationId: string): Pro
     .where(and(eq(generationRequests.id, generationId), eq(generationRequests.userId, userId), eq(generationRequests.acceptanceState, "pending")));
 }
 
-export async function exportEml(userId: string, draftId: string): Promise<{ filename: string; content: string } | null> {
+export async function exportEml(
+  userId: string,
+  draftId: string,
+): Promise<{ filename: string; content: string; status: string } | null> {
   const data = await getDraftForUser(userId, draftId);
   if (!data || !data.currentRevision) return null;
   const toEmail = data.recipient?.email ?? "undisclosed-recipient@invalid";
@@ -383,7 +386,7 @@ export async function exportEml(userId: string, draftId: string): Promise<{ file
   });
   // Never expose private object URLs in the export (§13.2). Attachments are
   // delivered only through the approved Gmail path, not .eml export.
-  return { filename: `reachbee-draft-${draftId.slice(0, 8)}.eml`, content: mime.raw };
+  return { filename: `reachbee-draft-${draftId.slice(0, 8)}.eml`, content: mime.raw, status: data.draft.status };
 }
 
 export { CreditError };

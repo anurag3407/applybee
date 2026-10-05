@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getApiUser } from "@/server/auth/session";
-import { approveDraftDelivery, startDelivery, DeliveryPreflightError } from "@/server/services/gmail";
+import { approveDraftDelivery, startDelivery, DeliveryPreflightError, DELIVERY_PREFLIGHT_STATUS } from "@/server/services/gmail";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
 const schema = z.object({ attachmentResumeId: z.string().uuid().nullable().optional() });
@@ -20,14 +20,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return ok(result);
   } catch (err) {
     if (err instanceof DeliveryPreflightError) {
-      const statusMap: Record<string, number> = {
-        NOT_CONNECTED: 409,
-        CONTACT_LOCKED: 409,
-        RECIPIENT_SUPPRESSED: 422,
-        GMAIL_DISABLED: 503,
-      };
       const { apiError } = await import("@/server/http");
-      return apiError(statusMap[err.code] ?? 500, err.code, err.message);
+      return apiError(DELIVERY_PREFLIGHT_STATUS[err.code] ?? 409, err.code, err.message);
     }
     return errorResponse(err);
   }

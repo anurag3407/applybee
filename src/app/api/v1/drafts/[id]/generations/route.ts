@@ -34,6 +34,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (err instanceof GenerationPreflightError) {
       const statusMap: Record<string, number> = {
         INSUFFICIENT_AI_CREDITS: 409,
+        DRAFT_INACTIVE: 409,
+        DRAFT_NOT_FOUND: 404,
         NO_CONFIRMED_FACTS: 422,
         NO_RECIPIENT: 422,
         RATE_LIMITED: 429,

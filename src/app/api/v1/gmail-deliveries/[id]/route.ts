@@ -1,5 +1,5 @@
 import { getApiUser } from "@/server/auth/session";
-import { getDeliveryStatus, requestReconcile, recreateDelivery, DeliveryPreflightError } from "@/server/services/gmail";
+import { getDeliveryStatus, requestReconcile, recreateDelivery, DeliveryPreflightError, DELIVERY_PREFLIGHT_STATUS } from "@/server/services/gmail";
 import { ok, errorResponse, assertSameOrigin } from "@/server/http";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -43,7 +43,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } catch (err) {
     if (err instanceof DeliveryPreflightError) {
       const { apiError } = await import("@/server/http");
-      return apiError(409, err.code, err.message);
+      return apiError(DELIVERY_PREFLIGHT_STATUS[err.code] ?? 409, err.code, err.message);
     }
     return errorResponse(err);
   }

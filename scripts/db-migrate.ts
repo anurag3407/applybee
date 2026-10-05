@@ -3,7 +3,7 @@
  * (DATABASE_MIGRATION_URL, plan §5.1/§28.4). Never run automatic destructive
  * migrations on app startup.
  */
-import "dotenv/config";
+import "./env";
 import { readdir, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";

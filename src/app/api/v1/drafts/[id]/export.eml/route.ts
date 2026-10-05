@@ -11,6 +11,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params;
     const result = await exportEml(user.id, id);
     if (!result) return errorResponse(new Error("DRAFT_NOT_FOUND"));
+    // exportEml resolves drafts regardless of status; a deleted draft's .eml
+    // must not stay downloadable (same rule as the GET editor endpoint).
+    if (result.status === "deleting" || result.status === "deleted") {
+      return errorResponse(new Error("DRAFT_DELETED"));
+    }
     return new NextResponse(result.content, {
       status: 200,
       headers: {

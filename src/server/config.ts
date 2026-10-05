@@ -53,7 +53,9 @@ const envSchema = z.object({
   TOKEN_ENCRYPTION_KEY_V2: optional(z.string().min(1)),
 
   OPENROUTER_API_KEY: optional(z.string().min(1)),
-  OPENROUTER_MODEL_ID: z.string().default("stealth/space-bunny-alpha"),
+  // An empty-string env var must behave like an unset one, or a blank
+  // OPENROUTER_MODEL_ID silently ships an empty model to the provider.
+  OPENROUTER_MODEL_ID: z.preprocess((v) => (v === "" ? undefined : v), z.string().default("openrouter/free")),
   IS_OPENROUTER: z
     .string()
     .optional()

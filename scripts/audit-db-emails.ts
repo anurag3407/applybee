@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./env";
 import { createDecipheriv, createHash } from "node:crypto";
 import dns from "node:dns/promises";
 import { Client } from "pg";

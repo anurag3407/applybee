@@ -392,7 +392,7 @@ class OpenRouterDraftModel implements DraftModel {
   constructor() {
     const config = getConfig();
     this.apiKey = config.OPENROUTER_API_KEY!;
-    this.modelId = config.OPENROUTER_MODEL_ID ?? "stealth/space-bunny-alpha";
+    this.modelId = config.OPENROUTER_MODEL_ID ?? "openrouter/free";
   }
 
   async parseResume(input: { filename: string; bytes: Uint8Array; textExtract: string }): Promise<ParsedResumeResult> {
@@ -555,7 +555,7 @@ export function getDraftModel(): { model: DraftModel; isMock: boolean; modelId: 
     return {
       model: new OpenRouterDraftModel(),
       isMock: false,
-      modelId: config.OPENROUTER_MODEL_ID ?? "stealth/space-bunny-alpha",
+      modelId: config.OPENROUTER_MODEL_ID ?? "openrouter/free",
     };
   }
   if (config.aiMode === "gemini") {

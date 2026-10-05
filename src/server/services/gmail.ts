@@ -262,6 +262,22 @@ export class DeliveryPreflightError extends Error {
   }
 }
 
+/** HTTP status per preflight code (§19.1) — shared by every route that
+ * surfaces a DeliveryPreflightError, so 404-class codes don't degrade to 409. */
+export const DELIVERY_PREFLIGHT_STATUS: Record<string, number> = {
+  NOT_CONNECTED: 409,
+  CONTACT_LOCKED: 409,
+  APPROVAL_INVALID: 409,
+  RECIPIENT_SUPPRESSED: 422,
+  NO_RECIPIENT: 422,
+  NO_REVISION: 422,
+  RATE_LIMITED: 429,
+  GMAIL_DISABLED: 503,
+  SANDBOX_UNAVAILABLE: 503,
+  DELIVERY_NOT_FOUND: 404,
+  DRAFT_NOT_FOUND: 404,
+};
+
 export async function approveDraftDelivery(params: {
   userId: string;
   draftId: string;

@@ -2,7 +2,7 @@
  * High-performance batched import for 1,000 real-time company contacts.
  * Envelope encryption (AES-256-GCM) with AAD binding and audit logs.
  */
-import "dotenv/config";
+import "./env";
 import { createCipheriv, createHash, createHmac, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";

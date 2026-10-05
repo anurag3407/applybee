@@ -105,7 +105,7 @@ export async function startGeneration(params: {
     const live = await db.execute(sql`
       SELECT 1 FROM jobs
       WHERE kind = 'draft.generate'
-        AND entity_id IN (SELECT id::text FROM generation_requests WHERE draft_id = ${params.draftId}::uuid)
+        AND entity_id IN (SELECT id FROM generation_requests WHERE draft_id = ${params.draftId}::uuid)
         AND state IN ('queued','running','retry_wait','deferred')
       LIMIT 1
     `);

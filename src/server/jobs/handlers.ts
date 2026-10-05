@@ -235,14 +235,24 @@ const draftGenerate: Handler = async (ctx) => {
       };
     }
     if (err instanceof ModelOutputError) {
-      // Permanent output problem: release once, no pointless retries (§20.4).
+      // Permanent problem: release once, no pointless retries (§20.4).
       await releaseGeneration(gen.id).catch(() => {});
+      // The adapter also raises ModelOutputError for provider-configuration
+      // failures (unknown model, rejected key, no credits). Reporting those as
+      // "the response could not be validated" would be untrue — say what
+      // actually failed and carry the adapter's actionable message.
+      const providerIssue =
+        /has no model|rejected the API key|(?:OpenRouter|Gemini) error 4\d\d|Provider error 4\d\d/.test(message);
+      const failureCode = providerIssue ? "MODEL_PROVIDER_ERROR" : "MODEL_OUTPUT_INVALID";
+      const failureMessage = providerIssue
+        ? `The AI provider is not usable right now: ${message.slice(0, 200)}`
+        : "The model response could not be validated. Your credit was released.";
       await db
         .update(generationRequests)
-        .set({ state: "failed", failureCode: "MODEL_OUTPUT_INVALID", failureMessage: "The model response could not be validated. Your credit was released.", completedAt: new Date() })
+        .set({ state: "failed", failureCode, failureMessage, completedAt: new Date() })
         .where(eq(generationRequests.id, gen.id));
       await resetGeneratingDraft(gen.draftId);
-      return { status: "failed", errorCode: "MODEL_OUTPUT_INVALID", errorMessage: message };
+      return { status: "failed", errorCode: failureCode, errorMessage: message };
     }
     // Transient provider issue: retry within budget; release happens on final
     // failure so a still-viable job can consume (§18.4).
