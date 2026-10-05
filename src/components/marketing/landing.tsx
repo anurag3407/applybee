@@ -60,7 +60,7 @@ export function Hero({ trial }: { trial: { contact: number; ai: number } | null 
             style={{ fontSize: "clamp(2.75rem, 6vw, 5.5rem)", lineHeight: 1.04 }}
             data-motion="reveal"
           >
-            Skip the 500-applicant black hole. Reach <span className="font-editorial font-medium text-ink">engineering leaders directly.</span>
+            The career outreach workspace where you stay in <span className="font-editorial font-medium text-ink">control of every draft.</span>
           </h1>
           <p className="prose-measure mt-6 text-lg text-text-secondary" data-motion="reveal">
             Public job boards on LinkedIn and Indeed have become algorithmic dead ends. ReachBee AI grounds your proven engineering achievements into bespoke introductions staged directly in your personal Gmail Drafts.
