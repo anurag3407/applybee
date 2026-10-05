@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Hero, ProductFacts, Problem, DirectoryFeature, ResumeIntelligence, AgenticWorkflow, WritingModes, WorkspaceTeaser, Trust, Pricing, FAQ, FinalCta } from "@/components/marketing/landing";
+import { FeatureGridDark } from "@/components/marketing/feature-grid-dark";
 import { getMarketingCatalog, getTrialAllowance } from "@/server/services/catalog";
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default async function HomePage() {
   return (
     <>
       <Hero trial={trial} />
+      <FeatureGridDark />
       <ProductFacts />
       <Problem />
       <DirectoryFeature />
