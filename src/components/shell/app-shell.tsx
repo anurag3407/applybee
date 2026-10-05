@@ -10,6 +10,7 @@ import { BrandMark } from "@/components/marketing/brand";
 import { NavList, MobileNav } from "@/components/shell/mobile-nav";
 import { CreditStrip } from "@/components/shell/credit-strip";
 import { SignOutButton } from "@/components/shell/sign-out";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/cn";
 
 /**
@@ -92,6 +93,7 @@ function AppHeader({
           <PenLine size={15} aria-hidden />
           Create an introduction
         </Link>
+        <ThemeToggle />
         <Link href="/app/notifications" className="relative rounded-control p-2 text-text-secondary hover:bg-surface-subtle hover:text-ink" aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}>
           <Bell size={19} aria-hidden />
           {unread > 0 ? (

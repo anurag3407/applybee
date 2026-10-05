@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { Wordmark } from "./brand";
 import { Button } from "@/components/ui/primitives";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/cn";
 
 /**
@@ -46,6 +47,7 @@ export function MarketingHeader({ signedIn }: { signedIn: boolean }) {
           ))}
         </nav>
         <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           {signedIn ? (
             <Link href="/app">
               <Button variant="primary">Open workspace</Button>
@@ -61,15 +63,18 @@ export function MarketingHeader({ signedIn }: { signedIn: boolean }) {
             </>
           )}
         </div>
-        <button
-          className="rounded-control p-2 text-ink md:hidden"
-          aria-expanded={menuOpen}
-          aria-controls="mobile-menu"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          {menuOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            className="rounded-control p-2 text-ink"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
+          </button>
+        </div>
       </div>
       {menuOpen ? (
         <div id="mobile-menu" className="border-b border-border-decorative bg-surface px-5 py-4 md:hidden">

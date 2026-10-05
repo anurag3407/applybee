@@ -65,3 +65,39 @@
   --ab-z-dialog: 70;
   --ab-z-toast: 90;
 }
+
+/*
+ * Dark Theme — exact palette matching the sleek noir / obsidian aesthetic:
+ * Deep noir canvas (#060709), dark obsidian container (#0c0d12),
+ * card surface (#121318), crisp white text (#ffffff), and cool gray (#8f94a2).
+ */
+.dark {
+  color-scheme: dark;
+  --ab-canvas: #060709;
+  --ab-surface: #0c0d12;
+  --ab-surface-subtle: #121318;
+  --ab-surface-raised: #181a22;
+  --ab-ink: #ffffff;
+  --ab-ink-soft: #e2e4e9;
+  --ab-text-secondary: #8f94a2;
+  --ab-text-disabled: #545c6e;
+  --ab-honey: #f97316;
+  --ab-honey-deep: #ea580c;
+  --ab-honey-wash: rgba(249, 115, 22, 0.16);
+  --ab-border-decorative: rgba(255, 255, 255, 0.08);
+  --ab-border-control: rgba(255, 255, 255, 0.18);
+  --ab-focus: #38bdf8;
+  --ab-focus-on-dark: #38bdf8;
+  --ab-success: #34d399;
+  --ab-success-wash: rgba(52, 211, 153, 0.15);
+  --ab-warning: #fbbf24;
+  --ab-warning-wash: rgba(251, 191, 36, 0.15);
+  --ab-danger: #f87171;
+  --ab-danger-wash: rgba(248, 113, 113, 0.15);
+  --ab-info: #38bdf8;
+  --ab-info-wash: rgba(56, 189, 248, 0.15);
+
+  --ab-shadow-card: 0 4px 24px rgba(0, 0, 0, 0.85);
+  --ab-shadow-float: 0 20px 60px rgba(0, 0, 0, 0.95);
+  --ab-shadow-dialog: 0 30px 90px rgba(0, 0, 0, 0.98);
+}

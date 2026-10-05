@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductFacts, DirectoryFeature, WorkspaceTeaser, Trust } from "@/components/marketing/landing";
+import Features2 from "@/components/ui/features-2";
+import Bento2 from "@/components/ui/bento2";
 import { Button } from "@/components/ui/primitives";
 
 export const metadata: Metadata = { title: "Features · ReachBee AI" };
@@ -24,6 +26,8 @@ export default function FeaturesPage() {
           <Link href="/sign-up"><Button variant="accent">Start free</Button></Link>
         </div>
       </div>
+      <Features2 />
+      <Bento2 />
       <ProductFacts />
       <DirectoryFeature />
       <WorkspaceTeaser />

@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * Semantic token mapping (plan §8.2). Light theme first; dark mode is a
  * separately contrast-tested phase-two effort, not an inversion.
@@ -30,6 +32,26 @@
   --color-info: var(--ab-info);
   --color-info-wash: var(--ab-info-wash);
 
+  --color-background: var(--ab-canvas);
+  --color-foreground: var(--ab-ink);
+  --color-card: var(--ab-surface);
+  --color-card-foreground: var(--ab-ink);
+  --color-popover: var(--ab-surface);
+  --color-popover-foreground: var(--ab-ink);
+  --color-primary: var(--ab-ink);
+  --color-primary-foreground: var(--ab-surface);
+  --color-secondary: var(--ab-surface-subtle);
+  --color-secondary-foreground: var(--ab-ink);
+  --color-muted: var(--ab-surface-subtle);
+  --color-muted-foreground: var(--ab-text-secondary);
+  --color-accent: var(--ab-honey-wash);
+  --color-accent-foreground: var(--ab-ink);
+  --color-destructive: var(--ab-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--ab-border-decorative);
+  --color-input: var(--ab-border-control);
+  --color-ring: var(--ab-focus);
+
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-editorial: var(--font-fraunces), Georgia, serif;
 
@@ -37,6 +59,7 @@
   --radius-control: var(--ab-radius-control);
   --radius-card: var(--ab-radius-card);
   --radius-scene: var(--ab-radius-scene);
+  --radius-4xl: 2rem;
 
   --shadow-card: var(--ab-shadow-card);
   --shadow-float: var(--ab-shadow-float);
