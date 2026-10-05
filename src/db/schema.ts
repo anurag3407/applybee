@@ -610,7 +610,7 @@ export const drafts = pgTable(
   },
   (t) => [
     index("drafts_user_updated_idx").on(t.userId, t.updatedAt, t.id),
-    check("drafts_recipient_rule", sql`(${t.contactId} is not null) <> (${t.ownRecipientEmail} is not null)`),
+    check("drafts_recipient_rule", sql`${t.contactId} is null or ${t.ownRecipientEmail} is null`),
   ],
 );
 
