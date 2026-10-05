@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
+import { requireAdmin } from "@/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatDateTime } from "@/lib/format";
@@ -8,6 +9,7 @@ import { formatDateTime } from "@/lib/format";
 export const metadata: Metadata = { title: "Admin · Jobs" };
 
 export default async function AdminJobsPage() {
+  await requireAdmin();
   const rows = await db.execute(sql`
     SELECT id, kind, state, attempts, max_attempts, error_code, left(error_message, 120) AS error_message, created_at, updated_at
     FROM jobs ORDER BY updated_at DESC LIMIT 100

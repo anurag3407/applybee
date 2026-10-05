@@ -1,11 +1,40 @@
 'use client';
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 
 export default function Footer25() {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubscribe(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/public?kind=newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setSubscribed(true);
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error?.message ?? "Could not subscribe. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please try again later.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
   return (
     <footer className="relative flex min-h-[85vh] w-full flex-col justify-between overflow-hidden bg-surface dark:bg-black text-foreground dark:text-[#FAFAFA] border-t border-border-decorative dark:border-transparent font-sans antialiased selection:bg-foreground selection:text-background transition-colors">
       {/* Background Image & Overlay */}
@@ -33,9 +62,10 @@ export default function Footer25() {
           >
             <div className="flex flex-col gap-3 sm:gap-4">
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground dark:text-zinc-400">Platform</span>
-              <Link href="/#how-it-works" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">How It Works</Link>
-              <Link href="/#features" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Features</Link>
+              <Link href="/how-it-works" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">How It Works</Link>
+              <Link href="/features" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Features</Link>
               <Link href="/pricing" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Pricing</Link>
+              <Link href="/faq" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">FAQ</Link>
               <Link href="/app" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Workspace</Link>
             </div>
             <div className="flex flex-col gap-3 sm:gap-4">
@@ -43,6 +73,8 @@ export default function Footer25() {
               <Link href="/security" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Security</Link>
               <Link href="/help" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Help & Docs</Link>
               <Link href="/legal/privacy" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Privacy</Link>
+              <Link href="/accessibility" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Accessibility</Link>
+              <Link href="/contact-data/request" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Data Request</Link>
               <Link href="/contact" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Contact</Link>
             </div>
           </motion.div>
@@ -57,21 +89,32 @@ export default function Footer25() {
             <p className="mb-8 text-xl text-foreground dark:text-zinc-200 md:text-2xl">
               Get career outreach strategies, hiring manager insights, and AI workflow tips straight to your inbox.
             </p>
-            <form onSubmit={(e) => e.preventDefault()} className="relative flex items-center justify-between border-b border-border dark:border-white/20 pb-4 transition-colors focus-within:border-foreground dark:focus-within:border-white">
-              <input
-                type="email"
-                placeholder="Email address"
-                required
-                className="w-full bg-transparent text-lg text-foreground dark:text-white placeholder-muted-foreground dark:placeholder-zinc-500 outline-none"
-              />
-              <button
-                type="submit"
-                aria-label="Subscribe"
-                className="text-muted-foreground dark:text-zinc-400 transition-colors hover:text-foreground dark:hover:text-white cursor-pointer"
-              >
-                <HugeiconsIcon icon={ArrowRight01Icon} className="size-6" />
-              </button>
-            </form>
+            {subscribed ? (
+              <div className="rounded-control bg-success-wash border border-success/30 p-4 text-sm text-success">
+                ✓ Thank you for subscribing! We&apos;ll deliver actionable outreach guides and updates.
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="relative flex items-center justify-between border-b border-border dark:border-white/20 pb-4 transition-colors focus-within:border-foreground dark:focus-within:border-white">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address"
+                  required
+                  disabled={submitting}
+                  className="w-full bg-transparent text-lg text-foreground dark:text-white placeholder-muted-foreground dark:placeholder-zinc-500 outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  aria-label="Subscribe"
+                  className="text-muted-foreground dark:text-zinc-400 transition-colors hover:text-foreground dark:hover:text-white cursor-pointer disabled:opacity-50"
+                >
+                  <HugeiconsIcon icon={ArrowRight01Icon} className="size-6" />
+                </button>
+              </form>
+            )}
+            {error ? <p className="mt-2 text-xs text-danger">{error}</p> : null}
           </motion.div>
         </div>
 

@@ -1,15 +1,18 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
+import { requireAdmin } from "@/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card } from "@/components/ui/primitives";
 
 export default async function AdminCompaniesPage() {
+  await requireAdmin();
   const rows = await db.execute(sql`
     SELECT co.id, co.name, co.domain, co.stage, co.location,
            (SELECT count(*)::int FROM company_evidence e WHERE e.company_id = co.id) AS evidence_count,
            (SELECT count(*)::int FROM contacts c WHERE c.company_id = co.id) AS contact_count
     FROM companies co ORDER BY co.name
   `);
+  const companiesList = rows.rows as Array<{ id: string; name: string; domain: string; stage: string | null; location: string | null; evidence_count: number; contact_count: number }>;
   return (
     <AdminShell title="Companies">
       <Card className="p-0">
@@ -24,7 +27,7 @@ export default async function AdminCompaniesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border-decorative/70">
-            {(rows.rows as Array<{ id: string; name: string; domain: string; stage: string | null; location: string | null; evidence_count: number; contact_count: number }>).map((c) => (
+            {companiesList.map((c) => (
               <tr key={c.id}>
                 <td className="px-4 py-3 font-semibold text-ink">{c.name}</td>
                 <td className="tabular px-4 py-3 text-text-secondary">{c.domain}</td>
@@ -33,6 +36,13 @@ export default async function AdminCompaniesPage() {
                 <td className="tabular px-4 py-3">{c.contact_count}</td>
               </tr>
             ))}
+            {companiesList.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-center text-text-secondary">
+                  No companies yet.
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </Card>

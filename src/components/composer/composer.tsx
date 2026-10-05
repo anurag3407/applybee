@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, Copy, Download, Sparkles, ShieldCheck, AlertTriangle, RefreshCw, Mail, FileDown } from "lucide-react";
+import { Check, Copy, Download, Sparkles, ShieldCheck, AlertTriangle, RefreshCw, Mail, FileDown, KanbanSquare } from "lucide-react";
 import { Button, Badge, InlineError, Textarea, Input, Label, Select } from "@/components/ui/primitives";
 import { Dialog } from "@/components/ui/dialog";
 import { wordCount } from "@/lib/format";
@@ -841,9 +841,31 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           {delivery ? (
             <div className="mt-3 space-y-2">
               {delivery.state === "created" ? (
-                <p className="rounded-control bg-success-wash px-2.5 py-1.5 text-sm text-success" role="status">
-                  Created in Gmail. Nothing has been sent — review and send it there yourself.
-                </p>
+                <div className="space-y-2.5">
+                  <p className="rounded-control bg-success-wash px-2.5 py-1.5 text-sm text-success" role="status">
+                    Created in Gmail. Nothing has been sent — review and send it there yourself.
+                  </p>
+                  <div className="rounded-control border border-border-decorative bg-canvas p-2.5 text-xs space-y-2">
+                    <p className="font-semibold text-ink">Next step: Keep track of this conversation</p>
+                    <p className="text-text-secondary">
+                      Track this outreach in your Pipeline for follow-ups, or report bounces for an instant credit replacement.
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-0.5">
+                      <Link href="/app/pipeline">
+                        <Button size="sm" variant="secondary" className="gap-1 text-xs">
+                          <KanbanSquare size={13} aria-hidden /> Track in Pipeline
+                        </Button>
+                      </Link>
+                      {recipient?.contactId ? (
+                        <Link href={`/app/contacts/${recipient.contactId}`}>
+                          <Button size="sm" variant="ghost" className="text-xs">
+                            Contact details
+                          </Button>
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
               ) : delivery.state === "unknown" || delivery.state === "reconciling" ? (
                 <div className="space-y-2">
                   <p className="flex items-center gap-2 rounded-control bg-warning-wash px-2.5 py-1.5 text-sm text-warning" role="status">

@@ -5,7 +5,7 @@ import { requireActiveUser } from "@/server/auth/session";
 export default async function OnboardingIndexPage() {
   const user = await requireActiveUser();
   if (user.onboardingStep === "complete") redirect("/app");
-  const stepOrder = ["profile", "resume", "gmail", "preferences", "complete"];
+  const stepOrder = ["profile", "resume", "gmail", "complete"];
   if (!stepOrder.includes(user.onboardingStep)) redirect("/onboarding/profile");
   redirect(`/onboarding/${user.onboardingStep}`);
 }

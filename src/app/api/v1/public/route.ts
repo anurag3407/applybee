@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { supportRequestSchema, contactDataRequestSchema } from "@/lib/validation";
+import { supportRequestSchema, contactDataRequestSchema, safeEmail } from "@/lib/validation";
 import { db } from "@/db/client";
 import { contactReports, supportTickets } from "@/db/schema";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
@@ -44,6 +44,18 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+    if (kind === "newsletter") {
+      const email = safeEmail.parse(body.email);
+      const publicRef = `NEWS-${Date.now().toString(36).toUpperCase()}`;
+      await db.insert(supportTickets).values({
+        publicRef,
+        email,
+        category: "other",
+        message: "Newsletter subscription signup",
+      });
+      return ok({ subscribed: true }, 201);
+    }
+
     if (kind === "contact-data-request") {
       const parsed = contactDataRequestSchema.parse(body);
       await db.insert(contactReports).values({

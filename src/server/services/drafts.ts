@@ -11,7 +11,7 @@ import {
 import { draftPatchSchema, findUnknownTemplateVariables, fillTemplate, type TemplateVariable } from "@/lib/validation";
 import { sha256Hex } from "@/server/crypto";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
-import { buildMimeMessage } from "@/server/adapters/mime";
+import { buildMimeMessage, validateEmailAddress } from "@/server/adapters/mime";
 import { getObjectStore } from "@/server/adapters/objectStore";
 import { acceptGeneratedProposal, CreditError } from "@/server/services/credits";
 import { audit } from "@/server/services/audit";
@@ -373,7 +373,11 @@ export async function exportEml(
 ): Promise<{ filename: string; content: string; status: string } | null> {
   const data = await getDraftForUser(userId, draftId);
   if (!data || !data.currentRevision) return null;
-  const toEmail = data.recipient?.email ?? "undisclosed-recipient@invalid";
+  const rawToEmail = data.recipient?.email;
+  const toEmail =
+    rawToEmail && validateEmailAddress(rawToEmail).ok
+      ? rawToEmail
+      : "undisclosed-recipient@reachbee.local";
   const mime = buildMimeMessage({
     fromEmail: "draft@reachbee.local",
     fromName: "ReachBee export (not sent)",

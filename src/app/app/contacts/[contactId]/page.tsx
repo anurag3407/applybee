@@ -34,7 +34,10 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
               <div>
                 <h2 className="text-2xl font-bold text-ink">{contact.name}</h2>
                 <p className="text-text-secondary">
-                  {contact.title} · {contact.companyName}
+                  {contact.title} ·{" "}
+                  <Link href={`/app/companies/${contact.companyId}`} className="font-semibold text-ink underline hover:text-ink-soft">
+                    {contact.companyName}
+                  </Link>
                 </p>
                 <p className="text-sm text-text-secondary">{contact.location ?? "—"}</p>
               </div>
@@ -79,8 +82,13 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
 
         <div className="space-y-5">
           <Card>
-            <h3 className="font-bold text-ink">{contact.companyName}</h3>
-            <p className="text-sm text-text-secondary">{contact.companyDescription ?? "Company context comes from approved, dated sources only."}</p>
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-bold text-ink">{contact.companyName}</h3>
+              <Link href={`/app/companies/${contact.companyId}`} className="text-xs font-semibold text-info underline">
+                View team & context →
+              </Link>
+            </div>
+            <p className="mt-1 text-sm text-text-secondary">{contact.companyDescription ?? "Company context comes from approved, dated sources only."}</p>
             <div className="mt-3">
               {company?.evidence.length ? (
                 <ul className="space-y-2.5">

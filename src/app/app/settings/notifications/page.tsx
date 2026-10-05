@@ -8,8 +8,7 @@ export const metadata: Metadata = { title: "Notification preferences" };
 export default async function SettingsNotificationsPage() {
   await requireActiveUser();
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <h2 className="text-2xl font-bold tracking-tight text-ink">Notification preferences</h2>
+    <div className="space-y-5">
       <Card>
         <h3 className="font-bold text-ink">Channels</h3>
         <ul className="mt-3 space-y-2 text-sm text-text-secondary">

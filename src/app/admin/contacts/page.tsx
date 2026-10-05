@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
+import { requireAdmin } from "@/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Badge, Card } from "@/components/ui/primitives";
 import { formatDate } from "@/lib/format";
@@ -9,6 +10,7 @@ import { formatDate } from "@/lib/format";
 export const metadata: Metadata = { title: "Admin · Contacts" };
 
 export default async function AdminContactsPage() {
+  await requireAdmin();
   const rows = await db.execute(sql`
     SELECT c.id, c.name, c.title, c.role_category, c.status, c.verification_status,
            c.last_email_checked_at, co.name AS company_name, co.domain,
@@ -57,6 +59,13 @@ export default async function AdminContactsPage() {
                 </td>
               </tr>
             ))}
+            {contacts.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-6 text-center text-text-secondary">
+                  No contacts yet.
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </Card>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
+import { requireAdmin } from "@/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatDate } from "@/lib/format";
@@ -9,6 +10,7 @@ import { getConfig } from "@/server/config";
 export const metadata: Metadata = { title: "Admin · Config" };
 
 export default async function AdminConfigPage() {
+  await requireAdmin();
   const config = getConfig();
   const evidence = await db.execute(sql`
     SELECT co.name AS company, e.fact_type, e.source_name, e.checked_at, e.approval, e.confidence

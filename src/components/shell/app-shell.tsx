@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   LayoutDashboard, Search, Bookmark, FileText, LayoutTemplate, UserRound, KanbanSquare,
-  CreditCard, Settings, CircleHelp, Bell, LogOut, PenLine,
+  CreditCard, Settings, CircleHelp, Bell, LogOut, PenLine, History,
 } from "lucide-react";
 import { requireActiveUser } from "@/server/auth/session";
 import { getBalances } from "@/server/services/credits";
@@ -31,6 +31,7 @@ export async function AppShell({ children, title }: { children: React.ReactNode;
     { href: "/app/templates", label: "Templates", icon: <LayoutTemplate size={18} /> },
     { href: "/app/profile", label: "Career profile", icon: <UserRound size={18} /> },
     { href: "/app/pipeline", label: "Pipeline", icon: <KanbanSquare size={18} /> },
+    { href: "/app/activity", label: "Activity", icon: <History size={18} /> },
   ];
   const bottomLinks = [
     { href: "/app/billing", label: "Billing", icon: <CreditCard size={18} /> },

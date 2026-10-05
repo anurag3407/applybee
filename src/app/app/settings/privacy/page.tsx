@@ -8,8 +8,7 @@ export const metadata: Metadata = { title: "Privacy" };
 export default async function SettingsPrivacyPage() {
   const user = await requireActiveUser();
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <h2 className="text-2xl font-bold tracking-tight text-ink">Privacy</h2>
+    <div className="space-y-5">
 
       <Card>
         <h3 className="font-bold text-ink">Export your data</h3>

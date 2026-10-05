@@ -8,8 +8,7 @@ export const metadata: Metadata = { title: "Security settings" };
 export default async function SettingsSecurityPage() {
   const user = await requireActiveUser();
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <h2 className="text-2xl font-bold tracking-tight text-ink">Security</h2>
+    <div className="space-y-5">
       <Card>
         <h3 className="font-bold text-ink">Account & sessions</h3>
         <p className="mt-2 text-sm text-text-secondary">

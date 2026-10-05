@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
+import { requireAdmin } from "@/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatDateTime } from "@/lib/format";
@@ -8,6 +9,7 @@ import { formatDateTime } from "@/lib/format";
 export const metadata: Metadata = { title: "Admin · Reports" };
 
 export default async function AdminReportsPage() {
+  await requireAdmin();
   const rows = await db.execute(sql`
     SELECT r.id, r.report_type, r.state, r.details, r.created_at, c.name AS contact_name
     FROM contact_reports r LEFT JOIN contacts c ON c.id = r.contact_id

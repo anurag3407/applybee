@@ -10,8 +10,7 @@ export default async function SettingsProfilePage() {
   const user = await requireActiveUser();
   const { user: u, prefs } = await getPreferences(user.id);
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <h2 className="text-2xl font-bold tracking-tight text-ink">Profile settings</h2>
+    <div className="space-y-5">
       <Card>
         <p className="text-sm text-text-secondary">Signed in as {u?.email}</p>
       </Card>

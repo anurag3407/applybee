@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
+import { requireAdmin } from "@/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatDateTime } from "@/lib/format";
@@ -8,6 +9,7 @@ import { formatDateTime } from "@/lib/format";
 export const metadata: Metadata = { title: "Admin · Users" };
 
 export default async function AdminUsersPage() {
+  await requireAdmin();
   const rows = await db.execute(sql`
     SELECT u.id, u.email, u.status, u.created_at,
            ca_contact.available AS contact_credits, ca_ai.available AS ai_credits,
@@ -49,6 +51,13 @@ export default async function AdminUsersPage() {
                 <td className="tabular px-4 py-3 text-text-secondary">{formatDateTime(u.created_at)}</td>
               </tr>
             ))}
+            {users.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-6 text-center text-text-secondary">
+                  No users yet.
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </Card>

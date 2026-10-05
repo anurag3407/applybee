@@ -109,6 +109,15 @@ describe("MIME builder", () => {
     expect(out.raw).toContain("X-ApplyBee-Operation: ab-abc123TOKEN");
   });
 
+  it("builds draft with unrevealed fallback email without throwing", () => {
+    const out = buildMimeMessage({
+      ...base,
+      toEmail: "undisclosed-recipient@reachbee.local",
+      toName: null,
+    });
+    expect(out.raw).toContain("To: <undisclosed-recipient@reachbee.local>\r\n");
+  });
+
   it("has no send capability in the module surface", async () => {
     // Structural negative test (§16.6): the module exports no send function.
     const mod = (await import("@/server/adapters/mime")) as unknown as Record<string, unknown>;

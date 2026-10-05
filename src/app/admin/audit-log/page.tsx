@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
+import { requireAdmin } from "@/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card } from "@/components/ui/primitives";
 import { formatDateTime } from "@/lib/format";
@@ -8,6 +9,7 @@ import { formatDateTime } from "@/lib/format";
 export const metadata: Metadata = { title: "Admin · Audit log" };
 
 export default async function AdminAuditPage() {
+  await requireAdmin();
   const rows = await db.execute(sql`
     SELECT actor_type, actor_id, permission, action, entity_type, entity_id, reason, created_at
     FROM audit_events ORDER BY created_at DESC LIMIT 100

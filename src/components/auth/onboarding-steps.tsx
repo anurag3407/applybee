@@ -196,7 +196,7 @@ export function GmailStep() {
             {busy ? "Redirecting…" : "Connect Gmail"}
           </Button>
           <Link href="/onboarding/complete">
-            <Button variant="secondary">Maybe later</Button>
+            <Button variant="secondary">Skip for now — Connect when drafting</Button>
           </Link>
         </div>
       </div>

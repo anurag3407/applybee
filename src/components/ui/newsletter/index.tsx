@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/base-ui/button';
 import { Input } from '@/components/base-ui/input';
 
@@ -19,6 +21,38 @@ export default function Newsletter1({
   disclaimer,
   onSubmit,
 }: Newsletter1Props) {
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleDefaultSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (onSubmit) {
+      onSubmit(e);
+      return;
+    }
+    e.preventDefault();
+    if (!email) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/public?kind=newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        setSubscribed(true);
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error?.message ?? "Could not subscribe. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please try again later.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
   return (
     <div className="bg-surface border border-border-decorative text-foreground shadow-lg dark:bg-[#0c0d12] dark:border-white/[0.09] dark:text-white dark:shadow-[0_30px_90px_rgba(0,0,0,0.95)] relative mx-auto w-full max-w-5xl overflow-hidden rounded-[2rem] px-6 py-16 text-center sm:rounded-[2.5rem] md:px-12 md:py-24 lg:py-28 transition-colors">
       {/* Ambient background auras */}
@@ -53,23 +87,34 @@ export default function Newsletter1({
           </p>
         )}
 
-        <form
-          onSubmit={onSubmit}
-          className="bg-canvas border border-border-control/30 dark:border-white/10 dark:bg-[#121318] mx-auto mt-8 mb-6 flex w-full flex-col items-center gap-3 shadow-md sm:mt-10 sm:max-w-xl sm:flex-row sm:gap-0 sm:rounded-full sm:p-2 transition-colors"
-        >
-          <Input
-            type="email"
-            placeholder={placeholder}
-            className="text-foreground bg-transparent placeholder:text-muted-foreground h-14 w-full rounded-full border-none px-6 text-base shadow-none ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 sm:flex-1 sm:rounded-none sm:rounded-l-full sm:bg-transparent"
-            required
-          />
-          <Button
-            type="submit"
-            className="h-14 w-full shrink-0 rounded-full px-8 text-base font-semibold shadow-sm transition-transform hover:scale-[1.02] sm:w-auto cursor-pointer bg-primary text-primary-foreground"
+        {subscribed ? (
+          <div className="mx-auto mt-8 mb-6 max-w-xl rounded-full bg-success-wash border border-success/30 px-6 py-4 text-center font-medium text-success shadow-md">
+            ✓ Thank you for subscribing! We&apos;ll deliver actionable outreach guides and updates.
+          </div>
+        ) : (
+          <form
+            onSubmit={handleDefaultSubmit}
+            className="bg-canvas border border-border-control/30 dark:border-white/10 dark:bg-[#121318] mx-auto mt-8 mb-6 flex w-full flex-col items-center gap-3 shadow-md sm:mt-10 sm:max-w-xl sm:flex-row sm:gap-0 sm:rounded-full sm:p-2 transition-colors"
           >
-            {buttonText}
-          </Button>
-        </form>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={placeholder}
+              disabled={submitting}
+              className="text-foreground bg-transparent placeholder:text-muted-foreground h-14 w-full rounded-full border-none px-6 text-base shadow-none ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 sm:flex-1 sm:rounded-none sm:rounded-l-full sm:bg-transparent"
+              required
+            />
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="h-14 w-full shrink-0 rounded-full px-8 text-base font-semibold shadow-sm transition-transform hover:scale-[1.02] sm:w-auto cursor-pointer bg-primary text-primary-foreground disabled:opacity-60"
+            >
+              {submitting ? "Subscribing…" : buttonText}
+            </Button>
+          </form>
+        )}
+        {error ? <p className="mb-4 text-xs font-medium text-danger">{error}</p> : null}
 
         {disclaimer && (
           <p className="mx-auto mt-2 max-w-md text-center text-xs font-medium text-balance text-muted-foreground dark:text-zinc-400 sm:text-sm">

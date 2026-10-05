@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
+import { requireAdmin } from "@/server/auth/session";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { Card, Badge } from "@/components/ui/primitives";
 
 export const metadata: Metadata = { title: "Admin health" };
 
 export default async function AdminHome() {
+  await requireAdmin();
   const [queue, gmailUncertain, paymentsPending, reports, consistency] = await Promise.all([
     db.execute(sql`SELECT state, count(*)::int AS c FROM jobs WHERE state IN ('queued','running','retry_wait','deferred','failed','needs_attention') GROUP BY state`),
     db.execute(sql`SELECT count(*)::int AS c FROM gmail_deliveries WHERE state IN ('unknown','reconciling','needs_confirmation')`),

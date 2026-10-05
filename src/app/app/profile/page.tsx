@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { FileText } from "lucide-react";
 import { requireActiveUser } from "@/server/auth/session";
 import { getReviewableProfile, getProfileForUser } from "@/server/services/resumes";
 import { ProfileFactsEditor } from "@/components/resumes/profile-facts-editor";
-import { Badge, Card } from "@/components/ui/primitives";
+import { Badge, Card, Button } from "@/components/ui/primitives";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Career profile" };
@@ -13,11 +15,18 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Career profile</h2>
-        <p className="text-sm text-text-secondary">
-          AI drafts are written only from facts you have confirmed. Fix anything the parser got wrong.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-ink">Career profile</h2>
+          <p className="text-sm text-text-secondary">
+            AI drafts are written only from facts you have confirmed. Fix anything the parser got wrong.
+          </p>
+        </div>
+        <Link href="/app/resumes">
+          <Button variant="secondary" size="sm" className="gap-1.5">
+            <FileText size={14} /> Resumes & Uploads
+          </Button>
+        </Link>
       </div>
 
       {reviewable && !reviewable.revision.approvedAt ? (
@@ -44,10 +53,16 @@ export default async function ProfilePage() {
           }))}
         />
       ) : (
-        <Card>
-          <p className="text-sm text-text-secondary">
-            No profile yet. Upload a resume or type facts manually — both end here for your review.
-          </p>
+        <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-semibold text-ink">No profile yet</h3>
+            <p className="mt-1 text-sm text-text-secondary">
+              Upload a resume or type facts manually — both end here for your review.
+            </p>
+          </div>
+          <Link href="/app/resumes">
+            <Button size="sm">Upload resume</Button>
+          </Link>
         </Card>
       )}
 
