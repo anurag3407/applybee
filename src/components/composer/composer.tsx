@@ -101,6 +101,39 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
   const [attachmentId, setAttachmentId] = useState<string | null>(null);
   const [conflictOpen, setConflictOpen] = useState(false);
   const [pollSource, setPollSource] = useState<AbortController | null>(null);
+  const [profileReady, setProfileReady] = useState(hasApprovedProfile);
+  const [profileActivating, setProfileActivating] = useState(false);
+
+  async function quickActivateProfile() {
+    setProfileActivating(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/v1/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetRole: targetRole.trim() || (recipient?.title ? recipient.title : "Software Engineer"),
+          careerStage: "early_career",
+          facts: [
+            {
+              factType: "summary",
+              text: targetRole.trim()
+                ? `Software engineering professional targeting ${targetRole.trim()} opportunities.`
+                : "Software engineering professional seeking relevant career opportunities.",
+            },
+          ],
+          approve: true,
+        }),
+      });
+      if (!res.ok) throw new Error("Could not activate profile.");
+      setProfileReady(true);
+      router.refresh();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Profile activation failed.");
+    } finally {
+      setProfileActivating(false);
+    }
+  }
 
   const savedVersion = useRef(version);
   const dirtyRef = useRef(false);
@@ -434,7 +467,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
 const GENERATION_IN_FLIGHT_STATES = ["queued", "reserved", "preparing", "generating"];
 const generationInFlight =
   generation !== null && GENERATION_IN_FLIGHT_STATES.includes(generation.state);
-const canGenerate = balances.ai.available > 0 && recipient !== null && !generationInFlight;
+const canGenerate = balances.ai.available > 0 && recipient !== null && !generationInFlight && profileReady;
 
   return (
     <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)_19rem]">
@@ -601,6 +634,31 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           <InlineError>This draft changed in another tab. Reload to compare before saving again.</InlineError>
         ) : null}
 
+        {/* Proposal ready notification banner */}
+        {proposal && generation?.state === "ready" && generation?.acceptanceState === "pending" ? (
+          <div className="rounded-card border-2 border-honey bg-honey-wash/30 p-4 space-y-3 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-sm font-bold text-ink">
+                <Sparkles size={16} className="text-honey-deep" />
+                AI Generated Introduction Ready
+              </span>
+              <Badge tone="honey">1 AI Credit</Badge>
+            </div>
+            <div className="rounded-control bg-surface p-3 border border-border-decorative text-xs text-ink space-y-1">
+              <p className="font-bold text-text-secondary">SUBJECT: {proposal.subject}</p>
+              <p className="mt-1 whitespace-pre-wrap leading-relaxed">{proposal.body}</p>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <Button size="sm" variant="ghost" onClick={dismissProposal}>
+                Dismiss
+              </Button>
+              <Button size="sm" variant="accent" onClick={acceptProposal} disabled={busy}>
+                <Check size={14} aria-hidden /> Apply pitch to editor
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         <div className="rounded-card border border-border-decorative bg-surface p-4">
           <Label htmlFor="subject">Subject</Label>
           <Input id="subject" value={subject} onChange={(e) => { setSubject(e.target.value); markDirty(); }} maxLength={160} />
@@ -614,25 +672,32 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {gmail?.connected ? (
+            <Button size="sm" variant="accent" onClick={() => setApprovalOpen(true)} disabled={busy} className="gap-1.5 shadow-sm">
+              <ShieldCheck size={14} aria-hidden /> 🚀 Push to Gmail Drafts
+            </Button>
+          ) : recipient?.email ? (
+            <Button
+              size="sm"
+              variant="accent"
+              onClick={async () => {
+                const text = `To: ${recipient.email}\nSubject: ${subject}\n\n${body}`;
+                await navigator.clipboard.writeText(text);
+                const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipient.email!)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                window.open(url, "_blank");
+              }}
+              className="gap-1.5 shadow-sm"
+            >
+              <Mail size={14} aria-hidden /> 📋 Copy & Open Gmail Web
+            </Button>
+          ) : null}
           <CopyAllButton subject={subject} body={body} recipientEmail={recipient?.email ?? null} />
           <a href={`/api/v1/drafts/${draftId}/export.eml`} download>
             <Button size="sm" variant="secondary">
               <FileDown size={14} aria-hidden /> Download .eml
             </Button>
           </a>
-          {recipient?.email ? (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(recipient.email!)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                window.open(url, "_blank");
-              }}
-            >
-              <Mail size={14} aria-hidden /> Open in Gmail Web
-            </Button>
-          ) : null}
         </div>
       </section>
 
@@ -643,11 +708,22 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
             <Sparkles size={15} aria-hidden className="text-honey-deep" />
             {mode === "agentic" ? "Agentic preparation" : "Quick AI"}
           </h3>
-          {!hasApprovedProfile ? (
-            <p className="mt-2 rounded-control bg-warning-wash px-2.5 py-1.5 text-xs text-warning">
-              Confirm a few profile facts first — AI writes only from confirmed details.{" "}
-              <a href="/app/profile" className="underline">Career profile</a>
-            </p>
+          {!profileReady ? (
+            <div className="mt-2 space-y-2 rounded-control bg-warning-wash/70 p-3">
+              <p className="text-xs text-warning">
+                Confirm a profile fact first — AI writes only from confirmed details.
+              </p>
+              <Button
+                size="sm"
+                variant="accent"
+                onClick={quickActivateProfile}
+                disabled={profileActivating}
+                className="w-full justify-center"
+              >
+                <Sparkles size={13} aria-hidden />
+                {profileActivating ? "Activating…" : "1-Click Activate AI Profile"}
+              </Button>
+            </div>
           ) : null}
           {generation ? (
             <div className="mt-3 space-y-2">
@@ -669,9 +745,6 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               ) : null}
               {generation.state === "generating" || generation.state === "queued" ||
               generation.state === "reserved" || generation.state === "preparing" ? (
-                // Reopening a draft whose job died leaves it in one of these
-                // states. Say so, and make the recovery explicit — pressing
-                // Generate again releases the stuck draft and starts fresh.
                 <p className="text-xs text-text-secondary">
                   If this has been sitting a while, the background worker may not be running. Press Generate again to
                   restart it — your credit is only spent once a draft is actually saved.
@@ -688,9 +761,6 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                       </pre>
                     </div>
                   ) : null}
-                  <p className="rounded-control bg-info-wash px-2.5 py-1.5 text-xs text-info">
-                    Applying the proposal is a separate, version-checked action. Your manual edits stay intact.
-                  </p>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={acceptProposal} disabled={busy}>
                       <Check size={14} aria-hidden /> Apply proposal
@@ -699,7 +769,6 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                       Dismiss
                     </Button>
                   </div>
-                  <p className="text-xs text-text-disabled">Applying costs nothing extra — the credit settled when the draft was validated.</p>
                 </div>
               ) : null}
               {generation.state === "ready" && generation.acceptanceState !== "pending" ? (
@@ -710,7 +779,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
             </div>
           ) : (
             <div className="mt-3 space-y-2">
-              <Button size="sm" variant="accent" onClick={startGeneration} disabled={busy || !canGenerate || !hasApprovedProfile}>
+              <Button size="sm" variant="accent" onClick={startGeneration} disabled={busy || !canGenerate}>
                 <Sparkles size={14} aria-hidden />
                 {mode === "agentic" ? "Prepare and draft · 1 AI credit" : "Generate introduction · 1 AI credit"}
               </Button>
@@ -720,17 +789,24 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                 </p>
               ) : generationInFlight ? (
                 <p className="text-xs text-text-secondary">
-                  A draft is already being written for this introduction. Wait for it to finish — one credit buys one
-                  draft, so a second request would be rejected.
+                  A draft is already being written for this introduction. Wait for it to finish.
                 </p>
-              ) : !hasApprovedProfile ? (
-                // Matches the server rule: drafting needs at least one confirmed
-                // fact, so point at the editor instead of letting them click and
-                // fail.
-                <p className="text-xs text-warning">
-                  Confirm at least one profile fact before generating — drafts are written only from details you
-                  have verified. <a href="/app/profile" className="underline">Open career profile</a>
-                </p>
+              ) : !profileReady ? (
+                <div className="space-y-1.5 pt-1">
+                  <p className="text-xs text-warning">
+                    Activate your profile with 1 click to unlock AI drafting:
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="accent"
+                    onClick={quickActivateProfile}
+                    disabled={profileActivating}
+                    className="w-full justify-center"
+                  >
+                    <Sparkles size={13} aria-hidden />
+                    {profileActivating ? "Activating…" : "1-Click Activate AI Profile"}
+                  </Button>
+                </div>
               ) : !recipient ? (
                 <p className="text-xs text-text-secondary">Choose a recipient first (directory or your own contact).</p>
               ) : (

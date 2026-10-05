@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, Copy, PenLine, Bookmark, BookmarkCheck, Flag } from "lucide-react";
+import { Lock, Mail, Copy, PenLine, Bookmark, BookmarkCheck, Flag, Sparkles } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import { Button, Badge, InlineError } from "@/components/ui/primitives";
 
@@ -80,6 +80,7 @@ export function RevealAction({
           <Button size="sm" variant="secondary" onClick={copy} aria-label="Copy email address">
             <Copy size={14} aria-hidden /> {copied ? "Copied" : "Copy"}
           </Button>
+          <WriteToContactButton contactId={contactId} />
         </div>
         {balance ? (
           <p className="text-xs text-text-disabled">
@@ -154,7 +155,7 @@ export function WriteToContactButton({ contactId }: { contactId: string }) {
       const res = await fetch("/api/v1/drafts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "manual", intent: "intro", recipient: { kind: "directory", contactId } }),
+        body: JSON.stringify({ mode: "quick_ai", intent: "intro", recipient: { kind: "directory", contactId } }),
       });
       const body = (await res.json()) as { data?: { draftId: string }; error?: { message?: string } };
       if (!res.ok || !body.data) throw new Error(body.error?.message ?? "Could not create a draft.");
@@ -167,10 +168,86 @@ export function WriteToContactButton({ contactId }: { contactId: string }) {
 
   return (
     <div>
-      <Button size="sm" variant="primary" onClick={start} disabled={busy}>
-        <PenLine size={14} aria-hidden /> {busy ? "Opening…" : "Write introduction"}
+      <Button size="sm" variant="accent" onClick={start} disabled={busy} className="gap-1.5 shadow-sm">
+        <Sparkles size={14} aria-hidden /> {busy ? "Opening…" : "⚡ Reach Out"}
       </Button>
       {error ? <InlineError>{error}</InlineError> : null}
+    </div>
+  );
+}
+
+export function OneClickOutreachButton({
+  contactId,
+  contactName,
+  availableCredits,
+}: {
+  contactId: string;
+  contactName: string;
+  availableCredits: number;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleOneClick() {
+    if (availableCredits < 1) {
+      setError("No contact credits left. Add credits to reach out.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      // 1. Reveal email
+      const revealRes = await fetch(`/api/v1/contacts/${contactId}/reveal`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
+        },
+        body: JSON.stringify({ contactId }),
+      });
+      const revealBody = (await revealRes.json()) as { error?: { message?: string } };
+      if (!revealRes.ok) throw new Error(revealBody.error?.message ?? "Could not reveal contact.");
+
+      // 2. Create draft in AI mode
+      const draftRes = await fetch("/api/v1/drafts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "quick_ai",
+          intent: "intro",
+          recipient: { kind: "directory", contactId },
+        }),
+      });
+      const draftBody = (await draftRes.json()) as { data?: { draftId: string }; error?: { message?: string } };
+      if (!draftRes.ok || !draftBody.data?.draftId) {
+        throw new Error(draftBody.error?.message ?? "Could not open outreach composer.");
+      }
+
+      window.location.href = `/app/drafts/${draftBody.data.draftId}`;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Outreach failed to start.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="relative">
+      <Button
+        size="sm"
+        variant="accent"
+        onClick={handleOneClick}
+        disabled={busy}
+        className="gap-1.5 shadow-sm"
+        title={`Reveal ${contactName.split(" ")[0]}'s email & start tailored outreach`}
+      >
+        <Sparkles size={14} aria-hidden />
+        {busy ? "Starting…" : "⚡ 1-Click Outreach"}
+      </Button>
+      {error ? (
+        <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-surface p-1 shadow-md border border-danger/40">
+          <InlineError>{error}</InlineError>
+        </div>
+      ) : null}
     </div>
   );
 }

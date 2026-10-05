@@ -26,11 +26,11 @@ export default async function OnboardingCompletePage() {
           <li>• {balances.ai.available} AI generations</li>
         </ul>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/app/contacts" className="rounded-control bg-ink px-4 py-2.5 text-sm font-semibold text-surface hover:bg-ink-soft">
-            Find contacts
+          <Link href="/app/contacts" className="rounded-control bg-ink px-4 py-2.5 text-sm font-semibold text-surface hover:bg-ink-soft shadow-sm">
+            ⚡ Find contacts & start outreach
           </Link>
           <Link href="/app" className="rounded-control border border-border-control px-4 py-2.5 text-sm font-semibold text-ink hover:bg-surface-subtle">
-            Go to workspace
+            Go to dashboard
           </Link>
         </div>
       </Card>

@@ -40,13 +40,31 @@ export function ProfileStep() {
       // to /api/v1/profile/revisions, which does not exist — the 404 was never
       // checked, so no profile revision was created and the user went on to a
       // workspace where every AI generation failed with NO_CONFIRMED_FACTS.
+      const starterFacts: Array<{ factType: "skill" | "experience" | "summary"; text: string }> = [];
+      if (targetRole.trim()) {
+        starterFacts.push({
+          factType: "skill",
+          text: `Target career role: ${targetRole.trim()}`,
+        });
+      }
+      const stageMap: Record<string, string> = {
+        student: "Student / recent graduate actively seeking engineering roles",
+        early_career: "Early-career software engineer ready to contribute",
+        experienced: "Experienced engineer with professional industry background",
+        career_switcher: "Career switcher with transferable technical skills",
+      };
+      starterFacts.push({
+        factType: "experience",
+        text: stageMap[careerStage] ?? "Software engineering candidate",
+      });
+
       const profileRes = await fetch("/api/v1/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           targetRole,
           careerStage,
-          facts: [],
+          facts: starterFacts,
           approve: true,
         }),
       });

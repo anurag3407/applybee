@@ -4,7 +4,7 @@ import { requireActiveUser } from "@/server/auth/session";
 import { searchDirectory } from "@/server/services/contacts";
 import { getBalances } from "@/server/services/credits";
 import { SearchToolbar } from "@/components/directory/search-toolbar";
-import { RevealAction, SaveContactButton } from "@/components/directory/reveal";
+import { RevealAction, SaveContactButton, WriteToContactButton, OneClickOutreachButton } from "@/components/directory/reveal";
 import { Badge, Button, EmptyState, Card } from "@/components/ui/primitives";
 import { relativeTime } from "@/lib/format";
 import { Suspense } from "react";
@@ -125,15 +125,25 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                     <td className="px-4 py-3 text-text-secondary">{c.location ?? "—"}</td>
                     <td className="px-4 py-3">
                       {c.unlocked ? (
-                        <Badge tone="success">Unlocked</Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge tone="success">Unlocked</Badge>
+                          <code className="rounded-control border border-border-decorative bg-canvas px-2 py-0.5 text-xs font-semibold text-ink">
+                            {c.maskedEmail}
+                          </code>
+                        </div>
                       ) : (
                         <RevealAction contactId={c.id} unlocked={false} initialEmail={null} initialBalance={balances.contact} maskedEmail={c.maskedEmail} contactName={c.name} />
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2">
+                        {c.unlocked ? (
+                          <WriteToContactButton contactId={c.id} />
+                        ) : (
+                          <OneClickOutreachButton contactId={c.id} contactName={c.name} availableCredits={balances.contact.available} />
+                        )}
                         <SaveContactButton contactId={c.id} saved={c.saved} />
-                        <Link href={`/app/contacts/${c.id}`} className="flex min-h-9 items-center rounded-control border border-border-control px-3 text-sm font-semibold text-ink hover:bg-surface-subtle">
+                        <Link href={`/app/contacts/${c.id}`} className="flex min-h-9 items-center rounded-control border border-border-control px-2.5 text-xs font-semibold text-text-secondary hover:text-ink hover:bg-surface-subtle" title="View details and company context">
                           Details
                         </Link>
                       </div>
@@ -167,11 +177,20 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {c.unlocked ? (
-                    <Badge tone="success">Unlocked</Badge>
+                    <>
+                      <Badge tone="success">Unlocked</Badge>
+                      <WriteToContactButton contactId={c.id} />
+                    </>
                   ) : (
-                    <RevealAction contactId={c.id} unlocked={false} initialEmail={null} initialBalance={balances.contact} maskedEmail={c.maskedEmail} contactName={c.name} />
+                    <>
+                      <OneClickOutreachButton contactId={c.id} contactName={c.name} availableCredits={balances.contact.available} />
+                      <RevealAction contactId={c.id} unlocked={false} initialEmail={null} initialBalance={balances.contact} maskedEmail={c.maskedEmail} contactName={c.name} />
+                    </>
                   )}
                   <SaveContactButton contactId={c.id} saved={c.saved} />
+                  <Link href={`/app/contacts/${c.id}`} className="flex min-h-9 items-center rounded-control border border-border-control px-3 text-xs font-semibold text-text-secondary hover:text-ink hover:bg-surface-subtle">
+                    Details
+                  </Link>
                 </div>
               </Card>
             ))}

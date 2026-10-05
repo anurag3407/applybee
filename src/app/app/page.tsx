@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, Mail, FileText, AlertCircle } from "lucide-react";
+import { ArrowRight, Sparkles, Mail, FileText, AlertCircle, Search } from "lucide-react";
 import { requireActiveUser } from "@/server/auth/session";
 import { getBalances } from "@/server/services/credits";
 import { hasApprovedProfile } from "@/server/services/resumes";
@@ -62,13 +62,36 @@ export default async function DashboardPage() {
       <section className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-sm text-text-secondary">Welcome back{user.displayName ? `, ${user.displayName.split(" ")[0]}` : ""}.</p>
-          <h2 className="text-2xl font-bold tracking-tight text-ink">Your workspace</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-ink">Outreach Co-Pilot</h2>
         </div>
-        <Link href="/app/drafts/new" className="flex min-h-11 items-center gap-2 rounded-control bg-ink px-4 text-sm font-semibold text-surface hover:bg-ink-soft">
-          <FileText size={16} aria-hidden />
-          Create an introduction
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/app/contacts" className="flex min-h-11 items-center gap-2 rounded-control bg-ink px-4 text-sm font-semibold text-surface hover:bg-ink-soft shadow-sm">
+            <Search size={16} aria-hidden />
+            Find Decision-Makers
+          </Link>
+          <Link href="/app/drafts/new" className="flex min-h-11 items-center gap-2 rounded-control border border-border-control px-3.5 text-sm font-semibold text-ink hover:bg-surface-subtle">
+            <FileText size={15} aria-hidden />
+            Custom Draft
+          </Link>
+        </div>
       </section>
+
+      <Card className="border-honey/40 bg-honey-wash/20 p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="flex items-center gap-2 text-sm font-bold text-ink">
+              <Sparkles size={16} className="text-honey-deep" />
+              1-Click Autonomous Outreach Engine
+            </h3>
+            <p className="text-xs text-text-secondary">
+              1. Search verified leads → 2. AI crafts a 75-word bespoke pitch → 3. Push straight to your Gmail Drafts.
+            </p>
+          </div>
+          <Link href="/app/contacts" className="inline-flex items-center justify-center gap-1.5 rounded-control bg-ink px-4 py-2 text-xs font-semibold text-surface hover:bg-ink-soft shrink-0">
+            Start reaching out <ArrowRight size={14} aria-hidden />
+          </Link>
+        </div>
+      </Card>
 
       <section className="grid gap-4 md:grid-cols-3">
         <Card>
