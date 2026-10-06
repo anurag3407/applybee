@@ -13,11 +13,35 @@ import { useEffect } from "react";
  */
 export function MarketingMotion() {
   useEffect(() => {
+    // CSS reveals run on every viewport (footer/sections keep their fade-in
+    // even where Lenis/GSAP are skipped below): one observer, one class.
+    let revealObserver: IntersectionObserver | null = null;
+    if ("IntersectionObserver" in window) {
+      revealObserver = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.classList.add("is-revealed");
+            revealObserver?.unobserve(entry.target);
+          }
+        },
+        { rootMargin: "0px 0px -12% 0px" },
+      );
+      document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => {
+        if (!el.classList.contains("is-revealed")) revealObserver!.observe(el);
+      });
+    } else {
+      // No observer: never leave blocks hidden behind a class nothing clears.
+      document.documentElement.classList.remove("js-reveal");
+    }
+
     const reduced =
       window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
       // Mobile may use native scroll by default (§9.3).
       window.innerWidth < 768;
-    if (reduced) return;
+    if (reduced) {
+      return () => revealObserver?.disconnect();
+    }
 
     let cleanup: Array<() => void> = [];
     let cancelled = false;
@@ -110,6 +134,7 @@ export function MarketingMotion() {
 
     return () => {
       cancelled = true;
+      revealObserver?.disconnect();
       cleanup.forEach((fn) => fn());
     };
   }, []);

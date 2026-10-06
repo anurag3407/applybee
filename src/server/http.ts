@@ -2,6 +2,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { CreditError } from "@/server/services/credits";
+import { getConfig } from "@/server/config";
 import { logger } from "@/server/logger";
 import { randomUUID } from "node:crypto";
 
@@ -20,6 +21,31 @@ export function ok<T extends object>(data: T, status = 200, headers?: Record<str
 
 export function accepted<T extends object>(data: T) {
   return ok(data, 202);
+}
+
+/**
+ * Wrap a route handler so every thrown error becomes the stable envelope
+ * (§19.1). Handlers keep their own typed signature; mapping that is specific
+ * to a domain error stays in the handler's own catch, because those messages
+ * are human copy rather than the sentinel codes `errorResponse` matches on.
+ */
+export function route<Args extends unknown[], Result extends Response>(
+  handler: (...args: Args) => Promise<Result>,
+): (...args: Args) => Promise<Response> {
+  return async (...args: Args) => {
+    try {
+      return await handler(...args);
+    } catch (err) {
+      return errorResponse(err);
+    }
+  };
+}
+
+/** Required query parameter, as the same NOT_FOUND sentinel the routes used to return. */
+export function requireSearchParam(req: Request, name: string): string {
+  const value = new URL(req.url).searchParams.get(name);
+  if (!value) throw new Error("NOT_FOUND");
+  return value;
 }
 
 export function apiError(
@@ -110,7 +136,7 @@ export async function assertSameOrigin(req: Request): Promise<void> {
     throw new Error("FORBIDDEN_ORIGIN");
   }
   if (origin) {
-    const { allowedOrigins } = await import("@/server/config").then((m) => m.getConfig());
+    const { allowedOrigins } = getConfig();
     let originHost: string;
     try {
       originHost = new URL(origin).host;

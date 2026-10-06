@@ -257,11 +257,22 @@ export async function getApiUser(): Promise<SessionUser | null> {
   }
 }
 
-export async function grantDevAdminRole(userId: string) {
-  await db
-    .insert(userRoleAssignments)
-    .values({ userId, role: "admin", assignedBy: userId })
-    .onConflictDoNothing();
+/**
+ * Throwing variants for API handlers: the sentinel is the exact error the
+ * handlers used to build by hand, so `errorResponse` still answers 401
+ * UNAUTHENTICATED — one place decides unauthenticated, not fifty.
+ */
+export async function requireApiUser(): Promise<SessionUser> {
+  const user = await getApiUser();
+  if (!user) throw new Error("UNAUTHORIZED");
+  return user;
+}
+
+/** Signed in, any account status — privacy/export flows must stay reachable while deleting. */
+export async function requireSessionUser(): Promise<SessionUser> {
+  const user = await getSessionUser();
+  if (!user) throw new Error("UNAUTHORIZED");
+  return user;
 }
 
 export { pool };

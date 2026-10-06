@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Manrope, Fraunces } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import "@/styles/globals.css";
 
 const manrope = Manrope({
@@ -40,7 +39,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const content = (
+  return (
     <html lang="en" className={`${manrope.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
         <script
@@ -58,6 +57,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     document.documentElement.style.colorScheme = 'light';
                   }
                 } catch (e) {}
+                try {
+                  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                    document.documentElement.classList.add('js-reveal');
+                  }
+                } catch (e) {}
               })();
             `,
           }}
@@ -71,10 +75,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
-
-  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  if (clerkKey) {
-    return <ClerkProvider publishableKey={clerkKey}>{content}</ClerkProvider>;
-  }
-  return content;
 }

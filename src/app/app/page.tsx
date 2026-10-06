@@ -23,7 +23,7 @@ export default async function DashboardPage() {
     listDrafts(user.id),
     upcomingReminders(user.id),
     getConnection(user.id),
-    import("@/server/config").then((m) => m.getConfig()),
+    getConfig(),
   ]);
 
   const nextSteps: Array<{ icon: React.ReactNode; title: string; body: string; href: string; cta: string }> = [];

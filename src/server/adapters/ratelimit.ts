@@ -113,11 +113,17 @@ export async function admitWithPreCheck(params: {
   principal: string;
   operationRef: string;
 }): Promise<AdmissionResult> {
-  const pre = await upstashPreCheck(
-    `ab:${getConfig().APP_ENV}:${params.policy.operationKind}:${params.principal}`,
-    params.policy.limit,
-    params.policy.windowSeconds,
-  );
+  // Only a fail-closed policy ever acts on the pre-check answer (a `false`
+  // below denies). For the others the REST round trip — measured at 42-456 ms
+  // here, 57 ms of every directory search — had its result discarded while the
+  // durable `admit_operation` ran anyway, so it was pure latency: skip it.
+  const pre = params.policy.failClosed
+    ? await upstashPreCheck(
+        `ab:${getConfig().APP_ENV}:${params.policy.operationKind}:${params.principal}`,
+        params.policy.limit,
+        params.policy.windowSeconds,
+      )
+    : null;
   if (pre === false && params.policy.failClosed) {
     return { admitted: false, retryAfterSeconds: params.policy.windowSeconds };
   }

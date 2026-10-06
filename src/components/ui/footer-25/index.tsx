@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowRight01Icon, ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 
@@ -53,11 +52,8 @@ export default function Footer25() {
         
         {/* Top Section */}
         <div className="flex flex-col gap-14 md:flex-row md:justify-between lg:gap-24">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          <div
+            data-reveal
             className="grid grid-cols-2 gap-x-10 gap-y-6 sm:gap-x-16"
           >
             <div className="flex flex-col gap-3 sm:gap-4">
@@ -77,14 +73,11 @@ export default function Footer25() {
               <Link href="/contact-data/request" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Data Request</Link>
               <Link href="/contact" className="text-2xl sm:text-3xl font-semibold tracking-tight transition-opacity hover:opacity-70 text-foreground dark:text-[#FAFAFA]">Contact</Link>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="flex w-full max-w-sm flex-col md:max-w-md"
+          <div
+            data-reveal
+            className="flex w-full max-w-sm flex-col md:max-w-md [--ab-reveal-delay:0.1s]"
           >
             <p className="mb-8 text-xl text-foreground dark:text-zinc-200 md:text-2xl">
               Get career outreach strategies, hiring manager insights, and AI workflow tips straight to your inbox.
@@ -115,16 +108,13 @@ export default function Footer25() {
               </form>
             )}
             {error ? <p className="mt-2 text-xs text-danger">{error}</p> : null}
-          </motion.div>
+          </div>
         </div>
 
         {/* Middle Section (Socials) */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-16 mb-12 flex items-center justify-between"
+        <div
+          data-reveal
+          className="mt-16 mb-12 flex items-center justify-between [--ab-reveal-y:0px] [--ab-reveal-dur:1s] [--ab-reveal-delay:0.2s]"
         >
           {/* Horizontal line extending from the left */}
           <div className="hidden h-px flex-1 bg-border dark:bg-white/20 md:block md:mr-16 lg:mr-32" />
@@ -151,15 +141,12 @@ export default function Footer25() {
               </a>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Bottom Section (Massive Logo) */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-auto mb-8 w-full"
+        <div
+          data-reveal
+          className="mt-auto mb-8 w-full [--ab-reveal-y:40px] [--ab-reveal-dur:1.2s] [--ab-reveal-delay:0.3s]"
         >
           <svg 
             viewBox="0 0 1200 200" 
@@ -180,15 +167,12 @@ export default function Footer25() {
             </text>
           </svg>
           <h1 className="sr-only">ReachBee</h1>
-        </motion.div>
+        </div>
 
         {/* Footer Meta */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-col items-start justify-between gap-6 text-foreground dark:text-white md:flex-row md:items-end border-t border-border dark:border-white/10 pt-6 transition-colors"
+        <div
+          data-reveal
+          className="flex flex-col items-start justify-between gap-6 text-foreground dark:text-white md:flex-row md:items-end border-t border-border dark:border-white/10 pt-6 transition-colors [--ab-reveal-y:0px] [--ab-reveal-dur:1s] [--ab-reveal-delay:0.5s]"
         >
           <p className="max-w-2xl leading-relaxed text-xs sm:text-sm text-muted-foreground dark:text-zinc-400">
             © {new Date().getFullYear()} ReachBee AI. Direct career outreach workspace beyond saturated job portals. <br />
@@ -200,7 +184,7 @@ export default function Footer25() {
             <Link href="/legal/terms" className="transition-colors hover:text-foreground dark:hover:text-white">Terms of Service</Link>
             <Link href="/legal/contact-data" className="transition-colors hover:text-foreground dark:hover:text-white">Contact Data</Link>
           </div>
-        </motion.div>
+        </div>
 
       </div>
     </footer>

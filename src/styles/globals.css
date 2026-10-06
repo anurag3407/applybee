@@ -212,6 +212,33 @@ body {
   }
 }
 
+/* Same reveal, CSS-driven: replaces per-element framer-motion whileInView on
+ * marketing sections (footer). `html.js-reveal` is set by the inline script in
+ * the root layout before first paint, so there is no visible flash; without JS
+ * the class never lands and the block stays visible.
+ * Per-block overrides: --ab-reveal-y / --ab-reveal-dur / --ab-reveal-delay. */
+.js-reveal [data-reveal] {
+  opacity: 0;
+  transform: translateY(var(--ab-reveal-y, 20px));
+}
+
+.js-reveal [data-reveal].is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--ab-reveal-dur, 0.8s) var(--ab-reveal-ease, cubic-bezier(0.16, 1, 0.3, 1)) var(--ab-reveal-delay, 0s),
+    transform var(--ab-reveal-dur, 0.8s) var(--ab-reveal-ease, cubic-bezier(0.16, 1, 0.3, 1)) var(--ab-reveal-delay, 0s),
+    /* keeps `transition-colors` on a revealed block working (theme toggle) */
+    color 150ms, background-color 150ms, border-color 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-reveal [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 @theme inline {
   --color-tetris-1: var(--tetris-1);
   --color-tetris-2: var(--tetris-2);

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { getPublishedCatalog } from "@/server/services/billing";
 import { getConfig } from "@/server/config";
 
@@ -21,7 +22,9 @@ export type CatalogView = {
   skus: CatalogSkuView[];
 };
 
-export async function getMarketingCatalog(): Promise<CatalogView | null> {
+// One catalog fetch per request: marketing pages call this directly and via
+// getTrialAllowance, which used to run the same two queries twice.
+export const getMarketingCatalog = cache(async (): Promise<CatalogView | null> => {
   try {
     const catalog = await getPublishedCatalog();
     if (!catalog) return null;
@@ -40,7 +43,7 @@ export async function getMarketingCatalog(): Promise<CatalogView | null> {
   } catch {
     return null;
   }
-}
+});
 
 /** The trial allowance from the shared catalog (free_trial_v1). */
 export async function getTrialAllowance(): Promise<{ contact: number; ai: number } | null> {

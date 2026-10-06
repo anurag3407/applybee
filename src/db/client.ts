@@ -8,11 +8,18 @@ import * as schema from "@/db/schema";
 
 /**
  * Database client.
- * In Cloudflare Workers (workerd) with Neon, connections cannot be shared across
- * requests ("Cannot perform I/O on behalf of a different request").
- * We use React's request cache so each incoming request gets its own
- * connection pool, avoiding cross-request socket reuse while reusing the
- * connection within the same request.
+ *
+ * Node (dev, `next start`, scripts, tests): ONE pool per process, kept on
+ * `globalThis`. A pool per request was never released — measured at 3 new
+ * sockets per request, 102 open after 30 requests — until PostgreSQL answered
+ * a burst with `sorry, too many clients already` (SQLSTATE 53300), which the
+ * API surfaced as 500/401 (requests looked signed out). A shared pool also
+ * skips a fresh TCP + startup handshake on every request.
+ *
+ * Cloudflare Workers (workerd) is the one exception: a socket opened while
+ * handling a request cannot be reused by the next ("Cannot perform I/O on
+ * behalf of a different request"), so there each request still gets its own
+ * pool via React's request cache.
  *
  * Driver selection:
  * - If the connection URL contains `neon.tech`, uses `@neondatabase/serverless` (WebSocket-based).
@@ -55,7 +62,22 @@ function getGlobalDb() {
   return globalForDb.__applyBeeDb;
 }
 
+/** True only inside Cloudflare's workerd — detected from its own globals. */
+function isWorkersRuntime(): boolean {
+  const g = globalThis as {
+    navigator?: { userAgent?: string };
+    WebSocketPair?: unknown;
+    caches?: { default?: unknown };
+  };
+  return (
+    g.navigator?.userAgent === "Cloudflare-Workers" ||
+    typeof g.WebSocketPair !== "undefined" ||
+    typeof g.caches?.default !== "undefined"
+  );
+}
+
 function getActiveDb() {
+  if (!isWorkersRuntime()) return getGlobalDb();
   try {
     return getRequestDb();
   } catch {

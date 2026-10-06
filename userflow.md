@@ -2,6 +2,8 @@
 
 A route-accurate walkthrough of every user journey in the ReachBee web app, for someone new to the codebase.
 
+**Verified against commit `06fe4f1`.** Every claim, line number and quoted string below was re-derived against that commit; if your checkout is elsewhere, re-verify first.
+
 **Scope.** All **64 page routes** (`src/app/**/page.tsx`) and **37 API routes** (`src/app/api/**/route.ts`).
 Every page appears exactly once: in a journey, or in [Appendix A](#appendix-a--unreachable-routes). Route groups — `(marketing)` and `(auth)` — do not appear in the URL.
 
@@ -11,7 +13,7 @@ Every page appears exactly once: in a journey, or in [Appendix A](#appendix-a--u
 | --- | --- |
 | `EXERCISED` | I ran this path and observed the outcome. |
 | `INFERRED` | Read from source; not run end to end. |
-| `CONFIRMED DEFECT` | Reproduced in a production build. Not fixed. See [Appendix B](#appendix-b--confirmed-defects-current-state). |
+| `CONFIRMED DEFECT` | Reproduced in a production build at an earlier commit. Current status per defect is in [Appendix B](#appendix-b--defect-status-at-this-commit) — three are addressed in source there and were **not** re-exercised by me. |
 
 > **Correction to earlier counts.** A previous pass reported "47 pages + 57 API routes." The accurate figures, from `find src/app -name page.tsx` (64) and `find src/app/api -name route.ts` (37), are used throughout this document. They reconcile with the production build manifest, which lists **103** entries: the 64 pages, the 37 API routes, plus `/_not-found` and `/icon.svg`.
 
@@ -31,7 +33,7 @@ Every page appears exactly once: in a journey, or in [Appendix A](#appendix-a--u
 10. [State catalogue](#10-state-catalogue)
 11. [Escape hatches](#11-escape-hatches-and-boundaries)
 12. [Appendix A — Unreachable routes](#appendix-a--unreachable-routes)
-13. [Appendix B — Confirmed defects](#appendix-b--confirmed-defects-current-state)
+13. [Appendix B — Defect status](#appendix-b--defect-status-at-this-commit)
 14. [Appendix C — API reference](#appendix-c--api-reference)
 15. [What I could not verify](#what-i-could-not-verify)
 
@@ -44,8 +46,8 @@ Three roles, resolved server-side. There is no client-side role model.
 | Role | How it is determined | Code |
 | --- | --- | --- |
 | **Anonymous** | No valid session | `getSessionUser()` returns `null` — `src/server/auth/session.ts:68` |
-| **Member** | Session resolves to a `users` row with `status === "active"` | `requireActiveUser()` — `src/server/auth/session.ts:231` |
-| **Admin** | Member **and** a `user_role_assignments` row with `role === "admin"` | `requireAdmin()` — `src/server/auth/session.ts:241` |
+| **Member** | Session resolves to a `users` row with `status === "active"` | `requireActiveUser()` — `src/server/auth/session.ts:232` |
+| **Admin** | Member **and** a `user_role_assignments` row with `role === "admin"` | `requireAdmin()` — `src/server/auth/session.ts:240` |
 
 **Account statuses.** `users.status` gates entry independently of role. Anything other than `active` is refused:
 
@@ -104,18 +106,18 @@ flowchart TD
 | Gate | File:line | Applies to | Failure mode | Verified |
 | --- | --- | --- | --- | --- |
 | `PROTECTED_PREFIXES = ["/app","/onboarding","/admin"]` | `src/proxy.ts:22` | All pages + API | 307 → `/sign-in?redirect=…` | `EXERCISED` |
-| `requireActiveUser()` | `src/server/auth/session.ts:231` | **33 pages call it directly** — all 5 `/onboarding` pages, and 28 of the 30 `/app` pages. The two `/app` pages that omit the call are `/app/settings` (a bare `redirect()`) and `/app/settings/integrations/gmail/result`; both render nothing sensitive and are covered by the layout guard | Redirect | `EXERCISED` |
-| `requireAdmin()` | `src/server/auth/session.ts:241` | `/admin/layout.tsx:15`, `admin-shell.tsx:20`, `admin/contacts/[contactId]/page.tsx:31,53` | See [DEF-1](#def-1--non-admin-admin-returns-http-200) | `EXERCISED` |
-| `getApiUser()` | `src/server/auth/session.ts:249` | Most API routes — exact per-route split in [Appendix C](#appendix-c--api-reference) | `401 UNAUTHENTICATED` | `EXERCISED` |
+| `requireActiveUser()` | `src/server/auth/session.ts:232` | **33 pages call it directly** — all 5 `/onboarding` pages, and 28 of the 30 `/app` pages. The two `/app` pages that omit the call are `/app/settings` (a bare `redirect()`) and `/app/settings/integrations/gmail/result`; both render nothing sensitive and are covered by the layout guard | Redirect | `EXERCISED` |
+| `requireAdmin()` | `src/server/auth/session.ts:240` | `/admin/layout.tsx:15`, `admin-shell.tsx:20`, `admin/contacts/[contactId]/page.tsx:31,53` | See [DEF-1](#def-1--non-admin-admin-returns-http-200) | `EXERCISED` |
+| `getApiUser()` | `src/server/auth/session.ts:250` | Most API routes — exact per-route split in [Appendix C](#appendix-c--api-reference) | `401 UNAUTHENTICATED` | `EXERCISED` |
 | `assertSameOrigin(req)` | `src/server/http.ts` | All mutating API routes | `403 FORBIDDEN_ORIGIN` | `EXERCISED` |
-| `requireIdempotencyKey(req)` | `src/server/http.ts:128` | Reveal, generations, orders | `400 IDEMPOTENCY_KEY_REQUIRED` | `EXERCISED` |
-| `errorResponse(err)` message map | `src/server/http.ts:59-71` | Every API route | See [DEF-2](#def-2--eml-export-returns-http-500) | `EXERCISED` |
+| `requireIdempotencyKey(req)` | `src/server/http.ts:129` | Reveal, generations, orders | `400 IDEMPOTENCY_KEY_REQUIRED` | `EXERCISED` |
+| `errorResponse(err)` message map | `src/server/http.ts:58-73` | Every API route | See [DEF-2](#def-2--eml-export-returns-http-500) | `EXERCISED` |
 
 ---
 
 ## 3. Navigation / IA map
 
-Primary navigation is the workspace sidebar (`src/components/shell/app-shell.tsx:25-35`) plus the utility header. Marketing navigation is the header (`src/components/marketing/header.tsx:26-31`) and the footer (`src/components/ui/footer-25/index.tsx:36-45, 155-160`).
+Primary navigation is the workspace sidebar (`src/components/shell/app-shell.tsx:26-34`) plus the utility header. Marketing navigation is the header (`src/components/marketing/header.tsx:26-31`) and the footer (`src/components/ui/footer-25/index.tsx:36-45, 155-160`).
 
 ```mermaid
 flowchart LR
@@ -169,13 +171,8 @@ flowchart LR
     end
 
     subgraph X["Orphans — no inbound link"]
-        ORPH1["/app/activity"]:::orphan
-        ORPH2["/app/companies/[companyId]"]:::orphan
-        ORPH3["/app/settings/security"]:::orphan
-        ORPH4["/app/settings/notifications"]:::orphan
-        ORPH5["/features · /how-it-works · /faq"]:::orphan
-        ORPH6["/accessibility · /contact-data/request"]:::orphan
-        ORPH7["/auth/session-expired · /service-unavailable"]:::orphan
+        ORPH1["/auth/session-expired"]:::orphan
+        ORPH2["/service-unavailable"]:::orphan
     end
 
     M -->|"Start free"| SU
@@ -199,16 +196,9 @@ The dashed red **Orphans** box in the diagram has **no inbound link anywhere in 
 
 | Route | Why it is orphaned |
 | --- | --- |
-| `/app/activity` | Nothing links to it. `ActivityPage` is fully built and reads real ledger + delivery data. |
-| `/app/companies/[companyId]` | Nothing links to it. The contact detail page renders company evidence inline (`src/app/app/contacts/[contactId]/page.tsx:84-100`) instead of linking. |
-| `/app/settings/security` | No settings sub-navigation exists. `/app/settings` redirects straight to `/app/settings/profile`. |
-| `/app/settings/notifications` | Same — no inbound link. |
-| `/features`, `/how-it-works` | Header links point at the **anchors** `/#features` and `/#how-it-works` on `/`, not these pages. |
-| `/faq` | Only referenced from `src/components/ui/navigation-5/index.tsx:190`, which is itself dead code. |
-| `/accessibility` | No inbound link. |
-| `/contact-data/request` | No inbound link; only links *out* to `/legal/contact-data`. |
-| `/auth/session-expired` | No inbound link — nothing ever sends a user here. |
-| `/service-unavailable` | No inbound link. |
+| `/auth/session-expired` | No inbound link anywhere. Only mentions are in `plan.md` and `docs/implementation-status.md`; no `href`, `router.push` or `redirect()` targets it. |
+| `/service-unavailable` | No inbound link anywhere. Same — documentation only. |
+
 
 ---
 
@@ -220,19 +210,24 @@ The dashed red **Orphans** box in the diagram has **no inbound link anywhere in 
 
 ### The visitor spine
 
-A visitor enters at step 1 and may take any branch; the order below is the canonical path, and every step is reachable from the shared header/footer on any other. The journey's exit is step 7 (ask support) or the header CTA into [Journey 2](#journey-2--authentication-sign-in-sign-out-session).
+A visitor enters at step 1 and may take any branch; the order below is the canonical path, and every step is reachable from the shared header/footer on any other. The journey's exit is step 12 (ask support) or the header CTA into [Journey 2](#journey-2--authentication-sign-in-sign-out-session).
 
 | # | Route | Reached by | Guard | States here | API call |
 | --- | --- | --- | --- | --- | --- |
 | 1 | `/` | Direct arrival, or the footer wordmark | none — public | Populated; **degraded catalog** if the SKU list fails to load | none |
-| 2 | `/pricing` | Header nav; footer (×2) | none | Same **degraded catalog** branch | none |
-| 3 | `/security` | Footer (×2) | none | Static trust claims + badge states | none |
-| 4 | `/help` | Footer; workspace sidebar bottom link | none | Empty → `EmptyState` "No articles yet" (`help/page.tsx:14-25`) | none |
-| 5 | `/help/[slug]` | Clicking an article in step 4 | none | Article, or `notFound()` (`help/[slug]/page.tsx:19`) → [DEF-3](#def-3--soft-404s-notfound-returns-http-200) | none |
-| 6 | `/legal/[doc]` | Footer (`/legal/privacy`, `/legal/terms`, `/legal/contact-data`); `/pricing` badges | none | Document, or `notFound()` (`legal/[doc]/page.tsx:20`) → [DEF-3](#def-3--soft-404s-notfound-returns-http-200) | none |
-| 7 | `/contact` | Footer (×2); socials row; `/auth/error`; `src/app/error.tsx:33` | none | Always a form; **error** = per-field validation | `POST /api/v1/public?kind=support` |
+| 2 | `/how-it-works` | Footer "How It Works" | none | How-it-works narrative | none |
+| 3 | `/features` | Footer "Features" | none | Feature grid | none |
+| 4 | `/pricing` | Header nav; footer (×2) | none | Same **degraded catalog** branch | none |
+| 5 | `/faq` | Footer "FAQ" | none | FAQ list | none |
+| 6 | `/security` | Footer (×2) | none | Static trust claims + badge states | none |
+| 7 | `/help` | Footer; workspace sidebar bottom link | none | Empty → `EmptyState` "No articles yet" (`help/page.tsx:14-25`) | none |
+| 8 | `/help/[slug]` | Clicking an article in step 7 | none | Article, or `notFound()` (`help/[slug]/page.tsx:19`) → [DEF-3](#def-3--soft-404s-notfound-returns-http-200) | none |
+| 9 | `/legal/[doc]` | Footer (`/legal/privacy`, `/legal/terms`, `/legal/contact-data`); `/pricing` badges | none | Document, or `notFound()` (`legal/[doc]/page.tsx:20`) → [DEF-3](#def-3--soft-404s-notfound-returns-http-200) | none |
+| 10 | `/accessibility` | Footer "Accessibility" | none | Accessibility statement | none |
+| 11 | `/contact-data/request` | Footer "Data Request" | none | No-account data correction/removal request | `POST /api/v1/public?kind=contact-data-request` |
+| 12 | `/contact` | Footer (×2); socials row; `/auth/error`; `src/app/error.tsx:30` | none | Always a form; **error** = per-field validation | `POST /api/v1/public?kind=support` |
 
-**Degraded-catalog detail (steps 1–2).** When the catalog fails, `Pricing` renders "We show real prices only when our catalog loads. You can still sign in and use the free tools." — `src/components/marketing/landing.tsx:495-499`. Prices are never invented.
+**Degraded-catalog detail (steps 1–4).** When the catalog fails, `Pricing` renders "We show real prices only when our catalog loads. You can still sign in and use the free tools." — `src/components/marketing/landing.tsx:495-499`. Prices are never invented.
 
 **Contact form validation.** `src/components/marketing/contact-form.tsx:35` posts to `POST /api/v1/public?kind=support`; a short message is rejected with a per-field error (`message: Too small: expected string to have >=20 characters`) rather than a generic failure. `EXERCISED`.
 
@@ -263,7 +258,7 @@ sequenceDiagram
         S-->>U: destination = safeInternalPath(redirect)
     end
     U->>O: authenticate → /onboarding
-    O->>A: after step 4 → /app
+    O->>A: after step 7 → /app
 ```
 
 `?sku` is validated against `/^[a-z0-9_]+$/i` and takes priority over `?redirect` (`src/app/(auth)/sign-up/page.tsx:18-20`). Both `redirect` params pass through `safeInternalPath()` (`src/lib/validation.ts`), which rejects external origins.
@@ -272,9 +267,10 @@ sequenceDiagram
 
 These are presentational only and accept input without acting on it:
 
-- **Footer subscribe form** — `onSubmit={(e) => e.preventDefault()}` at `src/components/ui/footer-25/index.tsx:60`. The email is silently discarded on **every** marketing page, because the footer is in the shared layout.
 - **Homepage `Newsletter1`** — the page passes `heading`, `subheading`, `placeholder`, `buttonText`, `disclaimer` but **no `onSubmit`** (`src/app/(marketing)/page.tsx:40-46`), so submitting performs a native GET and reloads the page.
-- **Footer socials** — point at bare `https://x.com`, `https://linkedin.com`, `https://github.com` (`src/components/ui/footer-25/index.tsx:91-93`).
+- **Footer socials** — point at bare `https://x.com`, `https://linkedin.com`, `https://github.com` (`src/components/ui/footer-25/index.tsx:134-136`).
+
+> **The footer subscribe form is no longer a dead end.** It previously discarded every address via a bare `preventDefault`. At this commit it posts for real: `handleSubscribe` sends `POST /api/v1/public?kind=newsletter` with the email and surfaces success or the returned error (`src/components/ui/footer-25/index.tsx:15-38`), and the route handles `kind === "newsletter"` (`src/app/api/v1/public/route.ts:47`).
 
 ---
 
@@ -309,7 +305,7 @@ Steps 1 → 2 → 3 form the happy path (returning visitor skips straight to ste
 
 ### Sign-out
 
-`SignOutButton` (`src/components/shell/sign-out.tsx:16`) → `POST /api/v1/auth/signout` → `signOut()` (`src/server/auth/session.ts:194`) deletes the session row, clears the cookie, and — in Clerk mode — revokes the Clerk session via `clerkClient().sessions.revokeSession()` so the user is not silently signed back in. Then `router.push("/")`.
+`SignOutButton` (`src/components/shell/sign-out.tsx:16`) → `POST /api/v1/auth/signout` → `signOut()` (`src/server/auth/session.ts:201`) deletes the session row, clears the cookie, and — in Clerk mode — revokes the Clerk session via `clerkClient().sessions.revokeSession()` so the user is not silently signed back in. Then `router.push("/")`.
 
 ### Session expiry
 
@@ -360,13 +356,13 @@ Strictly sequential: every step has exactly one forward exit except step 3, whic
 
 ## Journey 4 — Signed-in member workspace
 
-**Gate:** `requireActiveUser()` in `src/app/app/layout.tsx:15` runs before any page body renders. `AppShell` calls it again (`src/components/shell/app-shell.tsx:21`).
+**Gate:** `requireActiveUser()` in `src/app/app/layout.tsx:12` runs before any page body renders. `AppShell` calls it again (`src/components/shell/app-shell.tsx:22`).
 
 **Persistent chrome:** sidebar (7 primary + 3 bottom), credit strip linking to `/app/billing/credits?type=contact` and `?type=ai`, utility header with "Create an introduction" → `/app/drafts/new`, bell → `/app/notifications`, and an `Admin` button rendered **only** when `user.isAdmin`.
 
 ### 4.1 The workspace spine — one pass, entry to exit
 
-Read the steps top to bottom: this is the order a member actually moves through the product, starting at sign-in. Steps 1–2 are sign-in and onboarding, which [Journey 2](#journey-2--authentication-sign-in-sign-out-session) and [Journey 3](#journey-3--new-signup-through-onboarding) already document node by node — this table links to those nodes rather than redeclaring their routes. Steps 3–6 take a contact from search to a paid reveal to a saved record; steps 7–9 take it from a draft through AI generation to an exported file; steps 10–17 build the reusable assets and the pipeline; steps 18–22 are the money loop; steps 23–28 are the account tail. Every step carries the guard it hits and the API it calls. Per-area detail hangs off each step range in [§4.2](#42-steps-34--contacts-search) onward.
+Read the steps top to bottom: this is the order a member actually moves through the product, starting at sign-in. Steps 1–2 are sign-in and onboarding, which [Journey 2](#journey-2--authentication-sign-in-sign-out-session) and [Journey 3](#journey-3--new-signup-through-onboarding) already document node by node — this table links to those nodes rather than redeclaring their routes. Steps 3–7 take a contact from search through a paid reveal to its company and on to a saved record; steps 8–10 take it from a draft through AI generation to an exported file; steps 11–19 cover the reusable assets, the pipeline and the activity log; steps 20–24 are the money loop; steps 25–32 are notifications and settings. The workspace rows follow how the sidebar, the settings tab bar and the links between pages actually take you — not alphabetical order or grouping convenience. Every step carries the guard it hits and the API it calls. Per-area detail hangs off each step range in [§4.2](#42-steps-34--contacts-search) onward.
 
 **Entry condition.** A guest arriving at any `/app`, `/onboarding` or `/admin` URL has already been 307'd by the proxy to `/sign-in?redirect=…` — that redirect is step 1. After authenticating, a new member runs step 2; a returning member enters at step 3.
 
@@ -377,34 +373,38 @@ Read the steps top to bottom: this is the order a member actually moves through 
 | 3 | `/app` | Onboarding complete; sidebar "Overview"; `FinalCta`; 404 page | `requireActiveUser()` (layout + shell) | Populated / empty-drafts / no-reminders / 3 next-step variants | `GET /api/v1/me` |
 | 4 | `/app/contacts` | Step 3 "Find Decision-Makers"; sidebar; empty states elsewhere | `requireActiveUser()` | Empty / locked / unlocked / paginated / loading | `GET /api/v1/contacts` |
 | 5 | `/app/contacts/[contactId]` | Step 4 row name or "Details" | `requireActiveUser()` | `notFound()` / verified / catch-all / stale | `GET /api/v1/contacts/{id}` |
-| 5a | *(no page)* **Reveal — spends 1 contact credit** | "Reveal" on a locked row, from step 4 or 3 | `assertSameOrigin` + **`Idempotency-Key` required** | Success / `400 IDEMPOTENCY_KEY_REQUIRED` / out of credits `409` / `RATE_LIMITED` | `POST /api/v1/contacts/{id}/reveal` |
-| 6 | `/app/saved` | "Save" from step 5 (writes first) | `requireActiveUser()` | Empty / populated / tombstone | `PUT /api/v1/saved-contacts/{id}` |
-| 7 | `/app/drafts` | Sidebar; step 3 "All drafts" | `requireActiveUser()` | Empty / populated / `generating` | `GET /api/v1/drafts` |
-| 8 | `/app/drafts/new` | Header "Create an introduction"; step 7 empty state; step 5 "Write to contact" | `requireActiveUser()` | **No UI** — creates a row then redirects; every visit mints a new draft | `POST /api/v1/drafts` |
-| 9 | `/app/drafts/[draftId]` | Step 8 redirect; step 7 row; step 3 recent list | `requireActiveUser()` | Compose / generating / proposal-ready / conflict / delivery / export — see the state machine in [§4.5](#45-steps-89--drafts-compose--generate--edit--export) | `GET`, `PATCH`, `DELETE /api/v1/drafts/{id}`; `POST …/generations`; `POST /api/v1/generations/{id}/accept`; `GET /api/v1/drafts/{id}/export.eml` (download) — [DEF-2](#def-2--eml-export-returns-http-500) |
-| 10 | `/app/templates` | Sidebar | `requireActiveUser()` | Empty / populated | `GET /api/v1/templates` |
-| 11 | `/app/templates/new` | Step 10 "New template" | `requireActiveUser()` | Create form | `POST /api/v1/templates` |
-| 12 | `/app/templates/[templateId]` | Step 10 row | `requireActiveUser()` | Edit / `notFound()` / save-redirect | `PATCH /api/v1/templates/{id}` |
-| 13 | `/app/resumes` | Step 14 breadcrumb; upload flows. **Not in the sidebar** | `requireActiveUser()` | Empty / 9 machine states / degraded-scanner warning | `GET /api/v1/resumes`, `POST /api/v1/uploads/resume` |
-| 14 | `/app/resumes/[resumeId]` | Step 13 filename | `requireActiveUser()` | `notFound()` / download-gated / `review_required` → step 15 | `GET /api/v1/resumes/{id}/download`, `DELETE /api/v1/resumes` |
-| 15 | `/app/profile` | Step 14 `review_required` card; sidebar; step 3 next-step; step 9 profile warning | `requireActiveUser()` | Unapproved / reviewable / none / superseded | `GET`,`POST`,`PUT /api/v1/profile` |
-| 16 | `/app/pipeline` | Sidebar; step 3 "Open pipeline" | `requireActiveUser()` | Empty / board grouped by stage | `GET /api/v1/opportunities` |
-| 17 | `/app/pipeline/[opportunityId]` | Step 16 card; step 3 reminders | `requireActiveUser()` | `notFound()` / stage controls / notes list | `PATCH`,`PUT`,`DELETE /api/v1/opportunities?id=` |
-| 18 | `/app/billing` | Sidebar; user menu; credit strip | `requireActiveUser()` | Balances / catalog-unavailable warning | `GET /api/v1/billing` |
-| 19 | `/app/billing/plans` | Step 18 card or "Buy a pack" | `requireActiveUser()` | Catalog-unavailable / trial / pack grid / sandbox | `POST /api/v1/billing/orders` |
-| 20 | `/app/billing/history` | Step 18 "Payments" | `requireActiveUser()` | Empty / paid / being-confirmed | `GET /api/v1/billing` |
-| 21 | `/app/billing/payments/[paymentId]` | Step 20 "Details"; step 19 checkout redirect | `requireActiveUser()` | fulfilled / pending / cancelled / failed / awaiting | `POST /api/v1/billing/orders/{id}/verify` |
-| 22 | `/app/billing/credits` | Credit strip (×2); step 18 "Credit ledger" | `requireActiveUser()` | Empty / filtered (All, Contact, AI) | `GET /api/v1/billing` |
-| 23 | `/app/notifications` | Header bell | `requireActiveUser()` | Empty / unread / read | `PATCH /api/v1/notifications` (`action=read`\|`dismiss`) |
-| 24 | `/app/settings` | Sidebar; user menu | `requireActiveUser()` | **No UI** — redirects; returns HTTP 200, not 307 | — |
-| 25 | `/app/settings/profile` | Step 24 redirect | `requireActiveUser()` | Form; missing prefs silently default | `PATCH /api/v1/me/preferences` |
-| 26 | `/app/settings/privacy` | Redirect for `status === "deleting"` | `requireActiveUser()` | Active / in-deletion | `POST /api/v1/privacy` |
-| 27 | `/app/settings/integrations` | Step 3 Gmail next-step; step 9 approvals; step 28 back-link | `requireActiveUser()` | Connected / not connected / delivery history | `POST`,`DELETE /api/v1/gmail/connection` |
-| 28 | `/app/settings/integrations/gmail/result` | Step 27 OAuth callback redirect | `requireActiveUser()` | 6 mapped outcomes + generic fallback | `GET /api/v1/gmail/callback` (the producer) |
+| 5a | *(no page)* **Reveal — spends 1 contact credit** | "Reveal" on a locked row, from step 4 or 5 | `assertSameOrigin` + **`Idempotency-Key` required** | Success / `400 IDEMPOTENCY_KEY_REQUIRED` / out of credits `409` / `RATE_LIMITED` | `POST /api/v1/contacts/{id}/reveal` |
+| 6 | `/app/companies/[companyId]` | Company links on step 5 contact detail (`contacts/[contactId]/page.tsx:38,87`) | `requireActiveUser()` | `notFound()` on an unknown id (`page.tsx:15`); empty-evidence branch (`page.tsx:28`); otherwise company evidence + people at company | none over HTTP — the page calls `getCompanyWithEvidence(companyId)` directly, and **no `/api/v1/companies` route exists** |
+| 7 | `/app/saved` | "Save" from step 5 (writes first) | `requireActiveUser()` | Empty / populated / tombstone | `PUT /api/v1/saved-contacts/{id}` |
+| 8 | `/app/drafts` | Sidebar; step 3 "All drafts" | `requireActiveUser()` | Empty / populated / `generating` | `GET /api/v1/drafts` |
+| 9 | `/app/drafts/new` | Header "Create an introduction"; step 8 empty state; step 5 "Write to contact" | `requireActiveUser()` | **No UI** — creates a row then redirects; every visit mints a new draft | `POST /api/v1/drafts` |
+| 10 | `/app/drafts/[draftId]` | Step 9 redirect; step 8 row; step 3 recent list | `requireActiveUser()` | Compose / generating / proposal-ready / conflict / delivery / export — see the state machine in [§4.5)](#45-steps-910--drafts-compose--generate--edit--export) | `GET`, `PATCH`, `DELETE /api/v1/drafts/{id}`; `POST …/generations`; `POST /api/v1/generations/{id}/accept`; `GET /api/v1/drafts/{id}/export.eml` (download) — [DEF-2](#def-2--eml-export-returns-http-500) |
+| 11 | `/app/templates` | Sidebar | `requireActiveUser()` | Empty / populated | `GET /api/v1/templates` |
+| 12 | `/app/templates/new` | Step 11 "New template" | `requireActiveUser()` | Create form | `POST /api/v1/templates` |
+| 13 | `/app/templates/[templateId]` | Step 11 row | `requireActiveUser()` | Edit / `notFound()` / save-redirect | `PATCH /api/v1/templates/{id}` |
+| 14 | `/app/resumes` | Step 15 breadcrumb; upload flows. **Not in the sidebar** | `requireActiveUser()` | Empty / 9 machine states / degraded-scanner warning | `GET /api/v1/resumes`, `POST /api/v1/uploads/resume` |
+| 15 | `/app/resumes/[resumeId]` | Step 14 filename | `requireActiveUser()` | `notFound()` / download-gated / `review_required` → step 16 | `GET /api/v1/resumes/{id}/download`, `DELETE /api/v1/resumes` |
+| 16 | `/app/profile` | Step 15 `review_required` card; sidebar; step 3 next-step; step 10 profile warning | `requireActiveUser()` | Unapproved / reviewable / none / superseded | `GET`,`POST`,`PUT /api/v1/profile` |
+| 17 | `/app/pipeline` | Sidebar; step 3 "Open pipeline" | `requireActiveUser()` | Empty / board grouped by stage | `GET /api/v1/opportunities` |
+| 18 | `/app/pipeline/[opportunityId]` | Step 17 card; step 3 reminders | `requireActiveUser()` | `notFound()` / stage controls / notes list | `PATCH`,`PUT`,`DELETE /api/v1/opportunities?id=` |
+| 19 | `/app/activity` | Sidebar "Activity" (`app-shell.tsx:34`) | `requireActiveUser()` | Chronology of credit ledger + Gmail deliveries | none over HTTP — the page calls `getLedger(user.id, "all", 60)` and `listDeliveries(user.id, 20)` directly; only `GET /api/v1/gmail-deliveries/[id]` exists, and there is no deliveries list route |
+| 20 | `/app/billing` | Sidebar; user menu; credit strip | `requireActiveUser()` | Balances / catalog-unavailable warning | `GET /api/v1/billing` |
+| 21 | `/app/billing/plans` | Step 20 card or "Buy a pack" | `requireActiveUser()` | Catalog-unavailable / trial / pack grid / sandbox | `POST /api/v1/billing/orders` |
+| 22 | `/app/billing/history` | Step 20 "Payments" | `requireActiveUser()` | Empty / paid / being-confirmed | `GET /api/v1/billing` |
+| 23 | `/app/billing/payments/[paymentId]` | Step 22 "Details"; step 21 checkout redirect | `requireActiveUser()` | fulfilled / pending / cancelled / failed / awaiting | `POST /api/v1/billing/orders/{id}/verify` |
+| 24 | `/app/billing/credits` | Credit strip (×2); step 20 "Credit ledger" | `requireActiveUser()` | Empty / filtered (All, Contact, AI) | `GET /api/v1/billing` |
+| 25 | `/app/notifications` | Header bell | `requireActiveUser()` | Empty / unread / read | `PATCH /api/v1/notifications` (`action=read`\|`dismiss`) |
+| 26 | `/app/settings` | Sidebar; user menu | `requireActiveUser()` | **No UI** — redirects; returns HTTP 200, not 307 | — |
+| 27 | `/app/settings/profile` | Step 26 redirect | `requireActiveUser()` | Form; missing prefs silently default | `PATCH /api/v1/me/preferences` |
+| 28 | `/app/settings/integrations` | Step 3 Gmail next-step; step 10 approvals; step 29 back-link | `requireActiveUser()` | Connected / not connected / delivery history | `POST`,`DELETE /api/v1/gmail/connection` |
+| 29 | `/app/settings/integrations/gmail/result` | Step 28 OAuth callback redirect | `requireActiveUser()` | 6 mapped outcomes + generic fallback | `GET /api/v1/gmail/callback` (the producer) |
+| 30 | `/app/settings/notifications` | Settings sub-navigation | `requireActiveUser()` | Channel preferences | none |
+| 31 | `/app/settings/security` | Settings sub-navigation | `requireActiveUser()` | Account/sessions, Gmail authorization | none |
+| 32 | `/app/settings/privacy` | Redirect for `status === "deleting"` | `requireActiveUser()` | Active / in-deletion | `POST /api/v1/privacy` |
 
-**Exit.** The member leaves the workspace by signing out (`SignOutButton` → `POST /api/v1/auth/signout` → `router.push("/")`) or by a proxy 307 on the next request after their session dies. Two exits are *not* in the table because they are not workspace pages: `/access-denied` (step 16/17 attempted as a non-admin) and the 404 boundary.
+**Exit.** The member leaves the workspace by signing out (`SignOutButton` → `POST /api/v1/auth/signout` → `router.push("/")`) or by a proxy 307 on the next request after their session dies. Two exits are *not* in the table because they are not workspace pages: `/access-denied` (step 17/18 attempted as a non-admin) and the 404 boundary.
 
-**Where the thread loops.** Steps 5a → 6 → 7 → 14 form the repeatable core: reveal an address, write to it, track it. Step 22 feeds steps 5a and 7 (credits in, credits spent); steps 18–22 replenish. Steps 13–15 feed step 9 (a confirmed profile is a precondition for generation).
+**Where the thread loops.** Steps 5a → 7 → 9 → 10 → 18 form the repeatable core: reveal an address, save it, write to it, track it. Step 24 (`/app/billing/credits`) feeds steps 5a and 10 (credits in, credits spent); steps 20–24 replenish. Steps 14–16 feed step 10 — a confirmed profile is a precondition for generation. Steps 6 and 19 are read-only detours off steps 5 and 18 respectively.
 
 ### 4.2 Steps 3–4 — Contacts search
 
@@ -424,27 +424,29 @@ Read the steps top to bottom: this is the order a member actually moves through 
 
 **Filters** — `SearchToolbar` (`src/components/directory/search-toolbar.tsx`) writes to the URL via `router.replace(..., { scroll: false })`, so results are shareable. Consumed at `page.tsx:47-56`: `q`, `dept`, `role`, `location`, `stage`, `verification`, `cursor`. Page size fixed at 25.
 
-### 4.3 Steps 5–5a–6 — Reveal and save
+### 4.3 Steps 5–5a–7 — Reveal and save
 
 **Step 5, contact detail.** `notFound()` if absent (`page.tsx:17`). Verification `StatusChip` incl. "Catch-all domain". "Employment may have changed" chip when `status === "stale"`. Company evidence panel; `.catch(() => null)` at `page.tsx:20` degrades gracefully. Actions: Save, Write (unlocked only), Report.
 
 **Step 5a, reveal costs 1 contact credit.** `POST /api/v1/contacts/[id]/reveal` requires `Idempotency-Key` (`requireIdempotencyKey`, `http.ts:128`; missing → `400 IDEMPOTENCY_KEY_REQUIRED` — `EXERCISED`). Reopening is always free. The composer shows "Email locked — reveal in directory before Gmail delivery" while locked.
 
-**Step 6, save.** `PUT /api/v1/saved-contacts/{id}` (aliased by `PATCH`); unsave is `DELETE`. Both require same-origin.
+**Step 6, company detail.** `/app/companies/[companyId]` is reached from the company links on step 5 (`src/app/app/contacts/[contactId]/page.tsx:38,87`). It shows company evidence plus the people at that company, and is a read-only detour — nothing in the product writes to a company record.
+
+**Step 7, save.** `PUT /api/v1/saved-contacts/{id}` (aliased by `PATCH`); unsave is `DELETE`. Both require same-origin.
 
 `/app/saved` renders in three states: **Empty** — `EmptyState` "Nothing saved yet" → `/app/contacts` (`page.tsx:20-29`). **Populated** — each row links back to the contact detail **unless it is a tombstone**; an unavailable record renders as plain text plus an "Unavailable" badge and an explanation that unlock history is preserved (`page.tsx:36-52, 60`), with Save and Write hidden. **Error** — no per-page boundary; falls through to `src/app/error.tsx`.
 
 **Report / bounce refund** — available from step 5. `POST /api/v1/contacts/[id]/reports`. `reportType: "bounced"` routes to `reportBounceAndRefund()` and issues a replacement credit; other types (`stale`, `incorrect`, `removal`, `abuse`) go to `reportContact()` (`src/app/api/v1/contacts/[id]/reports/route.ts:21-31`). The composer's "Bounce Guarantee" claim is therefore backed by real code. `INFERRED` — not executed.
 
-### 4.4 Step 7 — Drafts list
+### 4.4 Step 8 — Drafts list
 
 **Empty:** `EmptyState` "No drafts yet" → `/app/drafts/new`. Filters `status !== "deleted"` (`page.tsx:15`). Each row carries its mode, version, relative update time, and a `generating` badge while AI runs.
 
-### 4.5 Steps 8–9 — Drafts: compose → generate → edit → export
+### 4.5 Steps 9–10 — Drafts: compose → generate → edit → export
 
-**Step 8** renders **no UI**. It creates a draft then `redirect()`s to step 9 (`page.tsx:26-39`). It accepts `?contactId=` (UUID-validated), `?mode=` ∈ manual/quick_ai/agentic (default `quick_ai`), and `?intent=` ∈ advertised_role/internship/intro/referral/follow_up (default `intro`). **Every visit creates a row** — refreshing mints a new draft.
+**Step 9** renders **no UI**. It creates a draft then `redirect()`s to step 10 (`page.tsx:26-39`). It accepts `?contactId=` (UUID-validated), `?mode=` ∈ manual/quick_ai/agentic (default `quick_ai`), and `?intent=` ∈ advertised_role/internship/intro/referral/follow_up (default `intro`). **Every visit creates a row** — refreshing mints a new draft.
 
-**Step 9** is `notFound()` if the draft is absent **or** `status === "deleted"` (`page.tsx:17`), then renders `Composer` (`src/components/composer/composer.tsx`) — the highest-density surface in the app:
+**Step 10** is `notFound()` if the draft is absent **or** `status === "deleted"` (`page.tsx:17`), then renders `Composer` (`src/components/composer/composer.tsx`) — the highest-density surface in the app:
 
 | Region | States |
 | --- | --- |
@@ -465,23 +467,25 @@ Read the steps top to bottom: this is the order a member actually moves through 
 
 There is **no Send button anywhere** — stated explicitly in the editor footer.
 
-### 4.6 Steps 10–12 — Templates
+### 4.6 Steps 11–13 — Templates
 
-Applying a template is deterministic and free — it never calls AI (`page.tsx:19`). **Step 10 empty state** suggests `{{recipient_first_name}}` / `{{achievement}}` placeholders. **Step 11** renders `TemplateEditor` with `templateId={null}`; `POST /api/v1/templates` creates and `router.push` lands on step 12 (`template-editor.tsx:53`). **Step 12** is `notFound()` if absent (`page.tsx:18`); its query is scoped `and(eq(templates.id, …), eq(templates.userId, user.id))`, and it renders with sample placeholder values so previews are never empty.
+Applying a template is deterministic and free — it never calls AI (`page.tsx:19`). **Step 11 empty state** suggests `{{recipient_first_name}}` / `{{achievement}}` placeholders. **Step 12** renders `TemplateEditor` with `templateId={null}`; `POST /api/v1/templates` creates and `router.push` lands on step 13 (`template-editor.tsx:53`). **Step 13** is `notFound()` if absent (`page.tsx:18`); its query is scoped `and(eq(templates.id, …), eq(templates.userId, user.id))`, and it renders with sample placeholder values so previews are never empty.
 
-### 4.7 Steps 13–14 — Resumes
+### 4.7 Steps 14–15 — Resumes
 
-**Step 13** has an **empty** `EmptyState` and nine labelled machine states (`page.tsx:13-22`): `uploaded`, `scanning`, `scanning_rejected`, `parsing`, `review_required`, `ready`, `parse_failed`, `failed`. When `DOCUMENT_PROCESSOR_ENDPOINT` is unset a **degraded** warning card explains that files get structural validation only and that no malware scan runs — labelled a launch gate (`page.tsx:70-80`).
+**Step 14** has an **empty** `EmptyState` and nine labelled machine states (`page.tsx:13-22`): `uploaded`, `scanning`, `scanning_rejected`, `parsing`, `review_required`, `ready`, `parse_failed`, `failed`. When `DOCUMENT_PROCESSOR_ENDPOINT` is unset a **degraded** warning card explains that files get structural validation only and that no malware scan runs — labelled a launch gate (`page.tsx:70-80`).
 
-Upload is `POST /api/v1/uploads/resume` (+ `PUT`). **Step 14** is `notFound()` (`page.tsx:17`); download is `GET /api/v1/resumes/[id]/download`, ownership-checked and scan-gated, and the button is disabled unless `scanStatus === "clean"`. The file is never publicly linkable. Delete is `DELETE /api/v1/resumes` (soft state transition). A `review_required` resume pushes the member to step 15.
+Upload is `POST /api/v1/uploads/resume` (+ `PUT`). **Step 15** is `notFound()` (`page.tsx:17`); download is `GET /api/v1/resumes/[id]/download`, ownership-checked and scan-gated, and the button is disabled unless `scanStatus === "clean"`. The file is never publicly linkable. Delete is `DELETE /api/v1/resumes` (soft state transition). A `review_required` resume pushes the member to step 16.
 
-### 4.8 Step 15 — Career profile
+### 4.8 Step 16 — Career profile
 
-Three-way state (`page.tsx:23-69`): **unapproved revision** → amber "Parsed resume awaiting review"; **reviewable** → `ProfileFactsEditor`; **none** → "No profile yet". When a newer revision exists than the one being reviewed, a fourth "Current approved revision" card renders below. Approval is what unlocks AI drafting at step 9.
+Three-way state (`page.tsx:23-69`): **unapproved revision** → amber "Parsed resume awaiting review"; **reviewable** → `ProfileFactsEditor`; **none** → "No profile yet". When a newer revision exists than the one being reviewed, a fourth "Current approved revision" card renders below. Approval is what unlocks AI drafting at step 10.
 
-### 4.9 Steps 16–17 — Pipeline / opportunities
+### 4.9 Steps 17–18 — Pipeline / opportunities
 
-**Step 16 empty:** `EmptyState` "No opportunities yet" + `NewOpportunityButton` (`page.tsx:28-33`); **populated:** `PipelineBoard` grouped by stage. **Step 17** is `notFound()` (`page.tsx:16`). Job URL opens in a new tab with `rel="noopener noreferrer"`. `StageControls` moves stage / sets `nextActionAt`. Notes: `NotesComposer` PUTs then calls `window.location.reload()` — a full page reload, not a router refresh (`page.tsx:82`); empty notes → "No notes yet."
+**Step 17 empty:** `EmptyState` "No opportunities yet" + `NewOpportunityButton` (`page.tsx:28-33`); **populated:** `PipelineBoard` grouped by stage. **Step 18** is `notFound()` (`page.tsx:16`). Job URL opens in a new tab with `rel="noopener noreferrer"`. `StageControls` moves stage / sets `nextActionAt`. Notes: `NotesComposer` PUTs then calls `window.location.reload()` — a full page reload, not a router refresh (`page.tsx:82`); empty notes → "No notes yet."
+
+**Step 19, activity.** `/app/activity` sits last in the sidebar's primary links, immediately after Pipeline (`src/components/shell/app-shell.tsx:34`). It merges the credit ledger and Gmail deliveries into one chronology, and is read-only.
 
 **Stages** (`src/server/services/opportunities.ts:17-25`): `interested` → `draft_ready` → `applied_or_contacted` → `conversation` → `interview` → `offer` → `closed`.
 
@@ -489,17 +493,17 @@ Opportunity CRUD all lives on **one** endpoint, discriminated by HTTP method and
 
 The product position is explicit in UI copy: stages are self-reported, ReachBee does not read the inbox, and draft creation never implies "contacted".
 
-### 4.10 Steps 18–22 — Billing and credits
+### 4.10 Steps 20–24 — Billing and credits
 
-**Step 18** shows two balance cards and three sub-links; **catalog unavailable** gives an explicit warning "Catalog temporarily unavailable — purchases are paused honestly rather than showing invented prices" (`page.tsx:77`). **Step 19** on catalog failure shows a warning card with no invented prices; otherwise a trial card from `free_trial_v1` plus a pack grid where `CheckoutLauncher` is gated on `FEATURE_LIVE_PURCHASES_ENABLED \|\| paymentsMode === "mock"`, with sandbox mode labelled. **Step 20 empty:** `EmptyState`; it joins orders to payments and shows "Being confirmed" for pending so nobody pays twice. **Step 21** accepts **either** an order id or a payment id (`page.tsx:20`) across five statuses — fulfilled, pending, cancelled, failed, awaiting — and on fulfilled shows granted quantities and current balances. **Step 22** is an append-only ledger, 100 rows, filterable All / Contact / AI, empty → "No entries yet.", across ten ledger kinds (`page.tsx:9-19`).
+**Step 20** shows two balance cards and three sub-links; **catalog unavailable** gives an explicit warning "Catalog temporarily unavailable — purchases are paused honestly rather than showing invented prices" (`page.tsx:77`). **Step 21** on catalog failure shows a warning card with no invented prices; otherwise a trial card from `free_trial_v1` plus a pack grid where `CheckoutLauncher` is gated on `FEATURE_LIVE_PURCHASES_ENABLED \|\| paymentsMode === "mock"`, with sandbox mode labelled. **Step 22 empty:** `EmptyState`; it joins orders to payments and shows "Being confirmed" for pending so nobody pays twice. **Step 23** accepts **either** an order id or a payment id (`page.tsx:20`) across five statuses — fulfilled, pending, cancelled, failed, awaiting — and on fulfilled shows granted quantities and current balances. **Step 24** is an append-only ledger, 100 rows, filterable All / Contact / AI, empty → "No entries yet.", across ten ledger kinds (`page.tsx:9-19`).
 
 Checkout: `CheckoutLauncher` → `POST /api/v1/billing/orders` → `router.push('/app/billing/payments/${orderId}')` (`checkout-launcher.tsx:57`), with a mock-mode 800 ms fallback (`:85`). `POST /api/v1/billing/orders/[id]/verify` reconciles. Webhook at `POST /api/webhooks/razorpay`. Fulfillment is idempotent — exactly-once credit grant regardless of which signal arrives. `INFERRED` — not executed.
 
-### 4.11 Steps 23–28 — Notifications and settings
+### 4.11 Steps 25–32 — Notifications and settings
 
-**Step 23 empty:** `EmptyState` "All clear". Read items render at `opacity-80` and lose the "New" badge; `NotificationActions` calls `PATCH /api/v1/notifications` with `action=read` or `action=dismiss` (`src/app/api/v1/notifications/route.ts:26-27`). **Step 24** renders no UI and redirects to step 25; **confirmed** to return HTTP 200 rather than 307 — see [DEF-3](#def-3--soft-404s-notfound-returns-http-200). **Step 25** is a `SettingsForm` covering display name, timezone, career stage, default mode, `notifyReminders`, `notifyProduct`, `dailyDigestEnabled`, written via `PATCH /api/v1/me/preferences`; missing prefs fall back to defaults (`page.tsx:20-25`) rather than showing an error. **Step 26** offers export and delete via `ExportDeletionPanel`, states plainly what survives deletion, and branches its footer text on `user.status === "deleting"`; `POST /api/v1/privacy` runs exports as durable jobs, one per day, with 24 h availability. **Step 27** shows Gmail connection status, scope badges, connection version, and recent deliveries with per-state chips; `POST /api/v1/gmail/connection` starts OAuth and `DELETE` disconnects. **Step 28** maps six outcomes (`connected`, `declined`, `partial_scope`, `state_invalid_or_expired`, `invalid_grant`, `access_denied`) plus a generic fallback that echoes the raw key, and states that no tokens or state params remain in the URL — **confirmed 200 for both success and error queries**, `EXERCISED`.
+**Step 25 empty:** `EmptyState` "All clear". Read items render at `opacity-80` and lose the "New" badge; `NotificationActions` calls `PATCH /api/v1/notifications` with `action=read` or `action=dismiss` (`src/app/api/v1/notifications/route.ts:26-27`). **Step 26** renders no UI and redirects to step 27; **confirmed** to return HTTP 200 rather than 307 — see [DEF-3](#def-3--soft-404s-notfound-returns-http-200). **Step 27** is a `SettingsForm` covering display name, timezone, career stage, default mode, `notifyReminders`, `notifyProduct`, `dailyDigestEnabled`, written via `PATCH /api/v1/me/preferences`; missing prefs fall back to defaults (`page.tsx:20-25`) rather than showing an error. **Step 32** offers export and delete via `ExportDeletionPanel`, states plainly what survives deletion, and branches its footer text on `user.status === "deleting"`; `POST /api/v1/privacy` runs exports as durable jobs, one per day, with 24 h availability. **Step 28** shows Gmail connection status, scope badges, connection version, and recent deliveries with per-state chips; `POST /api/v1/gmail/connection` starts OAuth and `DELETE` disconnects. **Step 29** maps six outcomes (`connected`, `declined`, `partial_scope`, `state_invalid_or_expired`, `invalid_grant`, `access_denied`) plus a generic fallback that echoes the raw key, and states that no tokens or state params remain in the URL — **confirmed 200 for both success and error queries**, `EXERCISED`.
 
-> **Settings has no sub-navigation.** `/app/settings` redirects straight to `/app/settings/profile`, and `/app/settings/profile` renders no list of sibling sections. The other two pages are therefore unreachable — [Appendix A](#appendix-a--unreachable-routes).
+> **Settings sub-navigation.** At this commit `/app/settings` renders a tab bar linking profile, integrations, notifications, security and privacy (`src/components/settings/settings-nav.tsx`, mounted by `src/app/app/settings/layout.tsx`), so steps 30 and 31 are reachable. `security` and `notifications` were unreachable before this commit.
 
 ---
 
@@ -637,103 +641,69 @@ And the response contract every API route funnels through:
 | Boundary | Reference | Behaviour |
 | --- | --- | --- |
 | Auth failure | `/auth/error?reason=` | `disabled` vs generic. No account-existence signal. |
-| API error map | `src/server/http.ts:59-71` | Stable code → status: `IDEMPOTENCY_KEY_REQUIRED` 400, `UNAUTHORIZED` 401, `FORBIDDEN` 403, `NOT_FOUND` 404, `DRAFT_DELETED` 410, `VERSION_CONFLICT`/`CONFLICT` 409, `RATE_LIMITED` 429, `UNAVAILABLE`/`TIMEOUT` 503, everything unmapped → 500. |
+| API error map | `src/server/http.ts:58-73` | Stable code → status: `IDEMPOTENCY_KEY_REQUIRED` 400, `UNAUTHORIZED` 401, `FORBIDDEN` 403, `NOT_FOUND` 404, `DRAFT_DELETED` 410, `VERSION_CONFLICT`/`CONFLICT` 409, `RATE_LIMITED` 429, `UNAVAILABLE`/`TIMEOUT` 503, everything unmapped → 500. |
 
 ---
 
 ## Appendix A — Unreachable routes
 
-Confirmed by grep across all `href=`, `router.push`, and `redirect()` call sites in `src/`. Each is listed exactly once here and appears nowhere else as a journey node.
+Confirmed by grep across all `href=`, `router.push` and `redirect()` call sites at the commit named in [Appendix B](#appendix-b--defect-status-at-this-commit). Each is listed exactly once here and appears nowhere else as a journey node.
 
 | Route | File | What it does | How to reach it |
 | --- | --- | --- | --- |
-| `/app/activity` | `src/app/app/activity/page.tsx` | Chronology of credit ledger + Gmail deliveries, merged and sorted | Type the URL |
-| `/app/companies/[companyId]` | `src/app/app/companies/[companyId]/page.tsx` | Company evidence + people at company | Type the URL (needs a real id) |
-| `/app/settings/security` | `src/app/app/settings/security/page.tsx` | Account/sessions, Gmail authorization, data-request pointers | Type the URL |
-| `/app/settings/notifications` | `src/app/app/settings/notifications/page.tsx` | Channel preferences, "what we will never send" | Type the URL |
-| `/features` | `src/app/(marketing)/features/page.tsx` | Feature grid page | Type the URL — header links to the `/#features` anchor instead |
-| `/how-it-works` | `src/app/(marketing)/how-it-works/page.tsx` | How-it-works page | Type the URL — header links to `/#how-it-works` |
-| `/faq` | `src/app/(marketing)/faq/page.tsx` | FAQ page | Type the URL — the only reference is inside dead component `components/ui/navigation-5/index.tsx:190` |
-| `/accessibility` | `src/app/(marketing)/accessibility/page.tsx` | Accessibility statement | Type the URL |
-| `/contact-data/request` | `src/app/(marketing)/contact-data/request/page.tsx` | No-account data correction/removal request → `POST /api/v1/public?kind=contact-data-request` | Type the URL |
 | `/auth/session-expired` | `src/app/(auth)/auth/session-expired/page.tsx` | Re-authentication after expiry | Type the URL — nothing routes here |
-| `/service-unavailable` | `src/app/service-unavailable/page.tsx` | 503 maintenance page | Type the URL |
+| `/service-unavailable` | `src/app/service-unavailable/page.tsx` | 503 maintenance page | Type the URL — nothing routes here |
 
-**Root cause.** No settings sub-navigation, no footer link for the secondary marketing pages, and no route ever targets the session-expiry or maintenance surfaces. Two marketing pages (`/features`, `/how-it-works`) are likely intended to be reachable but collide with anchors on `/`.
+**Root cause.** No route ever targets the session-expiry or maintenance surfaces; both are implemented but unreferenced by any code path.
 
----
+**What changed at this commit.** Nine routes that were previously orphaned are now reachable and have moved into the journeys. The marketing footer (`src/components/ui/footer-25/index.tsx:66-77`, imported live by `src/components/marketing/footer.tsx`) links `/features`, `/how-it-works`, `/faq`, `/accessibility` and `/contact-data/request`; the sidebar links `/app/activity` (`src/components/shell/app-shell.tsx:34`); the contact detail page links `/app/companies/{id}` (`src/app/app/contacts/[contactId]/page.tsx:38,87`); and a settings sub-navigation links `/app/settings/security` and `/app/settings/notifications` (`src/components/settings/settings-nav.tsx`).
 
-## Appendix B — Confirmed defects (current state)
+## Appendix B — Defect status at this commit
 
-Reproduced against a production build (`pnpm build` + `pnpm start`). **Not fixed in this pass.** Listed as observations.
-
-> **Scoping.** Every claim, line number and quoted string here describes committed `HEAD`; the working tree has diverged since, so re-verify any citation before relying on it.
+Re-derived by reading the committed source at the hash named in the scoping line. **These fixes are not mine and I have not re-exercised any of them** — each entry states what the source now shows, not that the behaviour was verified to work. No reproduction below has been re-run against this commit.
 
 ### DEF-1 — non-admin `/admin` returns HTTP 200
 
-**Observed.** A signed-in non-admin requesting `/admin` receives **HTTP 200** with the access-denied UI. The RSC payload contains `NEXT_REDIRECT;replace;/access-denied;307;`, thrown only *after* the layout guard aborts. No admin chrome or PII is rendered (grep for `Admin workspace` / `Operator` → 0 hits).
+**Addressed in source at this commit; not re-verified by me.**
 
-**Also observed.** The payload leaked one metric card's props:
+A non-admin request to `/admin` returned **HTTP 200** carrying the access-denied UI, and the RSC payload leaked one metric card's props (`b0:{"label":"Credit consistency issues","value":0,…,"href":"/admin/jobs"}`) because the page began its five cross-user aggregate queries before the layout guard aborted.
 
-```
-b0:{"label":"Credit consistency issues","value":0,"critical":false,"href":"/admin/jobs"}
-```
+**What the source shows now.** `src/app/admin/page.tsx:11` calls `await requireAdmin()` as the first statement of the component, before the `Promise.all` of aggregate queries at line 13. The same guard was added to all ten admin pages.
 
-so `src/app/admin/page.tsx:10-16` began executing its five cross-user aggregate queries before `requireAdmin()` aborted. The comment at `src/app/admin/layout.tsx:6-12` states the layout guard exists precisely to prevent this.
-
-**Impact.** No data leak — the response is an access-denied page. But monitoring, crawlers and uptime checks see 200 for a 403, and cross-user aggregate queries run for unauthorized callers.
-
-**Status.** `EXERCISED` — reproduced in dev and production. Whether *every* admin query completes before the throw is `INFERRED`: App Router renders layout and page concurrently, so ordering is not guaranteed.
+**What is still unaddressed.** The HTTP-status behaviour itself — a `redirect()` raised inside a Server Component returning 200 rather than a 307 — is framework-level and untouched by this change. That part of DEF-1 stands.
 
 ### DEF-2 — `.eml` export returns HTTP 500
 
-**Observed.** `GET /api/v1/drafts/{id}/export.eml` returns **HTTP 500** `INTERNAL` for any draft whose recipient has not been revealed. Reproduced in dev and production, twice each.
+**Addressed in source at this commit; not re-verified by me.**
 
-**Chain.**
+`GET /api/v1/drafts/{id}/export.eml` returned **HTTP 500** for any draft whose recipient was unrevealed. The chain was: `drafts.ts` substituted `undisclosed-recipient@invalid`, which failed address validation in `mime.ts` and threw `INVALID_TO`, which had no entry in the `errorResponse` map and fell through to `500 INTERNAL`.
 
-1. `src/server/services/drafts.ts:376` — `const toEmail = data.recipient?.email ?? "undisclosed-recipient@invalid";`
-2. `src/server/adapters/mime.ts:105` — `validateEmailAddress("undisclosed-recipient@invalid")` fails `/^[^\s@]+@[^\s@]+\.[^\s@]+$/` (no dot in the domain) and `buildMimeMessage` throws `INVALID_TO: invalid syntax` (`mime.ts:120`).
-3. `src/server/http.ts:59-71` — no mapping for `INVALID_TO`, so it falls through to `apiError(500, "INTERNAL", …)`.
+**What the source shows now.** `src/server/services/drafts.ts:376` reads the recipient through `validateEmailAddress` and falls back to `undisclosed-recipient@reachbee.local`; the string `undisclosed-recipient@invalid` no longer exists anywhere in the repository. `buildMimeMessage` validates the `to` address at `src/server/adapters/mime.ts:114`.
 
-**Why it matters.** The **Download .eml** button in the composer is unconditional (`src/components/composer/composer.tsx`), so one click on any new or unrevealed draft produces a 500.
-
-**Status.** `EXERCISED` — full chain confirmed by reproduction plus source trace.
+**What is still unaddressed.** `errorResponse` (`src/server/http.ts:48`, map at `:58-73`) still has no mapping for `INVALID_TO`, so any *other* caller that produces an invalid address still falls through to a 500. I have not run the export endpoint to confirm the export now succeeds.
 
 ### DEF-3 — soft 404s (`notFound()` returns HTTP 200)
 
-**Observed.** Every `notFound()` raised inside a Server Component returns **HTTP 200** while rendering the 404 UI. Confirmed in a production build.
+Every `notFound()` raised inside a Server Component returns **HTTP 200** while rendering the 404 UI; the same applies to `redirect()` in Server Components. `/legal/nope`, `/help/nope`, `/app/contacts/{unknown-uuid}` and others all render the 404 UI with a 200.
 
-| Request | Expected | Actual |
+**Open at this commit; not re-verified.** Nothing here addresses it — it is framework behaviour, not application code. I did not re-run a production server at this commit, so the observations below are carried over from an earlier build rather than re-measured here.
+
+| Request | Expected | Observed earlier |
 | --- | --- | --- |
 | `/nonexistent-xyz` | 404 | 404 ✓ |
 | `/legal/nope` | 404 | **200** |
 | `/help/nope` | 404 | **200** |
 | `/app/contacts/{unknown-uuid}` | 404 | **200** |
-| `/app/drafts/{unknown-uuid}` | 404 | **200** |
-| `/app/companies/{unknown-uuid}` | 404 | **200** |
-| `/app/billing/payments/nope` | 404 | **200** |
 
-Body carries `NEXT_HTTP_ERROR_FALLBACK;404` and renders client-side.
-
-**Same class of problem for redirects.** These also return 200 instead of 307:
-
-| Request | Should be | Actual |
-| --- | --- | --- |
-| `/app/settings` (guest) | 307 | 307 ✓ *(proxy handles this one)* |
-| `/app/settings` (member) | 307 | **200** |
-| `/onboarding` | 307 | **200** |
-| `/app/drafts/new` | 307 | **200** |
-| `/admin` (non-admin) | 307 | **200** |
-
-The proxy-issued 307s (`/app`, `/admin` while signed out) are correct; only redirects raised inside a Server Component are affected.
-
-**Affected call sites.** `app/app/contacts/[contactId]/page.tsx:17` · `app/app/drafts/[draftId]/page.tsx:17` · `app/app/templates/[templateId]/page.tsx:18` · `app/app/resumes/[resumeId]/page.tsx:17` · `app/app/pipeline/[opportunityId]/page.tsx:16` · `app/app/companies/[companyId]/page.tsx:15` · `app/app/billing/payments/[paymentId]/page.tsx:21` · `app/admin/contacts/[contactId]/page.tsx:22` · `app/(marketing)/legal/[doc]/page.tsx:20` · `app/(marketing)/help/[slug]/page.tsx:19`.
-
-**Status.** `EXERCISED` — reproduced against `next start`.
+**Affected call sites.** `app/app/contacts/[contactId]/page.tsx` · `app/app/drafts/[draftId]/page.tsx` · `app/app/templates/[templateId]/page.tsx` · `app/app/resumes/[resumeId]/page.tsx` · `app/app/pipeline/[opportunityId]/page.tsx` · `app/app/billing/payments/[paymentId]/page.tsx` · `app/admin/contacts/[contactId]/page.tsx` · `app/(marketing)/legal/[doc]/page.tsx` · `app/(marketing)/help/[slug]/page.tsx`.
 
 ### DEF-4 — three admin list pages render an empty table
 
-`src/app/admin/users/page.tsx:39`, `src/app/admin/companies/page.tsx:26` and `src/app/admin/contacts/page.tsx:39` render a `<tbody>` with no `{x.length === 0 ? …}` branch. Their siblings all have one — `admin/jobs:50`, `admin/payments:58`, `admin/reports:45`, `admin/audit-log:43`, `app/billing/credits:81`. On an empty table an operator sees a header row and nothing else. `INFERRED` — read from source, not exercised.
+**Addressed in source at this commit; not re-verified by me.**
+
+`admin/users`, `admin/companies` and `admin/contacts` rendered a `<tbody>` with no empty-state branch, so an empty table showed a header row and nothing else.
+
+**What the source shows now.** All three pages contain a `colSpan` empty-state row. Whether the surrounding markup is correct is not something I checked.
 
 ---
 
