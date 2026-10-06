@@ -1,7 +1,7 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { catalogSkus, catalogVersions, paymentOrders, payments, webhookEvents, refunds, users } from "@/db/schema";
+import { catalogSkus, catalogVersions, paymentOrders, payments, webhookEvents, users } from "@/db/schema";
 import { getConfig } from "@/server/config";
 import { getPaymentGateway, verifyRazorpayWebhookSignature, verifyCheckoutSignature } from "@/server/adapters/payments";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
@@ -33,11 +33,23 @@ export async function getPublishedCatalog() {
   return { version: version.version, publishedAt: version.publishedAt, skus };
 }
 
+/** HTTP status per order error code — the single owner of this mapping (§19.1). */
+const ORDER_STATUS: Record<string, number> = {
+  RATE_LIMITED: 429,
+  SALES_DISABLED: 403,
+  CATALOG_UNAVAILABLE: 503,
+  IDEMPOTENCY_CONFLICT: 409,
+  ORDER_NOT_FOUND: 404,
+};
+
 export class OrderError extends Error {
   code: string;
   constructor(code: string, message: string) {
     super(message);
     this.code = code;
+  }
+  apiErrorSpec() {
+    return { status: ORDER_STATUS[this.code] ?? 400, code: this.code, message: this.message };
   }
 }
 
@@ -307,16 +319,6 @@ export async function listPayments(userId: string, limit = 30) {
     .limit(limit);
 }
 
-export async function getPaymentForUser(userId: string, paymentId: string) {
-  const rows = await db
-    .select({ payment: payments, order: paymentOrders })
-    .from(payments)
-    .innerJoin(paymentOrders, eq(paymentOrders.id, payments.orderId))
-    .where(and(eq(payments.id, paymentId), eq(payments.userId, userId)))
-    .limit(1);
-  return rows[0] ?? null;
-}
-
 export async function listOrders(userId: string, limit = 20) {
   return db
     .select()
@@ -324,15 +326,4 @@ export async function listOrders(userId: string, limit = 20) {
     .where(eq(paymentOrders.userId, userId))
     .orderBy(desc(paymentOrders.createdAt))
     .limit(limit);
-}
-
-export async function listRefunds(userId: string) {
-  const rows = await db.execute(sql`
-    SELECT r.id, r.provider_refund_id, r.amount_paise, r.state, r.created_at, p.provider_payment_id
-    FROM refunds r
-    JOIN payments p ON p.id = r.payment_id
-    WHERE p.user_id = ${userId}::uuid
-    ORDER BY r.created_at DESC LIMIT 20
-  `);
-  return rows.rows as Array<{ id: string; provider_refund_id: string; amount_paise: number; state: string; created_at: string; provider_payment_id: string }>;
 }

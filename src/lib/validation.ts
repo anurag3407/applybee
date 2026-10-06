@@ -125,12 +125,6 @@ export const profileRevisionSchema = z.object({
   approve: z.boolean().default(true),
 });
 
-export const idempotencyKeySchema = z
-  .string()
-  .min(8)
-  .max(64)
-  .regex(/^[A-Za-z0-9_-]+$/, "Idempotency key must be URL-safe");
-
 export const supportRequestSchema = z.object({
   email: safeEmail,
   category: z.enum(["account", "credits", "gmail", "resume", "contact_data", "bug", "other"]),

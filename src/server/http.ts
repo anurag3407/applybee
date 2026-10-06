@@ -24,6 +24,25 @@ export function accepted<T extends object>(data: T) {
 }
 
 /**
+ * Status a domain error owns itself (§19.1). Errors that expose
+ * `apiErrorSpec()` decide their own envelope here — one owner, so route
+ * handlers never translate codes to statuses. `undefined` means "no opinion
+ * for this code": the generic sentinel table below decides instead.
+ */
+export type DomainErrorSpec = {
+  status: number;
+  code: string;
+  message: string;
+  retryAfter?: number;
+};
+
+function domainErrorSpec(err: unknown): DomainErrorSpec | undefined {
+  if (!(err instanceof Error)) return undefined;
+  const spec = (err as Error & { apiErrorSpec?: () => DomainErrorSpec | undefined }).apiErrorSpec;
+  return typeof spec === "function" ? spec.call(err) : undefined;
+}
+
+/**
  * Wrap a route handler so every thrown error becomes the stable envelope
  * (§19.1). Handlers keep their own typed signature; mapping that is specific
  * to a domain error stays in the handler's own catch, because those messages
@@ -79,6 +98,10 @@ export function errorResponse(err: unknown): NextResponse {
   }
   if (err instanceof CreditError) {
     return apiError(409, err.code, err.message);
+  }
+  const domain = domainErrorSpec(err);
+  if (domain) {
+    return apiError(domain.status, domain.code, domain.message, { retryAfter: domain.retryAfter });
   }
   const message = err instanceof Error ? err.message : String(err);
   const map: Array<[RegExp, number, string]> = [

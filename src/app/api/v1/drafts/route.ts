@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { getApiUser } from "@/server/auth/session";
+import { requireApiUser } from "@/server/auth/session";
 import { createDraft, listDrafts } from "@/server/services/drafts";
-import { ok, errorResponse, assertSameOrigin } from "@/server/http";
+import { ok, assertSameOrigin, route } from "@/server/http";
 
 const createSchema = z.object({
   mode: z.enum(["manual", "quick_ai", "agentic"]).default("manual"),
@@ -16,33 +16,23 @@ const createSchema = z.object({
   body: z.string().max(20_000).optional(),
 });
 
-export async function GET() {
-  try {
-    const user = await getApiUser();
-    if (!user) return errorResponse(new Error("UNAUTHORIZED"));
-    const rows = await listDrafts(user.id);
-    return ok({ drafts: rows });
-  } catch (err) {
-    return errorResponse(err);
-  }
-}
+export const GET = route(async () => {
+  const user = await requireApiUser();
+  const rows = await listDrafts(user.id);
+  return ok({ drafts: rows });
+});
 
-export async function POST(req: Request) {
-  try {
-    await assertSameOrigin(req);
-    const user = await getApiUser();
-    if (!user) return errorResponse(new Error("UNAUTHORIZED"));
-    const body = createSchema.parse(await req.json());
-    const id = await createDraft({
-      userId: user.id,
-      mode: body.mode,
-      intent: body.intent,
-      recipient: body.recipient,
-      subject: body.subject,
-      body: body.body,
-    });
-    return ok({ draftId: id }, 201);
-  } catch (err) {
-    return errorResponse(err);
-  }
-}
+export const POST = route(async (req: Request) => {
+  await assertSameOrigin(req);
+  const user = await requireApiUser();
+  const body = createSchema.parse(await req.json());
+  const id = await createDraft({
+    userId: user.id,
+    mode: body.mode,
+    intent: body.intent,
+    recipient: body.recipient,
+    subject: body.subject,
+    body: body.body,
+  });
+  return ok({ draftId: id }, 201);
+});

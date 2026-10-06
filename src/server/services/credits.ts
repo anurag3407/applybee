@@ -70,34 +70,6 @@ export async function revealContact(params: {
   }
 }
 
-export async function reserveGeneration(params: {
-  userId: string;
-  operationRef: string;
-  quantity?: number;
-}): Promise<{ reservationId: string; state: string; existing: boolean }> {
-  try {
-    const result = await db.transaction(async (tx) => {
-      const res = await tx.execute(sql`
-        SELECT reserve_generation(${params.userId}::uuid, ${params.operationRef}, ${params.quantity ?? 1}) AS out
-      `);
-      return (res.rows[0] as { out: { reservation_id: string; state: string; existing: boolean } }).out;
-    });
-    return { reservationId: result.reservation_id, state: result.state, existing: result.existing };
-  } catch (err) {
-    mapDbError(err);
-  }
-}
-
-export async function completeGeneration(operationRef: string): Promise<void> {
-  try {
-    await db.transaction(async (tx) => {
-      await tx.execute(sql`SELECT complete_generation(${operationRef})`);
-    });
-  } catch (err) {
-    mapDbError(err);
-  }
-}
-
 export async function releaseGeneration(operationRef: string): Promise<void> {
   try {
     await db.transaction(async (tx) => {

@@ -11,22 +11,8 @@ import {
 } from "@/db/schema";
 import { logger } from "@/server/logger";
 import { getConfig } from "@/server/config";
-import { sendEmail, type SendEmailResult } from "@/server/services/email";
+import { sendEmail, escapeHtml, type SendEmailResult } from "@/server/services/email";
 import { getBalances } from "@/server/services/credits";
-
-/**
- * Digest copy is assembled from directory data (contact names, company names,
- * post snippets) that admins and importers control. Without escaping, a single
- * crafted record injects arbitrary HTML/links into every recipient's inbox.
- */
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 export type DigestHiringPost = {
   id: string;
@@ -52,7 +38,7 @@ export type DigestHiringPost = {
 /* Initial Seed Catalog for Fresh Hiring Posts                        */
 /* ------------------------------------------------------------------ */
 
-export const INITIAL_CURATED_POSTS = [
+const INITIAL_CURATED_POSTS = [
   // Sample content only. These are deliberately fictional companies and people,
   // matching the rest of the seed data.
   //
@@ -532,7 +518,7 @@ export function renderDailyDigestHtml(params: {
 `;
 }
 
-export function renderDailyDigestText(params: {
+function renderDailyDigestText(params: {
   displayName: string;
   posts: DigestHiringPost[];
   contactCredits: number;

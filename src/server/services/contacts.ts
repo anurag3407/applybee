@@ -188,6 +188,17 @@ export class RevealError extends Error {
     this.code = code;
     this.retryAfter = retryAfter;
   }
+  /**
+   * Two codes answer with the stable sentinel envelope the API contract
+   * defines (§19.1); every other code carries user-facing copy that the
+   * generic table in `errorResponse` has always resolved (to 500) — that is
+   * deliberately left alone, so no envelope changes here.
+   */
+  apiErrorSpec() {
+    if (this.code === "RATE_LIMITED") return { status: 429, code: "RATE_LIMITED", message: "RATE_LIMITED" };
+    if (this.code === "IDEMPOTENCY_CONFLICT") return { status: 409, code: "CONFLICT", message: "CONFLICT" };
+    return undefined;
+  }
 }
 
 export async function revealContactForUser(params: {

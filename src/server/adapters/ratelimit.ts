@@ -23,7 +23,6 @@ export type LimitPolicy = {
 };
 
 export const LIMITS = {
-  directorySearch: { operationKind: "directory.search", windowSeconds: 60, limit: 60, failClosed: false },
   reveal: { operationKind: "reveal", windowSeconds: 60, limit: 20, failClosed: true },
   // A "bounced" report grants a replacement credit and invalidates a shared
   // directory contact. Without a durable per-user budget, reveal -> report ->
@@ -130,16 +129,3 @@ export async function admitWithPreCheck(params: {
   return admitOperation(params);
 }
 
-/** Cost/concurrency lease across replicas (§22.4). */
-export async function acquireSlot(scope: string, operationRef: string, leaseSeconds: number): Promise<boolean> {
-  const rows = await db.execute(sql`
-    SELECT acquire_concurrency_slot(${scope}, ${operationRef}, ${leaseSeconds}) AS ok
-  `);
-  return Boolean((rows.rows[0] as { ok: boolean }).ok);
-}
-
-export async function releaseSlot(operationRef: string): Promise<void> {
-  await db.execute(sql`
-    UPDATE concurrency_slots SET released_at = now() WHERE owner_operation_ref = ${operationRef} AND released_at IS NULL
-  `);
-}

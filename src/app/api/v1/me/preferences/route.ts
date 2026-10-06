@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { getSessionUser } from "@/server/auth/session";
+import { requireSessionUser } from "@/server/auth/session";
 import { updatePreferences } from "@/server/services/resumes";
-import { ok, errorResponse, assertSameOrigin } from "@/server/http";
+import { ok, assertSameOrigin, route } from "@/server/http";
 
 const patchSchema = z.object({
   displayName: z.string().trim().max(120).optional(),
@@ -15,15 +15,10 @@ const patchSchema = z.object({
   dailyDigestEnabled: z.boolean().optional(),
 });
 
-export async function PATCH(req: Request) {
-  try {
-    await assertSameOrigin(req);
-    const user = await getSessionUser();
-    if (!user) return errorResponse(new Error("UNAUTHORIZED"));
-    const body = patchSchema.parse(await req.json());
-    await updatePreferences(user.id, body);
-    return ok({ saved: true });
-  } catch (err) {
-    return errorResponse(err);
-  }
-}
+export const PATCH = route(async (req: Request) => {
+  await assertSameOrigin(req);
+  const user = await requireSessionUser();
+  const body = patchSchema.parse(await req.json());
+  await updatePreferences(user.id, body);
+  return ok({ saved: true });
+});

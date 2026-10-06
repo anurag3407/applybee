@@ -224,11 +224,6 @@ export function startWorkerLoop(intervalMs = 1_000): void {
   (timer as unknown as { unref?: () => void }).unref?.();
 }
 
-export function stopWorkerLoop(): void {
-  running = false;
-  globalForWorker.__applyBeeWorker = false;
-}
-
 export function workerId(): string {
   return WORKER_ID;
 }

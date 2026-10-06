@@ -74,7 +74,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
  * unauthenticated visitor. Without escaping, a crafted message injects
  * arbitrary HTML (and links) into the operator's inbox.
  */
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

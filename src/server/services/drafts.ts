@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   draftRevisions,
@@ -8,11 +8,10 @@ import {
   templates,
   gmailDeliveries,
 } from "@/db/schema";
-import { draftPatchSchema, findUnknownTemplateVariables, fillTemplate, type TemplateVariable } from "@/lib/validation";
+import { draftPatchSchema, findUnknownTemplateVariables } from "@/lib/validation";
 import { sha256Hex } from "@/server/crypto";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
 import { buildMimeMessage, validateEmailAddress } from "@/server/adapters/mime";
-import { getObjectStore } from "@/server/adapters/objectStore";
 import { acceptGeneratedProposal, CreditError } from "@/server/services/credits";
 import { audit } from "@/server/services/audit";
 import { decryptEnvelope } from "@/server/crypto";
@@ -183,7 +182,8 @@ export async function listDrafts(userId: string, status?: string) {
     .limit(50);
 }
 
-export class DraftConflictError extends Error {
+/** Version conflict between an expected draft version and the stored one. */
+class DraftConflictError extends Error {
   constructor() {
     super("VERSION_CONFLICT");
   }
@@ -328,16 +328,6 @@ export async function updateTemplate(userId: string, templateId: string, input: 
 
 export async function deleteTemplate(userId: string, templateId: string) {
   await db.delete(templates).where(and(eq(templates.id, templateId), eq(templates.userId, userId)));
-}
-
-export function applyTemplateToDraft(
-  templateSubject: string,
-  templateBody: string,
-  values: Partial<Record<TemplateVariable, string>>,
-): { subject: string; body: string; missing: TemplateVariable[] } {
-  const s = fillTemplate(templateSubject, values);
-  const b = fillTemplate(templateBody, values);
-  return { subject: s.filled, body: b.filled, missing: [...new Set([...s.missing, ...b.missing])] };
 }
 
 /* ------------------------------------------------------------------ */

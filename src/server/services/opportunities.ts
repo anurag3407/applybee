@@ -30,6 +30,12 @@ export class OpportunityError extends Error {
     super(message);
     this.code = code;
   }
+  /** NOT_FOUND answers with the sentinel envelope; EMPTY_NOTE keeps the
+   * generic 500 it has always had (its message is user copy, not a code). */
+  apiErrorSpec() {
+    if (this.code === "NOT_FOUND") return { status: 404, code: "NOT_FOUND", message: "NOT_FOUND" };
+    return undefined;
+  }
 }
 
 export async function listOpportunities(userId: string) {

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { getApiUser } from "@/server/auth/session";
-import { approveDraftDelivery, startDelivery, DeliveryPreflightError, DELIVERY_PREFLIGHT_STATUS } from "@/server/services/gmail";
-import { ok, errorResponse, assertSameOrigin } from "@/server/http";
+import { requireApiUser } from "@/server/auth/session";
+import { approveDraftDelivery, startDelivery } from "@/server/services/gmail";
+import { ok, assertSameOrigin, route } from "@/server/http";
 
 const schema = z.object({ attachmentResumeId: z.string().uuid().nullable().optional() });
 
@@ -9,39 +9,21 @@ const schema = z.object({ attachmentResumeId: z.string().uuid().nullable().optio
  * POST /drafts/:id/approvals — approve the exact revision/mailbox/attachment
  * hash. Nothing is created until the delivery call follows (§13.5).
  */
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    await assertSameOrigin(req);
-    const user = await getApiUser();
-    if (!user) return errorResponse(new Error("UNAUTHORIZED"));
-    const { id } = await params;
-    const body = schema.parse(await req.json().catch(() => ({})));
-    const result = await approveDraftDelivery({ userId: user.id, draftId: id, attachmentResumeId: body.attachmentResumeId ?? null });
-    return ok(result);
-  } catch (err) {
-    if (err instanceof DeliveryPreflightError) {
-      const { apiError } = await import("@/server/http");
-      return apiError(DELIVERY_PREFLIGHT_STATUS[err.code] ?? 409, err.code, err.message);
-    }
-    return errorResponse(err);
-  }
-}
+export const POST = route(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
+  await assertSameOrigin(req);
+  const user = await requireApiUser();
+  const { id } = await params;
+  const body = schema.parse(await req.json().catch(() => ({})));
+  const result = await approveDraftDelivery({ userId: user.id, draftId: id, attachmentResumeId: body.attachmentResumeId ?? null });
+  return ok(result);
+});
 
 /** POST /drafts/:id/gmail-deliveries equivalent: delivery from a valid approval. */
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    await assertSameOrigin(req);
-    const user = await getApiUser();
-    if (!user) return errorResponse(new Error("UNAUTHORIZED"));
-    const { id } = await params;
-    const body = z.object({ approvalId: z.string().uuid() }).parse(await req.json());
-    const result = await startDelivery({ userId: user.id, draftId: id, approvalId: body.approvalId });
-    return ok(result, 202);
-  } catch (err) {
-    if (err instanceof DeliveryPreflightError) {
-      const { apiError } = await import("@/server/http");
-      return apiError(409, err.code, err.message);
-    }
-    return errorResponse(err);
-  }
-}
+export const PUT = route(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
+  await assertSameOrigin(req);
+  const user = await requireApiUser();
+  const { id } = await params;
+  const body = z.object({ approvalId: z.string().uuid() }).parse(await req.json());
+  const result = await startDelivery({ userId: user.id, draftId: id, approvalId: body.approvalId });
+  return ok(result, 202);
+});

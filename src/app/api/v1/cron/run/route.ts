@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { getConfig } from "@/server/config";
 import { logger } from "@/server/logger";
-import { apiError, ok, errorResponse } from "@/server/http";
+import { apiError, ok, route } from "@/server/http";
 import { dispatchAllDueDigests, seedInitialHiringPostsIfEmpty } from "@/server/services/digest";
 import { dispatchOutbox, processDueJobs, recoverySweep } from "@/server/jobs/runner";
 import { enqueueJob } from "@/server/services/jobs";
@@ -143,18 +143,6 @@ function isDigestHour(): boolean {
   return new Date().getUTCHours() === hour;
 }
 
-export async function POST(req: Request) {
-  try {
-    return await handle(req);
-  } catch (err) {
-    return errorResponse(err);
-  }
-}
+export const POST = route(handle);
 
-export async function GET(req: Request) {
-  try {
-    return await handle(req);
-  } catch (err) {
-    return errorResponse(err);
-  }
-}
+export const GET = route(handle);

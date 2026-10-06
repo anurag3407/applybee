@@ -1,28 +1,16 @@
-import { getApiUser } from "@/server/auth/session";
+import { requireApiUser } from "@/server/auth/session";
 import { listResumes, deleteResume } from "@/server/services/resumes";
-import { ok, errorResponse, assertSameOrigin } from "@/server/http";
+import { ok, assertSameOrigin, requireSearchParam, route } from "@/server/http";
 
-export async function GET() {
-  try {
-    const user = await getApiUser();
-    if (!user) return errorResponse(new Error("UNAUTHORIZED"));
-    return ok({ resumes: await listResumes(user.id) });
-  } catch (err) {
-    return errorResponse(err);
-  }
-}
+export const GET = route(async () => {
+  const user = await requireApiUser();
+  return ok({ resumes: await listResumes(user.id) });
+});
 
-export async function DELETE(req: Request) {
-  try {
-    await assertSameOrigin(req);
-    const user = await getApiUser();
-    if (!user) return errorResponse(new Error("UNAUTHORIZED"));
-    const url = new URL(req.url);
-    const resumeId = url.searchParams.get("id");
-    if (!resumeId) return errorResponse(new Error("NOT_FOUND"));
-    await deleteResume(user.id, resumeId);
-    return ok({ deleted: true });
-  } catch (err) {
-    return errorResponse(err);
-  }
-}
+export const DELETE = route(async (req: Request) => {
+  await assertSameOrigin(req);
+  const user = await requireApiUser();
+  const resumeId = requireSearchParam(req, "id");
+  await deleteResume(user.id, resumeId);
+  return ok({ deleted: true });
+});

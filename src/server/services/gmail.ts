@@ -94,12 +94,10 @@ export async function startConnect(params: {
  * Sandbox connection for development/demo (labeled, §27.2): only when the
  * Gmail adapter is the mock and the environment is not production. Lets the
  * approval → delivery → reconciliation flow be exercised honestly.
+ * Precondition enforced by the caller (gmail/connection route): the mock
+ * adapter outside production.
  */
 export async function connectSandbox(userId: string): Promise<void> {
-  const config = getConfig();
-  if (config.gmailMode !== "mock" || config.isProduction) {
-    throw new DeliveryPreflightError("SANDBOX_UNAVAILABLE", "Sandbox Gmail is only available in development.");
-  }
   const email = "sandbox.mailbox@example.com";
   const binding = `gmail-connection:${userId}:${email}`;
   const envelope = encryptTokenEnvelope({ refreshToken: "mock-refresh", accessToken: "mock-access" }, binding);
@@ -256,15 +254,22 @@ export async function disconnectGmail(userId: string): Promise<void> {
 
 export class DeliveryPreflightError extends Error {
   code: string;
-  constructor(code: string, message: string) {
+  /** Defaults to this code's row in DELIVERY_PREFLIGHT_STATUS (409 when
+   * unmapped); callers pass an explicit status only to override that rule. */
+  status: number;
+  constructor(code: string, message: string, status: number = DELIVERY_PREFLIGHT_STATUS[code] ?? 409) {
     super(message);
     this.code = code;
+    this.status = status;
+  }
+  apiErrorSpec() {
+    return { status: this.status, code: this.code, message: this.message };
   }
 }
 
-/** HTTP status per preflight code (§19.1) — shared by every route that
- * surfaces a DeliveryPreflightError, so 404-class codes don't degrade to 409. */
-export const DELIVERY_PREFLIGHT_STATUS: Record<string, number> = {
+/** HTTP status per preflight code (§19.1), owned here so 404-class codes
+ * don't degrade to 409 and routes never translate codes to statuses. */
+const DELIVERY_PREFLIGHT_STATUS: Record<string, number> = {
   NOT_CONNECTED: 409,
   CONTACT_LOCKED: 409,
   APPROVAL_INVALID: 409,
@@ -273,7 +278,6 @@ export const DELIVERY_PREFLIGHT_STATUS: Record<string, number> = {
   NO_REVISION: 422,
   RATE_LIMITED: 429,
   GMAIL_DISABLED: 503,
-  SANDBOX_UNAVAILABLE: 503,
   DELIVERY_NOT_FOUND: 404,
   DRAFT_NOT_FOUND: 404,
 };
@@ -366,7 +370,15 @@ export async function approveDraftDelivery(params: {
   return { approvalId: approval.id, approvalHash };
 }
 
-export async function startDelivery(params: { userId: string; draftId: string; approvalId: string }): Promise<{ deliveryId: string }> {
+export async function startDelivery(
+  params: { userId: string; draftId: string; approvalId: string },
+  // The two endpoints that surface these errors answer differently: approvals
+  // treats every preflight failure as a 409 conflict, the deliveries endpoint
+  // answers per code. Both rules live here so neither route has to translate.
+  preflightStatus: "conflict" | "code" = "conflict",
+): Promise<{ deliveryId: string }> {
+  const fail = (code: string, message: string) =>
+    new DeliveryPreflightError(code, message, preflightStatus === "conflict" ? 409 : undefined);
   const approval = (
     await db
       .select()
@@ -375,12 +387,12 @@ export async function startDelivery(params: { userId: string; draftId: string; a
       .limit(1)
   )[0];
   if (!approval || approval.state !== "active") {
-    throw new DeliveryPreflightError("APPROVAL_INVALID", "Re-review and approve the current version of this draft first.");
+    throw fail("APPROVAL_INVALID", "Re-review and approve the current version of this draft first.");
   }
 
   const admission = await admitWithPreCheck({ policy: LIMITS.gmailCreate, principal: params.userId, operationRef: `gmail:${params.userId}:${params.approvalId}` });
   if (!admission.admitted) {
-    throw new DeliveryPreflightError("RATE_LIMITED", "Too many delivery requests. Please wait a moment.");
+    throw fail("RATE_LIMITED", "Too many delivery requests. Please wait a moment.");
   }
 
   const dailyAdmission = await admitWithPreCheck({
@@ -389,7 +401,7 @@ export async function startDelivery(params: { userId: string; draftId: string; a
     operationRef: `gmail:daily:${params.userId}:${params.approvalId}`,
   });
   if (!dailyAdmission.admitted) {
-    throw new DeliveryPreflightError(
+    throw fail(
       "DAILY_LIMIT_REACHED",
       "Daily draft limit reached (maximum 15 drafts per 24 hours to protect your sender reputation and prevent bulk spam). You can still export to .eml or compose manually in Gmail.",
     );
@@ -402,7 +414,7 @@ export async function startDelivery(params: { userId: string; draftId: string; a
       .set({ state: "consumed" })
       .where(and(eq(draftApprovals.id, approval.id), eq(draftApprovals.state, "active")))
       .returning({ id: draftApprovals.id });
-    if (consumed.length === 0) throw new DeliveryPreflightError("APPROVAL_INVALID", "This approval was already used.");
+    if (consumed.length === 0) throw fail("APPROVAL_INVALID", "This approval was already used.");
 
     const delivery = (
       await tx
@@ -460,7 +472,7 @@ export async function requestReconcile(userId: string, deliveryId: string): Prom
 /** Explicit user-confirmed recreate with duplicate warning (§16.5). */
 export async function recreateDelivery(userId: string, draftId: string): Promise<{ deliveryId: string }> {
   const approval = await approveDraftDelivery({ userId, draftId, attachmentResumeId: null });
-  return startDelivery({ userId, draftId, approvalId: approval.approvalId });
+  return startDelivery({ userId, draftId, approvalId: approval.approvalId }, "code");
 }
 
 export async function listDeliveries(userId: string, limit = 20) {

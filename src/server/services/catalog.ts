@@ -1,7 +1,6 @@
 import "server-only";
 import { cache } from "react";
 import { getPublishedCatalog } from "@/server/services/billing";
-import { getConfig } from "@/server/config";
 
 /**
  * Catalog view for marketing surfaces. One shared server-owned catalog feeds
@@ -51,8 +50,4 @@ export async function getTrialAllowance(): Promise<{ contact: number; ai: number
   const trial = catalog?.skus.find((s) => s.sku === "free_trial_v1");
   if (!trial) return null;
   return { contact: trial.contactCredits, ai: trial.aiCredits };
-}
-
-export async function isPurchasesLive(): Promise<boolean> {
-  return getConfig().FEATURE_LIVE_PURCHASES_ENABLED;
 }

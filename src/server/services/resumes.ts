@@ -19,11 +19,21 @@ import { logger } from "@/server/logger";
 export const MAX_RESUME_BYTES = 5 * 1024 * 1024;
 const MAX_PAGES = 10;
 
+/** HTTP status per upload error code — the single owner of this mapping (§19.1). */
+const UPLOAD_STATUS: Record<string, number> = {
+  RATE_LIMITED: 429,
+  QUOTA_EXCEEDED: 409,
+  UPLOADS_DISABLED: 503,
+};
+
 export class UploadError extends Error {
   code: string;
   constructor(code: string, message: string) {
     super(message);
     this.code = code;
+  }
+  apiErrorSpec() {
+    return { status: UPLOAD_STATUS[this.code] ?? 400, code: this.code, message: this.message };
   }
 }
 

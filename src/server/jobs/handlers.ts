@@ -26,12 +26,8 @@ import {
 import { getConfig } from "@/server/config";
 import { decryptEnvelope, emailFingerprint, sha256Hex } from "@/server/crypto";
 import { logger } from "@/server/logger";
-import {
-  completeGeneration,
-  releaseGeneration,
-  fulfillCapturedPayment,
-} from "@/server/services/credits";
-import { enqueueJob, enqueueOutboxEvent } from "@/server/services/jobs";
+import { releaseGeneration, fulfillCapturedPayment } from "@/server/services/credits";
+import { enqueueJob } from "@/server/services/jobs";
 import { getDraftModel, ModelOutputError, TransientModelError, validateGroundedDraft, type GroundedDraftInput } from "@/server/adapters/ai";
 import { getGmailGateway, refreshAccessToken, decryptTokenEnvelope, encryptTokenEnvelope } from "@/server/adapters/gmail";
 import { buildMimeMessage } from "@/server/adapters/mime";

@@ -244,10 +244,11 @@ export async function requireAdmin(): Promise<SessionUser> {
 }
 
 /**
- * API-side guard: returns the user or null (route handlers convert to 401).
- * Same authorization rules as pages — a server-rendered form is no shortcut.
+ * Active, signed-in account or null. Module-private: `requireApiUser` is the
+ * API-side guard (routes throw its UNAUTHORIZED sentinel), and nothing else
+ * needs the nullable form.
  */
-export async function getApiUser(): Promise<SessionUser | null> {
+async function getApiUser(): Promise<SessionUser | null> {
   try {
     const user = await getSessionUser();
     if (user && user.status === "active") return user;
@@ -258,9 +259,10 @@ export async function getApiUser(): Promise<SessionUser | null> {
 }
 
 /**
- * Throwing variants for API handlers: the sentinel is the exact error the
+ * Throwing variant for API handlers: the sentinel is the exact error the
  * handlers used to build by hand, so `errorResponse` still answers 401
- * UNAUTHENTICATED — one place decides unauthenticated, not fifty.
+ * UNAUTHENTICATED — one place decides unauthenticated, not fifty. Same
+ * authorization rule as pages: active accounts only.
  */
 export async function requireApiUser(): Promise<SessionUser> {
   const user = await getApiUser();

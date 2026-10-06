@@ -1,10 +1,10 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { candidateProfileRevisions, candidateProfiles, candidateFacts, drafts, generationRequests } from "@/db/schema";
 import { getConfig } from "@/server/config";
-import { getBalances, reserveGeneration, CreditError } from "@/server/services/credits";
-import { admitWithPreCheck, acquireSlot, releaseSlot, LIMITS } from "@/server/adapters/ratelimit";
+import { getBalances, CreditError } from "@/server/services/credits";
+import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
 import { enqueueJob } from "@/server/services/jobs";
 import { withIdempotency, hashRequest } from "@/server/services/idempotency";
 import { logger } from "@/server/logger";
@@ -24,6 +24,25 @@ export type GenerationStartInput = {
   priorOutreachContext?: string;
 };
 
+/**
+ * HTTP status per preflight code — the single owner of this mapping (§19.1).
+ * Codes absent from the table (e.g. GENERATION_NOT_FOUND, raised by
+ * `cancelGeneration`) deliberately keep the generic 500 envelope they always
+ * had, so this returns no opinion for them.
+ */
+const GENERATION_STATUS: Record<string, number> = {
+  INSUFFICIENT_AI_CREDITS: 409,
+  DRAFT_INACTIVE: 409,
+  DRAFT_NOT_FOUND: 404,
+  NO_CONFIRMED_FACTS: 422,
+  NO_RECIPIENT: 422,
+  RATE_LIMITED: 429,
+  DAILY_LIMIT_REACHED: 429,
+  AI_DISABLED: 503,
+  IDEMPOTENCY_CONFLICT: 409,
+  INTERNAL: 500,
+};
+
 export class GenerationPreflightError extends Error {
   code: string;
   retryAfter?: number;
@@ -31,6 +50,11 @@ export class GenerationPreflightError extends Error {
     super(message);
     this.code = code;
     this.retryAfter = retryAfter;
+  }
+  apiErrorSpec() {
+    const status = GENERATION_STATUS[this.code];
+    if (status === undefined) return undefined;
+    return { status, code: this.code, message: this.message, retryAfter: this.retryAfter };
   }
 }
 
@@ -283,10 +307,6 @@ export async function cancelGeneration(userId: string, generationId: string): Pr
     return { cancelled: true, state: "cancelled" };
   }
   return { cancelled: false, state: gen.state };
-}
-
-export async function releaseGenerationSlot(userId: string, generationId: string) {
-  await releaseSlot(`ai:user:${userId}:${generationId}`);
 }
 
 export { CreditError, logger };

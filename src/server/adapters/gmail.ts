@@ -266,16 +266,3 @@ export function encryptTokenEnvelope(tokens: { refreshToken?: string | null; acc
 export function decryptTokenEnvelope<T extends { refreshToken?: string | null; accessToken?: string | null }>(envelope: string, binding: string): T {
   return JSON.parse(decryptEnvelope(envelope, binding)) as T;
 }
-
-export async function revokeGrant(accessTokenOrRefreshToken: string, isRefresh = true): Promise<boolean> {
-  try {
-    const res = await fetch("https://oauth2.googleapis.com/revoke", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(isRefresh ? { token: accessTokenOrRefreshToken } : { token: accessTokenOrRefreshToken }),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}

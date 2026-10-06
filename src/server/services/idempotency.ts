@@ -3,7 +3,6 @@ import { createHash } from "node:crypto";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db/client";
 import { idempotencyRecords } from "@/db/schema";
-import { sql } from "drizzle-orm";
 
 /**
  * Durable API idempotency (§18.5). Same key + same input returns the stored
@@ -118,20 +117,4 @@ function sortedKeys(key: string, value: unknown): unknown {
     );
   }
   return value;
-}
-
-export async function findIdempotentOperation(params: {
-  actorId: string;
-  scope: string;
-  key: string;
-  requestHash: string;
-}): Promise<{ operationRef: string; conflict: boolean } | null> {
-  const rows = await db.execute(sql`
-    SELECT operation_ref, request_hash FROM idempotency_records
-    WHERE actor_id = ${params.actorId}::uuid AND scope = ${params.scope} AND key = ${params.key}
-      AND expires_at > now()
-  `);
-  const row = rows.rows[0] as { operation_ref: string | null; request_hash: string } | undefined;
-  if (!row) return null;
-  return { operationRef: row.operation_ref ?? "", conflict: row.request_hash !== params.requestHash };
 }
