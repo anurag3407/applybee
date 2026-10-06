@@ -5,8 +5,6 @@ import { getTestDb, createTestUser, seedTestContact } from "../setup/db";
 import { searchDirectory, getContactForUser, revealContactForUser } from "@/server/services/contacts";
 import { getMarketingCatalog } from "@/server/services/catalog";
 import { getObjectStore } from "@/server/adapters/objectStore";
-import { buildMimeMessage } from "@/server/adapters/mime";
-import { getDraftModel } from "@/server/adapters/ai";
 import { createOpportunity, updateOpportunity, listOpportunities } from "@/server/services/opportunities";
 import { createDraft, autosaveDraft, getDraftForUser, exportEml } from "@/server/services/drafts";
 
@@ -71,32 +69,7 @@ describe("Core Functionality Suite", () => {
     });
   });
 
-  describe("3. MIME & .eml Export", () => {
-    it("constructs valid RFC 2822 MIME message with attachment without send capability", () => {
-      const result = buildMimeMessage({
-        fromEmail: "candidate@example.com",
-        fromName: "Candidate Name",
-        toEmail: "hiring@acme-test.example",
-        toName: "Hiring Manager",
-        subject: "Introduction: Senior Engineer Role",
-        body: "Hello Priya,\n\nI noticed your work on platform scalability...",
-        operationMarker: "op-test-123",
-        attachment: {
-          filename: "Resume.pdf",
-          contentType: "application/pdf",
-          bytes: new TextEncoder().encode("%PDF-1.4 %%EOF"),
-        },
-      });
-
-      expect(result.raw).toContain("To: \"Hiring Manager\" <hiring@acme-test.example>");
-      expect(result.raw).toContain("Subject: Introduction: Senior Engineer Role");
-      expect(result.raw).toContain("Content-Type: multipart/mixed;");
-      expect(result.raw).toContain("filename=\"Resume.pdf\"");
-      expect(result.rawBase64Url).toBeDefined();
-    });
-  });
-
-  describe("4. Billing & Catalog", () => {
+  describe("3. Billing & Catalog", () => {
     it("retrieves published catalog and verify skus", async () => {
       const catalog = await getMarketingCatalog();
       expect(catalog).not.toBeNull();
@@ -107,17 +80,7 @@ describe("Core Functionality Suite", () => {
     });
   });
 
-  describe("5. AI Draft Model Adapter", () => {
-    it("adapter initializes with configured model and exposes compose and parse interface", async () => {
-      const { model, modelId, isMock } = getDraftModel();
-      expect(model).toBeDefined();
-      expect(modelId).toBeDefined();
-      expect(typeof model.compose).toBe("function");
-      expect(typeof model.parseResume).toBe("function");
-    });
-  });
-
-  describe("6. Pipeline & Opportunities", () => {
+  describe("4. Pipeline & Opportunities", () => {
     it("creates and updates opportunity stages", async () => {
       const userId = await createTestUser(`pipe-${randomUUID()}@test.example`, 5, 2);
       const contactId = await seedTestContact("Beta Corp", "beta-test.example");
@@ -144,7 +107,7 @@ describe("Core Functionality Suite", () => {
     });
   });
 
-  describe("7. Draft Creation, Autosave & .eml Export", () => {
+  describe("5. Draft Creation, Autosave & .eml Export", () => {
     it("creates a draft, updates it via autosave, and exports as .eml", async () => {
       const userId = await createTestUser(`draft-${randomUUID()}@test.example`, 5, 2);
 

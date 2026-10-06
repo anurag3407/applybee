@@ -55,7 +55,13 @@ describe("grounded draft validation", () => {
     const draft = validateGroundedDraft(validDraft(), input());
     expect(draft.subject).toContain("Staff Engineer");
     expect(draft.candidateFactIds).toEqual([FACT_IDS[0]]);
+    expect(draft.companyEvidenceIds).toEqual([EVIDENCE_IDS[0]]);
     expect(draft.claimReferences).toHaveLength(1);
+  });
+
+  it("falls back to the requested intent when the model returns an unknown one", () => {
+    const draft = validateGroundedDraft(validDraft({ intent: "made_up_intent" }), input());
+    expect(draft.intent).toBe("intro");
   });
 
   it("rejects a draft that cites a fact outside the snapshot", () => {

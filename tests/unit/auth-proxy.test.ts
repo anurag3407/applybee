@@ -24,35 +24,26 @@ function locationOf(res: Response): URL | null {
   return location ? new URL(location) : null;
 }
 
+const { proxy, matcher } = await loadProxy();
+
 describe("auth proxy (dev adapter)", () => {
-  it("sends guests to sign-in with the requested path preserved", async () => {
-    const { proxy } = await loadProxy();
-    const res = proxy(new NextRequest("http://localhost:3000/app/drafts/abc?tab=body"));
+  const GUEST_PATHS = ["/app/drafts/abc?tab=body", "/onboarding", "/admin/contacts"];
+  it.each(GUEST_PATHS)("sends a guest at %s to sign-in with the path preserved", async (path) => {
+    const res = proxy(new NextRequest(`http://localhost:3000${path}`));
     expect(res.status).toBe(307);
     const location = locationOf(res);
     expect(location?.pathname).toBe("/sign-in");
-    expect(location?.searchParams.get("redirect")).toBe("/app/drafts/abc?tab=body");
+    expect(location?.searchParams.get("redirect")).toBe(path);
   });
 
-  it("gates onboarding and admin like the workspace", async () => {
-    const { proxy } = await loadProxy();
-    for (const path of ["/onboarding", "/admin/contacts"]) {
-      const res = proxy(new NextRequest(`http://localhost:3000${path}`));
-      expect(res.status).toBe(307);
-      expect(locationOf(res)?.pathname).toBe("/sign-in");
-    }
-  });
-
-  it("never redirects /sign-in on cookie presence alone (stale session loop)", async () => {
-    const { proxy } = await loadProxy();
+  it("never redirects /sign-in on cookie presence alone (stale session loop)", () => {
     const req = new NextRequest("http://localhost:3000/sign-in", {
       headers: { cookie: "ab_session=revoked-or-stale" },
     });
     expect(locationOf(proxy(req))).toBeNull();
   });
 
-  it("lets a cookie-carrying request through and defers validation to the server", async () => {
-    const { proxy } = await loadProxy();
+  it("lets a cookie-carrying request through and defers validation to the server", () => {
     const req = new NextRequest("http://localhost:3000/app", {
       headers: { cookie: "ab_session=present" },
     });
@@ -61,13 +52,11 @@ describe("auth proxy (dev adapter)", () => {
     expect(locationOf(res)).toBeNull();
   });
 
-  it("leaves API routes to their own authorization", async () => {
-    const { proxy } = await loadProxy();
+  it("leaves API routes to their own authorization", () => {
     expect(locationOf(proxy(new NextRequest("http://localhost:3000/api/v1/me")))).toBeNull();
   });
 
-  it("runs middleware on pages and API routes so Clerk decorates every request", async () => {
-    const { matcher } = await loadProxy();
+  it("runs middleware on pages and API routes so Clerk decorates every request", () => {
     expect(matcher.some((pattern) => pattern.includes("(api|trpc)"))).toBe(true);
   });
 });

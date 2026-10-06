@@ -22,6 +22,16 @@ async function accountOf(userId: string, type: "contact" | "ai") {
   return res.rows[0]!;
 }
 
+/** A provider-created order ready for capture fulfillment. */
+async function seedProviderOrder(userId: string, skuSnapshot: object) {
+  const res = await client.query<{ provider_order_id: string }>(
+    `INSERT INTO payment_orders (user_id, sku_id, sku_snapshot, amount_paise, currency, receipt, idempotency_key, provider_order_id, status)
+     VALUES ($1::uuid, (SELECT id FROM catalog_skus LIMIT 1), $2::jsonb, 29900, 'INR', $3, $4, $5, 'provider_created') RETURNING provider_order_id`,
+    [userId, JSON.stringify(skuSnapshot), `rcpt-${randomUUID()}`, `idem-${randomUUID()}`, `order_${randomUUID()}`],
+  );
+  return res.rows[0]!.provider_order_id;
+}
+
 describe("reveal_contact (scenario B)", () => {
   it("charges exactly once across 20 concurrent reveals with distinct keys", async () => {
     const userId = await createTestUser(`reveal-${randomUUID()}@test.example`, 5, 2);
@@ -173,13 +183,7 @@ describe("fulfill_captured_payment (scenario H core)", () => {
   it("grants exactly once despite repeated fulfillment calls", async () => {
     const userId = await createTestUser(`pay-${randomUUID()}@test.example`, 0, 0);
     const { createHash } = await import("node:crypto");
-    const receipt = `rcpt-${randomUUID()}`;
-    const order = await client.query<{ id: string; provider_order_id: string | null }>(
-      `INSERT INTO payment_orders (user_id, sku_id, sku_snapshot, amount_paise, currency, receipt, idempotency_key, provider_order_id, status)
-       VALUES ($1::uuid, (SELECT id FROM catalog_skus LIMIT 1), $2::jsonb, 29900, 'INR', $3, $4, $5, 'provider_created') RETURNING id, provider_order_id`,
-      [userId, JSON.stringify({ sku: "plus_v1", contact_credits: 150, ai_credits: 30 }), receipt, `idem-${randomUUID()}`, `order_${randomUUID()}`],
-    );
-    const orderId = order.rows[0]!.provider_order_id!;
+    const orderId = await seedProviderOrder(userId, { sku: "plus_v1", contact_credits: 150, ai_credits: 30 });
     const paymentId = `pay_${randomUUID()}`;
 
     const first = await client.query<{ out: { granted: boolean; already_granted: boolean } }>(
@@ -207,13 +211,9 @@ describe("fulfill_captured_payment (scenario H core)", () => {
 
   it("rejects mismatched amounts without granting", async () => {
     const userId = await createTestUser(`mismatch-${randomUUID()}@test.example`, 0, 0);
-    const order = await client.query<{ id: string; provider_order_id: string | null }>(
-      `INSERT INTO payment_orders (user_id, sku_id, sku_snapshot, amount_paise, currency, receipt, idempotency_key, provider_order_id, status)
-       VALUES ($1::uuid, (SELECT id FROM catalog_skus LIMIT 1), '{}'::jsonb, 29900, 'INR', $2, $3, $4, 'provider_created') RETURNING id, provider_order_id`,
-      [userId, `rcpt-${randomUUID()}`, `idem-${randomUUID()}`, `order_${randomUUID()}`],
-    );
+    const orderId = await seedProviderOrder(userId, {});
     await expect(
-      client.query(`SELECT fulfill_captured_payment($1, $2, 100, 'INR')`, [`pay_${randomUUID()}`, order.rows[0]!.provider_order_id]),
+      client.query(`SELECT fulfill_captured_payment($1, $2, 100, 'INR')`, [`pay_${randomUUID()}`, orderId]),
     ).rejects.toThrow(/PAYMENT_MISMATCH/);
   });
 });

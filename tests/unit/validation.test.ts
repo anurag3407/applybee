@@ -43,54 +43,47 @@ describe("input validation", () => {
     expect(draftPatchSchema.safeParse({ expectedVersion: -1 }).success).toBe(false);
   });
 
-  it("accepts every recipient patch kind the composer can send", () => {
-    // A draft created from the dashboard has no recipient, so setting one —
-    // or clearing it — has to be expressible. This path was previously
-    // unreachable: the PATCH route dropped recipient, which dead-ended the
-    // primary "Create an introduction" call to action.
-    expect(
-      draftPatchSchema.safeParse({
-        expectedVersion: 1,
-        recipient: { kind: "own", email: "priya@acme.example", name: "Priya" },
-      }).success,
-    ).toBe(true);
-    expect(
-      draftPatchSchema.safeParse({
-        expectedVersion: 1,
-        recipient: { kind: "directory", contactId: "3f1b7c66-2f2a-4a5e-9a2c-6f0f3d2a1b44" },
-      }).success,
-    ).toBe(true);
-    expect(draftPatchSchema.safeParse({ expectedVersion: 1, recipient: { kind: "none" } }).success).toBe(true);
-  });
-
-  it("rejects malformed recipient patches", () => {
-    expect(
-      draftPatchSchema.safeParse({ expectedVersion: 1, recipient: { kind: "own", email: "not-an-email" } }).success,
-    ).toBe(false);
+  // A draft created from the dashboard has no recipient, so setting one —
+  // or clearing it — has to be expressible. This path was previously
+  // unreachable: the PATCH route dropped recipient, which dead-ended the
+  // primary "Create an introduction" call to action.
+  const RECIPIENT_PATCHES: Array<[name: string, recipient: unknown, valid: boolean]> = [
+    ["own recipient with email", { kind: "own", email: "priya@acme.example", name: "Priya" }, true],
+    ["directory recipient by contact id", { kind: "directory", contactId: "3f1b7c66-2f2a-4a5e-9a2c-6f0f3d2a1b44" }, true],
+    ["cleared recipient", { kind: "none" }, true],
+    ["own recipient with malformed email", { kind: "own", email: "not-an-email" }, false],
     // A directory recipient must be a real uuid, not an arbitrary string.
-    expect(
-      draftPatchSchema.safeParse({ expectedVersion: 1, recipient: { kind: "directory", contactId: "abc" } }).success,
-    ).toBe(false);
+    ["directory recipient with non-uuid id", { kind: "directory", contactId: "abc" }, false],
+  ];
+  it.each(RECIPIENT_PATCHES)("recipient patch: %s", (_name, recipient, valid) => {
+    expect(draftPatchSchema.safeParse({ expectedVersion: 1, recipient }).success).toBe(valid);
   });
 
-  it("accepts only same-origin return paths for auth redirects", () => {
-    expect(safeInternalPath("/app/drafts/1?tab=body")).toBe("/app/drafts/1?tab=body");
-    expect(safeInternalPath(undefined)).toBeNull();
-    expect(safeInternalPath("")).toBeNull();
-    expect(safeInternalPath("https://evil.example/app")).toBeNull();
-    // Protocol-relative and backslash tricks are external navigations.
-    expect(safeInternalPath("//evil.example/app")).toBeNull();
-    expect(safeInternalPath("/\\evil.example")).toBeNull();
-    expect(safeInternalPath("/app\r\nLocation: https://evil.example")).toBeNull();
-    expect(safeInternalPath("relative/path")).toBeNull();
-    // Repeated query params arrive as arrays; they are never valid paths.
-    expect(safeInternalPath(["/app"])).toBeNull();
+  // Same-origin return paths for auth redirects: absolute, protocol-relative,
+  // backslash, and CRLF tricks are external navigations; repeated query params
+  // arrive as arrays and are never valid paths.
+  const RETURN_PATHS: Array<[name: string, value: unknown, expected: string | null]> = [
+    ["same-origin path with query", "/app/drafts/1?tab=body", "/app/drafts/1?tab=body"],
+    ["missing value", undefined, null],
+    ["empty string", "", null],
+    ["absolute external URL", "https://evil.example/app", null],
+    ["protocol-relative URL", "//evil.example/app", null],
+    ["backslash host trick", "/\\evil.example", null],
+    ["CRLF injection", "/app\r\nLocation: https://evil.example", null],
+    ["relative path", "relative/path", null],
+    ["repeated query param (array)", ["/app"], null],
+  ];
+  it.each(RETURN_PATHS)("return path: %s", (_name, value, expected) => {
+    expect(safeInternalPath(value)).toBe(expected);
   });
 });
 
 describe("formatting", () => {
   it("formats INR from paise", () => {
     expect(formatINRPaise(29900)).toMatch(/299/);
+  });
+
+  it("counts words", () => {
     expect(wordCount("one two three")).toBe(3);
     expect(wordCount("  ")).toBe(0);
   });

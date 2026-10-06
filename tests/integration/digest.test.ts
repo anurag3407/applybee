@@ -7,6 +7,7 @@ import {
   getDigestPostsForUser,
   renderDailyDigestHtml,
   dispatchDigestForUser,
+  type DispatchUserResult,
 } from "@/server/services/digest";
 import { updatePreferences, getPreferences } from "@/server/services/resumes";
 import { getConfig } from "@/server/config";
@@ -16,6 +17,11 @@ let client: Client;
 beforeAll(async () => {
   client = await getTestDb();
 });
+
+/** Why a dispatch did not go out — undefined when it did not skip. */
+function skippedReason(result: DispatchUserResult): string | undefined {
+  return !result.success && result.skipped ? result.reason : undefined;
+}
 
 describe("Daily Hiring Digest (Option B)", () => {
   it("seeds initial curated hiring posts if table is empty", async () => {
@@ -109,20 +115,15 @@ describe("Daily Hiring Digest (Option B)", () => {
   it("dispatches digest, prevents duplicate dispatch today, and allows force dispatch", async () => {
     const userId = await createTestUser(`dispatch-${randomUUID()}@test.example`, 5, 2);
 
-    // First dispatch succeeds
-    const firstResult = await dispatchDigestForUser(userId);
-    expect(firstResult.success).toBe(true);
-    if (firstResult.success) {
-      expect(firstResult.postCount).toBe(10);
-      expect(firstResult.emailId).toBeDefined();
-    }
+    // First dispatch succeeds with all 10 posts and an email id.
+    expect(await dispatchDigestForUser(userId)).toMatchObject({
+      success: true,
+      postCount: 10,
+      emailId: expect.any(String),
+    });
 
-    // Immediate second dispatch on same day is skipped (idempotent)
-    const secondResult = await dispatchDigestForUser(userId);
-    expect(!secondResult.success && secondResult.skipped).toBe(true);
-    if (!secondResult.success && secondResult.skipped) {
-      expect(secondResult.reason).toBe("ALREADY_SENT_TODAY");
-    }
+    // Immediate second dispatch on same day is skipped (idempotent).
+    expect(skippedReason(await dispatchDigestForUser(userId))).toBe("ALREADY_SENT_TODAY");
 
     // Force dispatch bypasses idempotency
     const forceResult = await dispatchDigestForUser(userId, { force: true });
@@ -138,11 +139,7 @@ describe("Daily Hiring Digest (Option B)", () => {
     const { prefs } = await getPreferences(userId);
     expect(prefs?.dailyDigestEnabled).toBe(false);
 
-    // Dispatch should be skipped
-    const res = await dispatchDigestForUser(userId);
-    expect(!res.success && res.skipped).toBe(true);
-    if (!res.success && res.skipped) {
-      expect(res.reason).toBe("DIGEST_PREFERENCE_DISABLED");
-    }
+    // Dispatch should be skipped by preference.
+    expect(skippedReason(await dispatchDigestForUser(userId))).toBe("DIGEST_PREFERENCE_DISABLED");
   });
 });
