@@ -203,6 +203,11 @@ const draftGenerate: Handler = async (ctx) => {
             words: draft.body.trim().split(/\s+/).length,
             factsUsed: draft.candidateFactIds.length,
             evidenceUsed: draft.companyEvidenceIds.length,
+            // The model's grounding caveats. Without this the whole warnings
+            // channel — validated by the adapter and typed in the composer —
+            // was computed and thrown away, so a draft written with no company
+            // evidence or no target role looked identical to a fully grounded one.
+            warnings: draft.warnings,
           },
           completedAt: new Date(),
         })

@@ -44,6 +44,7 @@ export type ComposerProps = {
     failureCode?: string | null;
     failureMessage?: string | null;
     proposal?: { subject: string; body: string } | null;
+    usage?: { factsUsed?: number; warnings?: string[] } | null;
   } | null;
   initialDelivery?: DeliveryState;
 };
@@ -64,6 +65,27 @@ type DeliveryState = {
   failureMessage?: string | null;
   providerDraftId?: string | null;
 } | null;
+
+// Grounding caveats the model returned with a validated draft. They say which
+// part of the snapshot the AI was missing, so an ungrounded draft is never
+// presented identically to a fully grounded one.
+const GROUNDING_WARNINGS: Record<string, string> = {
+  missing_company_context: "No approved company evidence — this was written from your facts and the role only.",
+  weak_match: "Only a weak overlap with this role — re-read the claims before sending.",
+  missing_role_context: "No target role was set, so the ask is generic.",
+  placeholder_text: "This still has a fill-in placeholder — replace it before sending.",
+};
+
+function GroundingNotes({ warnings }: { warnings: string[] }) {
+  if (warnings.length === 0) return null;
+  return (
+    <ul className="space-y-0.5 text-xs text-warning">
+      {warnings.map((w) => (
+        <li key={w}>{GROUNDING_WARNINGS[w] ?? w}</li>
+      ))}
+    </ul>
+  );
+}
 
 const INTENTS = [
   { value: "advertised_role", label: "Advertised role" },
@@ -94,7 +116,13 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
   const [actionError, setActionError] = useState<string | null>(null);
   const [generation, setGeneration] = useState<GenerationState>(initialGeneration ?? null);
   const [proposal, setProposal] = useState<{ subject: string; body: string; factIds: number; warnings: string[] } | null>(
-    initialGeneration?.proposal ? { ...initialGeneration.proposal, factIds: 0, warnings: [] } : null,
+    initialGeneration?.proposal
+      ? {
+          ...initialGeneration.proposal,
+          factIds: initialGeneration.usage?.factsUsed ?? 0,
+          warnings: initialGeneration.usage?.warnings ?? [],
+        }
+      : null,
   );
   const [delivery, setDelivery] = useState<DeliveryState>(initialDelivery ?? null);
   const [approvalOpen, setApprovalOpen] = useState(false);
@@ -269,7 +297,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
           const res = await fetch(`/api/v1/generations/${generationId}`, { signal: controller.signal });
           if (!res.ok) break;
           const data = (await res.json()) as {
-            data: GenerationState & { id: string; proposal?: { subject: string; body: string } | null; usage?: { factsUsed?: number } | null };
+            data: GenerationState & { id: string; proposal?: { subject: string; body: string } | null; usage?: { factsUsed?: number; warnings?: string[] } | null };
           };
           setGeneration(data.data);
           if (data.data.state === "ready" && data.data.proposal) {
@@ -277,7 +305,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
               subject: data.data.proposal.subject,
               body: data.data.proposal.body,
               factIds: data.data.usage?.factsUsed ?? 0,
-              warnings: [],
+              warnings: data.data.usage?.warnings ?? [],
             });
           }
           if (["ready", "failed", "released", "cancelled"].includes(data.data.state)) return;
@@ -648,6 +676,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               <p className="font-bold text-text-secondary">SUBJECT: {proposal.subject}</p>
               <p className="mt-1 whitespace-pre-wrap leading-relaxed">{proposal.body}</p>
             </div>
+            <GroundingNotes warnings={proposal.warnings} />
             <div className="flex items-center justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={dismissProposal}>
                 Dismiss
@@ -753,13 +782,16 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               {generation.state === "ready" && generation.acceptanceState === "pending" ? (
                 <div className="space-y-2">
                   {proposal ? (
-                    <div className="rounded-control border border-border-decorative bg-canvas p-3">
-                      <p className="text-xs font-bold uppercase tracking-wide text-text-disabled">Proposed draft</p>
-                      <p className="mt-1 text-sm font-semibold text-ink">{proposal.subject}</p>
-                      <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed text-text-secondary">
-                        {proposal.body}
-                      </pre>
-                    </div>
+                    <>
+                      <div className="rounded-control border border-border-decorative bg-canvas p-3">
+                        <p className="text-xs font-bold uppercase tracking-wide text-text-disabled">Proposed draft</p>
+                        <p className="mt-1 text-sm font-semibold text-ink">{proposal.subject}</p>
+                        <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed text-text-secondary">
+                          {proposal.body}
+                        </pre>
+                      </div>
+                      <GroundingNotes warnings={proposal.warnings} />
+                    </>
                   ) : null}
                   <div className="flex gap-2">
                     <Button size="sm" onClick={acceptProposal} disabled={busy}>

@@ -62,6 +62,8 @@ export default async function DraftEditorPage({ params }: { params: Promise<{ dr
                 proposedRevisionId: gen.proposedRevisionId,
                 failureCode: gen.failureCode,
                 failureMessage: gen.failureMessage,
+                proposal: data.pendingProposal,
+                usage: gen.usage as { factsUsed?: number; warnings?: string[] } | null,
               }
             : null
         }

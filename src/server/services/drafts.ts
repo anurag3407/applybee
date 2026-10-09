@@ -150,12 +150,22 @@ export async function getDraftForUser(userId: string, draftId: string) {
       .limit(1)
   )[0];
 
+  // A proposal the user has neither accepted nor dismissed has to survive a
+  // reload. The composer renders Apply/Dismiss from the generation state alone,
+  // so without the text they would be approving an email they cannot read.
+  // The row is already in `revisionRows` — no second query.
+  const pendingProposal =
+    latestGeneration && latestGeneration.state === "ready" && latestGeneration.acceptanceState === "pending"
+      ? revisionRows.find((r) => r.id === latestGeneration.proposedRevisionId) ?? null
+      : null;
+
   return {
     draft,
     currentRevision: current ?? null,
     revisionCount: revisionRows.length,
     recipient,
     latestGeneration: latestGeneration ?? null,
+    pendingProposal: pendingProposal ? { subject: pendingProposal.subject, body: pendingProposal.body } : null,
     latestDelivery: latestDelivery ?? null,
   };
 }

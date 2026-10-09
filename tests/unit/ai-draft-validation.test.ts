@@ -89,6 +89,26 @@ describe("grounded draft validation", () => {
     const draft = validateGroundedDraft(validDraft({ subject: "x".repeat(500) }), input());
     expect(draft.subject.length).toBeLessThanOrEqual(160);
   });
+
+  it("flags a fill-in placeholder the model was told not to emit", () => {
+    // Observed live from a free backend: the whole prompt rule was ignored and
+    // the email was signed "[Your Name]".
+    const draft = validateGroundedDraft(
+      validDraft({ body: "Hi Priya,\n\nI cut p99 latency by 40% on a payments service and would love to talk.\n\n[Your Name]" }),
+      input(),
+    );
+    expect(draft.warnings).toContain("placeholder_text");
+  });
+
+  it("does not flag ordinary bracketed text as a placeholder", () => {
+    const draft = validateGroundedDraft(
+      validDraft({
+        body: "Hi Priya,\n\nI cut p99 latency by 40% on a payments service (ticket [ref: 1234]) while at P6 level.",
+      }),
+      input(),
+    );
+    expect(draft.warnings).not.toContain("placeholder_text");
+  });
 });
 
 describe("offline sample model", () => {

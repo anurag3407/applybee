@@ -20,7 +20,9 @@ export type GroundedDraft = {
     factIds: string[];
     evidenceIds: string[];
   }>;
-  warnings: Array<"missing_company_context" | "weak_match" | "missing_role_context">;
+  warnings: Array<
+    "missing_company_context" | "weak_match" | "missing_role_context" | "placeholder_text"
+  >;
 };
 
 export type GroundedDraftInput = {
@@ -82,6 +84,15 @@ function isTransientStatus(status: number): boolean {
 /* Shared output validation                                            */
 /* ------------------------------------------------------------------ */
 
+/**
+ * A fill-in blank the model was told never to emit. Deliberately narrow: it
+ * names the fields that actually go missing from a draft, so ordinary bracketed
+ * text a candidate might really write ("[ref: 1234]", "[P6]", "[San Francisco]")
+ * is not flagged.
+ */
+const PLACEHOLDER_RE =
+  /\[\s*(?:(?:your|the|insert|enter|add|please)\s+)?(?:name|company(?:\s+name)?|role|job\s+title|title|position|recipient|sender|hiring\s+manager|date|link|url)\s*\]|\{\{\s*[\w\s.-]{1,40}\}\}/i;
+
 export function validateGroundedDraft(raw: unknown, input: GroundedDraftInput): GroundedDraft {
   if (typeof raw !== "object" || raw === null) throw new ModelOutputError("Model returned non-object output");
   const obj = raw as Record<string, unknown>;
@@ -128,9 +139,22 @@ export function validateGroundedDraft(raw: unknown, input: GroundedDraftInput): 
   const warnings = Array.isArray(obj.warnings)
     ? (obj.warnings as unknown[]).filter(
         (w): w is GroundedDraft["warnings"][number] =>
-          w === "missing_company_context" || w === "weak_match" || w === "missing_role_context",
+          w === "missing_company_context" ||
+          w === "weak_match" ||
+          w === "missing_role_context" ||
+          w === "placeholder_text",
       )
     : [];
+
+  // Models leave fill-in blanks behind even though PROMPT_SYSTEM forbids
+  // placeholders — "[Your Name]" as the sign-off is a real observed output. The
+  // prompt alone is not a control, so this checks deterministically. It is
+  // reported as a caveat rather than rejected: the draft is perfectly usable
+  // once edited, and failing it would release the credit and make the user pay
+  // to roll the model again for a two-second fix.
+  if (!warnings.includes("placeholder_text") && (PLACEHOLDER_RE.test(subject) || PLACEHOLDER_RE.test(body))) {
+    warnings.push("placeholder_text");
+  }
 
   // Deterministic unsupported-claim check: any fact ID the model cited that
   // was not in the snapshot means the output is untrustworthy.
@@ -496,56 +520,97 @@ ${resumeContent.slice(0, 24_000) || "[No readable text extracted from document]"
         signal: AbortSignal.timeout(60_000),
       });
 
-    let res: Response;
-    try {
-      res = await send(true);
-    } catch (err) {
-      // Network failure / timeout: worth another attempt.
-      throw new TransientModelError(
-        `OpenRouter request failed: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    }
-
-    if (!res.ok && res.status === 400) {
-      // The usual cause is an unsupported response_format on this model.
+    // Two independent outcomes mean "this model will not answer in JSON mode",
+    // and both need the plain-prompt fallback rather than a retry of the
+    // identical request: an HTTP 400 (response_format unsupported), and HTTP 200
+    // carrying `content: null`. The second one is what a reasoning model does
+    // when the whole token budget is consumed by its `reasoning` field before it
+    // emits an answer — re-sending JSON mode reproduced the failure on every one
+    // of the job's attempts, so the user got nothing after minutes of waiting.
+    for (const useJsonMode of [true, false]) {
+      let res: Response;
       try {
-        res = await send(false);
+        res = await send(useJsonMode);
       } catch (err) {
+        // Network failure / timeout: worth another attempt.
         throw new TransientModelError(
-          `OpenRouter retry failed: ${err instanceof Error ? err.message : String(err)}`,
+          `OpenRouter request failed: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
-    }
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      logger.error("openrouter.call_failed", { status: res.status, model: this.modelId });
-      if (isTransientStatus(res.status)) {
-        const retryAfter = Number(res.headers.get("retry-after"));
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        logger.error("openrouter.call_failed", { status: res.status, model: this.modelId, jsonMode: useJsonMode });
+        if (res.status === 400 && useJsonMode) continue;
+        if (isTransientStatus(res.status)) {
+          const retryAfter = Number(res.headers.get("retry-after"));
+          throw new TransientModelError(
+            `OpenRouter ${res.status}: ${text.slice(0, 200)}`,
+            Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 20,
+          );
+        }
+        if (res.status === 401 || res.status === 403) {
+          throw new ModelOutputError(`OpenRouter rejected the API key (${res.status}). Check OPENROUTER_API_KEY.`);
+        }
+        if (res.status === 404) {
+          throw new ModelOutputError(
+            `OpenRouter has no model "${this.modelId}" (404). Set OPENROUTER_MODEL_ID to a model your key can use.`,
+          );
+        }
+        throw new ModelOutputError(`OpenRouter error ${res.status}: ${text.slice(0, 200)}`);
+      }
+
+      let content: string;
+      let finishReason: string | undefined;
+      let resolvedModel: string | undefined;
+      try {
+        const body = (await res.json()) as {
+          model?: string;
+          choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
+        };
+        content = body.choices?.[0]?.message?.content ?? "";
+        finishReason = body.choices?.[0]?.finish_reason;
+        resolvedModel = body.model;
+      } catch (err) {
+        // The 60s abort can fire while the body is still streaming. Left unwrapped
+        // it escaped as a raw DOMException, which the job handler can only route to
+        // its generic catch instead of classifying as a provider failure.
         throw new TransientModelError(
-          `OpenRouter ${res.status}: ${text.slice(0, 200)}`,
-          Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 20,
+          `OpenRouter response could not be read: ${err instanceof Error ? err.message : String(err)}`,
         );
       }
-      if (res.status === 401 || res.status === 403) {
-        throw new ModelOutputError(`OpenRouter rejected the API key (${res.status}). Check OPENROUTER_API_KEY.`);
-      }
-      if (res.status === 404) {
-        throw new ModelOutputError(
-          `OpenRouter has no model "${this.modelId}" (404). Set OPENROUTER_MODEL_ID to a model your key can use.`,
-        );
-      }
-      throw new ModelOutputError(`OpenRouter error ${res.status}: ${text.slice(0, 200)}`);
-    }
 
-    const body = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = body.choices?.[0]?.message?.content ?? "";
-    if (!content.trim()) {
-      throw new TransientModelError("OpenRouter returned an empty completion");
+      // An OpenRouter model id that fans out across backends can only be
+      // attributed to one of them from the response, and generation_requests
+      // necessarily stores the requested alias. Logged before the outcome checks
+      // so an empty or truncated completion is still traceable.
+      logger.info("openrouter.completion", {
+        requested: this.modelId,
+        resolved: resolvedModel ?? "unknown",
+        finishReason: finishReason ?? "unknown",
+        jsonMode: useJsonMode,
+      });
+
+      if (!content.trim()) {
+        if (useJsonMode) continue;
+        throw new TransientModelError("OpenRouter returned an empty completion");
+      }
+      try {
+        return extractJsonFromModelOutput(content);
+      } catch (err) {
+        // Truncation is a transport failure, not an untrustworthy draft. A
+        // reasoning model spends the whole token budget on `reasoning` and is cut
+        // off mid-JSON — and because an OpenRouter model id that fans out to
+        // several backends can land on a different model next time, another
+        // attempt genuinely helps. Marking this permanent instead made the job
+        // release the credit and fail on the first unlucky draw.
+        if (finishReason === "length") {
+          throw new TransientModelError("OpenRouter truncated the completion before it produced valid JSON");
+        }
+        throw err;
+      }
     }
-    return extractJsonFromModelOutput(content);
+    throw new TransientModelError("OpenRouter returned an empty completion");
   }
 }
 
