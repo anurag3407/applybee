@@ -145,8 +145,33 @@ function safeMessage(message: string): string {
     NOT_CONFIGURED: "This integration is not configured yet.",
     UNSUPPORTED_ACTION: "This action is not supported.",
     IDEMPOTENCY_KEY_REQUIRED: "An idempotency key is required for this request.",
+    // Seen in the UI as the literal string "FORBIDDEN_ORIGIN": a page served from
+    // a host this deployment does not recognise (a different port, a new custom
+    // domain) blocked every form with an unreadable code.
+    FORBIDDEN_ORIGIN:
+      "This page was opened from an address the server does not recognise, so it will not accept changes. Reload it from its usual address and try again.",
+    UNAUTHORIZED: "You are signed out. Sign in again to continue.",
+    UNAUTHENTICATED: "You are signed out. Sign in again to continue.",
+    SESSION_EXPIRED: "Your session expired. Sign in again to continue.",
+    FORBIDDEN: "You do not have access to this.",
+    ACCESS_DENIED: "You do not have access to this.",
+    NOT_FOUND: "This no longer exists.",
+    CONFLICT: "This clashes with something that changed. Reload and try again.",
+    VERSION_CONFLICT: "This was saved elsewhere first. Reload to compare before saving again.",
+    RATE_LIMITED: "That was a little too fast. Please wait a moment.",
+    IDEMPOTENCY_CONFLICT: "This request was already used with different details.",
+    UNAVAILABLE: "A service this needs is not responding. Please try again shortly.",
   };
-  return curated[message] ?? message.replace(/\s*\(.*?\)\s*$/, "");
+  const curatedMessage = curated[message];
+  if (curatedMessage) return curatedMessage;
+
+  // A bare `SOMETHING_OR_OTHER` is a log and `code` value, not a sentence. The
+  // envelope already carries it in `code`; echoing it as the message put raw
+  // sentinels in front of users, so unknown ones get generic copy instead.
+  if (/^[A-Z][A-Z0-9_]{2,}$/.test(message.trim())) {
+    return "Something went wrong. Please try again.";
+  }
+  return message.replace(/\s*\(.*?\)\s*$/, "");
 }
 
 /** Same-origin mutation policy for cookie-authenticated requests (§19.1). */

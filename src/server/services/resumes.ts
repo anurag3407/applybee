@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, notInArray, sql } from "drizzle-orm";
 import type { z } from "zod";
 import { db } from "@/db/client";
 import { candidateFacts, candidateProfileRevisions, candidateProfiles, resumes, uploadIntents, users, userPreferences } from "@/db/schema";
@@ -287,14 +287,39 @@ export async function saveProfileRevision(params: {
   return { revisionId, revisionNo: nextNo };
 }
 
-export async function approveProfileRevision(userId: string, revisionId: string): Promise<void> {
+/**
+ * Confirm a revision's facts and make it the one AI drafting reads from.
+ *
+ * `factIds` selects a subset. Ids are matched against this revision's own facts,
+ * so a payload naming someone else's fact cannot flip it, and facts left out are
+ * explicitly un-approved rather than silently kept.
+ */
+export async function approveProfileRevision(userId: string, revisionId: string, factIds?: string[]): Promise<void> {
   const profile = (await db.select().from(candidateProfiles).where(eq(candidateProfiles.userId, userId)).limit(1))[0];
   if (!profile) return;
   await db.transaction(async (tx) => {
-    await tx
-      .update(candidateFacts)
-      .set({ approved: true })
-      .where(and(eq(candidateFacts.profileRevisionId, revisionId), eq(candidateFacts.userId, userId)));
+    if (factIds) {
+      const owned = await tx
+        .select({ id: candidateFacts.id })
+        .from(candidateFacts)
+        .where(and(eq(candidateFacts.profileRevisionId, revisionId), eq(candidateFacts.userId, userId)));
+      const wanted = new Set(factIds);
+      const toApprove = owned.map((r) => r.id).filter((id) => wanted.has(id));
+      if (toApprove.length === 0) throw new Error("NO_FACTS_TO_APPROVE");
+      await tx
+        .update(candidateFacts)
+        .set({ approved: true })
+        .where(and(eq(candidateFacts.profileRevisionId, revisionId), inArray(candidateFacts.id, toApprove)));
+      await tx
+        .update(candidateFacts)
+        .set({ approved: false })
+        .where(and(eq(candidateFacts.profileRevisionId, revisionId), notInArray(candidateFacts.id, toApprove)));
+    } else {
+      await tx
+        .update(candidateFacts)
+        .set({ approved: true })
+        .where(and(eq(candidateFacts.profileRevisionId, revisionId), eq(candidateFacts.userId, userId)));
+    }
     await tx
       .update(candidateProfileRevisions)
       .set({ approvedAt: new Date() })
@@ -323,6 +348,37 @@ export async function hasApprovedProfile(userId: string): Promise<boolean> {
     .where(and(eq(candidateFacts.profileRevisionId, revision.id), eq(candidateFacts.approved, true)))
     .limit(1);
   return facts.length > 0;
+}
+
+/**
+ * A newer revision the user has not confirmed yet — typically what a resume just
+ * parsed into. Parse inserts its facts unapproved and moves only `activeResumeId`,
+ * never `currentRevisionId`, so AI keeps drafting from the older profile while the
+ * user believes the new resume is in use. Nothing told them; this is that signal.
+ */
+export async function getPendingProfileReview(
+  userId: string,
+): Promise<{ revisionId: string; revisionNo: number; factCount: number } | null> {
+  const profile = (await db.select().from(candidateProfiles).where(eq(candidateProfiles.userId, userId)).limit(1))[0];
+  if (!profile) return null;
+  const rows = await db
+    .select({
+      id: candidateProfileRevisions.id,
+      revisionNo: candidateProfileRevisions.revisionNo,
+      approvedAt: candidateProfileRevisions.approvedAt,
+      factCount: sql<number>`(
+        SELECT count(*)::int FROM candidate_facts f
+        WHERE f.profile_revision_id = ${candidateProfileRevisions.id} AND f.approved = false
+      )`,
+    })
+    .from(candidateProfileRevisions)
+    .where(and(eq(candidateProfileRevisions.userId, userId), sql`${candidateProfileRevisions.approvedAt} IS NULL`))
+    .orderBy(desc(candidateProfileRevisions.revisionNo));
+  for (const row of rows) {
+    if (row.id === profile.currentRevisionId) continue;
+    if (row.factCount > 0) return { revisionId: row.id, revisionNo: row.revisionNo, factCount: row.factCount };
+  }
+  return null;
 }
 
 /* ------------------------------------------------------------------ */

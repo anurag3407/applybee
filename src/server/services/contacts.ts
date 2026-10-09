@@ -189,14 +189,19 @@ export class RevealError extends Error {
     this.retryAfter = retryAfter;
   }
   /**
-   * Two codes answer with the stable sentinel envelope the API contract
-   * defines (§19.1); every other code carries user-facing copy that the
-   * generic table in `errorResponse` has always resolved (to 500) — that is
-   * deliberately left alone, so no envelope changes here.
+   * Two codes answer with the stable status/code envelope the API contract
+   * defines (§19.1). `code` is the machine field and stays exactly as contracted;
+   * `message` carries human copy, because it is what the UI prints — a reveal
+   * throttled by rate limit used to show the reader the string "RATE_LIMITED".
+   * Every other code is left alone, so no status or code changes here.
    */
   apiErrorSpec() {
-    if (this.code === "RATE_LIMITED") return { status: 429, code: "RATE_LIMITED", message: "RATE_LIMITED" };
-    if (this.code === "IDEMPOTENCY_CONFLICT") return { status: 409, code: "CONFLICT", message: "CONFLICT" };
+    if (this.code === "RATE_LIMITED") {
+      return { status: 429, code: "RATE_LIMITED", message: "That was a little too fast. Please wait a moment." };
+    }
+    if (this.code === "IDEMPOTENCY_CONFLICT") {
+      return { status: 409, code: "CONFLICT", message: "This reveal was already used with different details." };
+    }
     return undefined;
   }
 }

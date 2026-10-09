@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles, Mail, FileText, AlertCircle, Search } from "lucide-react";
 import { requireActiveUser } from "@/server/auth/session";
 import { getBalances } from "@/server/services/credits";
-import { hasApprovedProfile } from "@/server/services/resumes";
+import { getPendingProfileReview, hasApprovedProfile } from "@/server/services/resumes";
 import { listDrafts } from "@/server/services/drafts";
 import { upcomingReminders, STAGES } from "@/server/services/opportunities";
 import { getConnection } from "@/server/services/gmail";
@@ -17,13 +17,14 @@ import { getConfig } from "@/server/config";
  */
 export default async function DashboardPage() {
   const user = await requireActiveUser();
-  const [balances, profileReady, drafts, reminders, gmail, config] = await Promise.all([
+  const [balances, profileReady, drafts, reminders, gmail, config, pendingReview] = await Promise.all([
     getBalances(user.id),
     hasApprovedProfile(user.id),
     listDrafts(user.id),
     upcomingReminders(user.id),
     getConnection(user.id),
     getConfig(),
+    getPendingProfileReview(user.id),
   ]);
 
   const nextSteps: Array<{ icon: React.ReactNode; title: string; body: string; href: string; cta: string }> = [];
@@ -34,6 +35,24 @@ export default async function DashboardPage() {
       body: "AI drafts use only details you have confirmed. Add facts from your resume or type them in.",
       href: "/app/profile",
       cta: "Confirm profile",
+    });
+  }
+  if (pendingReview) {
+    nextSteps.push({
+      icon: <FileText size={16} aria-hidden className="text-info" />,
+      title: "Your newest details are not in use yet",
+      body: `${pendingReview.factCount} ${pendingReview.factCount === 1 ? "detail" : "details"} from your latest upload are waiting for review. Until you confirm them, AI drafts are written from the older profile you confirmed.`,
+      href: "/app/profile",
+      cta: "Review and confirm",
+    });
+  }
+  if (balances.ai.available < 1 && balances.ai.reserved < 1) {
+    nextSteps.push({
+      icon: <Sparkles size={16} aria-hidden className="text-warning" />,
+      title: "Add AI credits",
+      body: "You have no copilot credits left. Manual writing stays free — or top up and pick up where you left off.",
+      href: "/app/billing/plans",
+      cta: "See packs",
     });
   }
   if (config.FEATURE_GMAIL_ENABLED && !gmail && config.gmailMode === "live") {
@@ -123,7 +142,7 @@ export default async function DashboardPage() {
 
       <section className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-4">
-          {nextSteps.slice(0, 1).map((s) => (
+          {nextSteps.map((s) => (
             <Card key={s.title}>
               <div className="flex items-start justify-between gap-4">
                 <div>

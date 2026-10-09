@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button, Input, Label, Textarea, Badge } from "@/components/ui/primitives";
+import { Button, Input, Label, Textarea } from "@/components/ui/primitives";
 import { UploadZone } from "@/components/resumes/upload-zone";
 
 /* Profile step: name, target role, career stage, preferred location. */
@@ -19,6 +19,12 @@ export function ProfileStep() {
     const form = new FormData(e.currentTarget);
     const targetRole = String(form.get("targetRole") ?? "");
     const careerStage = String(form.get("careerStage") ?? "early_career");
+    const firstFact = String(form.get("firstFact") ?? "").trim();
+    if (firstFact.length < 12) {
+      setError("Add one true sentence about your work — AI drafts are written only from details you confirm.");
+      setBusy(false);
+      return;
+    }
     try {
       const prefsRes = await fetch("/api/v1/me/preferences", {
         method: "PATCH",
@@ -40,23 +46,20 @@ export function ProfileStep() {
       // to /api/v1/profile/revisions, which does not exist — the 404 was never
       // checked, so no profile revision was created and the user went on to a
       // workspace where every AI generation failed with NO_CONFIRMED_FACTS.
-      const starterFacts: Array<{ factType: "skill" | "experience" | "summary"; text: string }> = [];
+      //
+      // Every fact below is something the user typed on this screen. The version
+      // before pushed a career-stage sentence ("Early-career software engineer
+      // ready to contribute") as an `experience` fact with approve:true, so every
+      // draft was grounded in a sentence nobody had confirmed.
+      const starterFacts: Array<{ factType: "achievement" | "skill"; text: string }> = [
+        { factType: "achievement", text: firstFact },
+      ];
       if (targetRole.trim()) {
         starterFacts.push({
           factType: "skill",
           text: `Target career role: ${targetRole.trim()}`,
         });
       }
-      const stageMap: Record<string, string> = {
-        student: "Student / recent graduate actively seeking engineering roles",
-        early_career: "Early-career software engineer ready to contribute",
-        experienced: "Experienced engineer with professional industry background",
-        career_switcher: "Career switcher with transferable technical skills",
-      };
-      starterFacts.push({
-        factType: "experience",
-        text: stageMap[careerStage] ?? "Software engineering candidate",
-      });
 
       const profileRes = await fetch("/api/v1/profile", {
         method: "POST",
@@ -108,6 +111,21 @@ export function ProfileStep() {
             <Label htmlFor="location">Preferred locations</Label>
             <Input id="location" name="location" placeholder="Bengaluru, Remote" />
           </div>
+          <div className="md:col-span-2">
+            <Label htmlFor="firstFact">One true thing about your work</Label>
+            <Textarea
+              id="firstFact"
+              name="firstFact"
+              rows={3}
+              required
+              maxLength={600}
+              placeholder="I cut p99 latency 40% on a payments service at my last job."
+              className="font-[inherit]"
+            />
+            <p className="mt-1 text-xs leading-snug text-text-secondary">
+              AI drafts are written only from details like this one. Add more, or upload a resume, in the next step.
+            </p>
+          </div>
         </div>
       </div>
       <div className="flex justify-end">
@@ -141,7 +159,7 @@ export function ResumeStep() {
         <Link href="/app">
           <Button variant="ghost">Skip for now</Button>
         </Link>
-        <Link href="/onboarding/gmail">
+        <Link href="/onboarding/complete">
           <Button>Continue</Button>
         </Link>
       </div>
@@ -149,65 +167,60 @@ export function ResumeStep() {
   );
 }
 
-/* Gmail step: accurate permission explanation, connect or later. */
-export function GmailStep() {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+/*
+ * Done. Gmail is no longer a step here: its permission explanation and connect
+ * flow live in Settings → Integrations, and it is asked for at the first delivery
+ * where its value is obvious — not before the user has ever drafted anything.
+ */
+export function CompleteStep({ contactCredits, aiCredits }: { contactCredits: number; aiCredits: number }) {
+  const router = useRouter();
 
-  async function connect() {
-    setBusy(true);
-    setError(null);
+  /**
+   * `onboarding_step` is bookkeeping read only by the `/onboarding` resolver, so a
+   * failed write must not trap anyone on this screen — they are sent onward either
+   * way. It used to be written by the page's own render, i.e. from a GET, where a
+   * prefetch alone mutated the row.
+   */
+  async function finish(path: string) {
     try {
-      const res = await fetch("/api/v1/gmail/connection", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ returnPath: "/onboarding/complete" }) });
-      const body = (await res.json()) as { data?: { authorizeUrl?: string }; error?: { message?: string } };
-      if (body.data?.authorizeUrl) {
-        window.location.href = body.data.authorizeUrl;
-        return;
-      }
-      setError(body.error?.message ?? "Gmail connection isn’t available in this environment. You can continue without it.");
-      setBusy(false);
+      await fetch("/api/v1/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: "complete" }),
+      });
     } catch {
-      setError("Gmail connection isn’t available right now. You can continue without it.");
-      setBusy(false);
+      // Bookkeeping only; navigation below does not depend on it.
     }
+    router.push(path);
+    router.refresh();
   }
 
   return (
     <div className="space-y-4">
       <div className="rounded-card border border-border-decorative bg-surface p-6">
-        <h2 className="text-xl font-bold text-ink">Connect Gmail — optional</h2>
-        <div className="mt-3 rounded-control border border-info/30 bg-info-wash px-4 py-3 text-sm leading-relaxed text-ink">
-          <p>
-            “Google’s permission allows managing drafts and sending email. ReachBee uses this connection to create
-            drafts you approve. We do not send email automatically or read your inbox. You can disconnect at any time.”
-          </p>
-        </div>
-        <p className="mt-3 text-sm text-text-secondary">
-          Everything in ReachBee works without Gmail: writing, AI drafts, copying, and export. Connecting only adds
-          draft creation inside your mailbox. Connecting is separate from signing in.
+        <h2 className="text-xl font-bold text-ink">You’re set up.</h2>
+        <p className="mt-2 text-sm text-text-secondary">
+          Your current balances, straight from your account (not a marketing promise):
         </p>
-        {error ? (
-          <p className="mt-3 rounded-control border border-warning/30 bg-warning-wash px-3 py-2 text-sm text-warning" role="alert">
-            {error}
-          </p>
-        ) : null}
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Button variant="primary" onClick={connect} disabled={busy}>
-            {busy ? "Redirecting…" : "Connect Gmail"}
+        <ul className="mt-3 space-y-1 text-sm text-ink">
+          <li>
+            • {contactCredits} contact {contactCredits === 1 ? "reveal" : "reveals"}
+          </li>
+          <li>
+            • {aiCredits} AI {aiCredits === 1 ? "generation" : "generations"}
+          </li>
+        </ul>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button onClick={() => void finish("/app/contacts")}>Find contacts &amp; start outreach</Button>
+          <Button variant="secondary" onClick={() => void finish("/app")}>
+            Go to dashboard
           </Button>
-          <Link href="/onboarding/complete">
-            <Button variant="secondary">Skip for now — Connect when drafting</Button>
-          </Link>
         </div>
       </div>
-      <div className="flex justify-end">
-        <Badge tone="info">Separate OAuth project from sign-in</Badge>
-      </div>
+      <p className="text-xs leading-relaxed text-text-secondary">
+        Gmail is optional and comes up when you first want a draft in your mailbox. Writing, AI drafts, copying and
+        .eml export all work without it.
+      </p>
     </div>
   );
-}
-
-/* Preferences step folded into the dashboard; complete page shows balances. */
-export function PreferencesStep() {
-  return null;
 }

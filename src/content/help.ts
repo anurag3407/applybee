@@ -26,7 +26,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     body: [
       "Contact reveals: one credit the first time you reveal a directory email. Reopening or copying it later is always free.",
       "AI generations: one credit when a validated draft is saved to your account. If generation fails, the credit is released automatically.",
-      "AI drafting is capped at 10 drafts per day per account (Deliverability Shield), whatever your balance. The limit resets at midnight UTC. Unused credits are never lost.",
+      "AI drafting is capped at 10 drafts per day per account (Deliverability Shield), whatever your balance. The limit resets daily at 00:00 UTC (05:30 IST). Unused credits are never lost.",
       "Manual editing, templates, saving, copying, .eml export, and the pipeline: always free.",
       "Gmail draft creation: no AI credit. Delivery quotas apply to prevent abuse.",
     ],

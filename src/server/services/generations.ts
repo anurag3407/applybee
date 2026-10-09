@@ -1,7 +1,16 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db/client";
-import { candidateProfileRevisions, candidateProfiles, candidateFacts, drafts, generationRequests } from "@/db/schema";
+import {
+  candidateProfileRevisions,
+  candidateProfiles,
+  candidateFacts,
+  companyEvidence,
+  draftClaims,
+  draftRevisions,
+  drafts,
+  generationRequests,
+} from "@/db/schema";
 import { getConfig } from "@/server/config";
 import { getBalances, CreditError } from "@/server/services/credits";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
@@ -171,7 +180,7 @@ export async function startGeneration(params: {
   if (!dayAdmission.admitted) {
     throw new GenerationPreflightError(
       "DAILY_LIMIT_REACHED",
-      "You've used all 10 AI drafts for today. Your copilot credits are safe — the limit resets at midnight UTC, or buy a pack for more.",
+      "You've used all 10 AI drafts for today. Your copilot credits are safe — the count resets daily, or buy a pack for more.",
       LIMITS.aiGenerateDaily.windowSeconds,
     );
   }
@@ -247,6 +256,70 @@ export async function startGeneration(params: {
   throw new GenerationPreflightError("INTERNAL", "Generation could not be started.");
 }
 
+/**
+ * The evidence behind a proposed draft. The model cites snapshot IDs and the
+ * server validates them; this turns those citations back into the sentences the
+ * user actually confirmed, so a claim can be checked instead of trusted.
+ */
+export async function getGroundingClaims(revisionId: string) {
+  const rows = await db
+    .select({
+      excerpt: draftClaims.excerpt,
+      factIds: draftClaims.factIds,
+      evidenceIds: draftClaims.evidenceIds,
+      validationResult: draftClaims.validationResult,
+    })
+    .from(draftClaims)
+    .where(eq(draftClaims.revisionId, revisionId));
+
+  const ids = (value: unknown) => (Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : []);
+  const factIds = [...new Set(rows.flatMap((r) => ids(r.factIds)))];
+  const evidenceIds = [...new Set(rows.flatMap((r) => ids(r.evidenceIds)))];
+
+  const facts = factIds.length
+    ? await db
+        .select({ id: candidateFacts.id, factType: candidateFacts.factType, text: candidateFacts.text })
+        .from(candidateFacts)
+        .where(inArray(candidateFacts.id, factIds))
+    : [];
+  const evidence = evidenceIds.length
+    ? await db
+        .select({ id: companyEvidence.id, value: companyEvidence.value, sourceName: companyEvidence.sourceName })
+        .from(companyEvidence)
+        .where(inArray(companyEvidence.id, evidenceIds))
+    : [];
+
+  const factById = new Map(facts.map((f) => [f.id, f]));
+  const evidenceById = new Map(evidence.map((e) => [e.id, e]));
+
+  return rows.map((r) => ({
+    excerpt: r.excerpt,
+    result: r.validationResult,
+    facts: ids(r.factIds).map((id) => factById.get(id)).filter((f): f is (typeof facts)[number] => Boolean(f)),
+    evidence: ids(r.evidenceIds)
+      .map((id) => evidenceById.get(id))
+      .filter((e): e is (typeof evidence)[number] => Boolean(e)),
+  }));
+}
+
+/**
+ * Which confirmed profile a draft was written from. Generation reads a pinned
+ * revision snapshot, so after a new resume is confirmed the label is the only way
+ * a user can tell an old draft from a new one.
+ */
+export async function describeProfileRevision(revisionId: string | null | undefined) {
+  if (!revisionId) return null;
+  const row = (
+    await db
+      .select({ revisionNo: candidateProfileRevisions.revisionNo, source: candidateProfileRevisions.source })
+      .from(candidateProfileRevisions)
+      .where(eq(candidateProfileRevisions.id, revisionId))
+      .limit(1)
+  )[0];
+  if (!row) return null;
+  return { revisionNo: row.revisionNo, source: row.source as string };
+}
+
 export async function getGenerationStatus(userId: string, generationId: string) {
   const gen = (
     await db
@@ -256,13 +329,24 @@ export async function getGenerationStatus(userId: string, generationId: string) 
       .limit(1)
   )[0];
   if (!gen) return null;
-  let proposal: { subject: string; body: string } | null = null;
+  let proposal: {
+    subject: string;
+    body: string;
+    claims: Awaited<ReturnType<typeof getGroundingClaims>>;
+    profileRevision?: Awaited<ReturnType<typeof describeProfileRevision>>;
+  } | null = null;
   if (gen.proposedRevisionId) {
-    const { draftRevisions } = await import("@/db/schema");
     const rev = (
       await db.select().from(draftRevisions).where(eq(draftRevisions.id, gen.proposedRevisionId)).limit(1)
     )[0];
-    if (rev) proposal = { subject: rev.subject, body: rev.body };
+    if (rev) {
+      proposal = {
+        subject: rev.subject,
+        body: rev.body,
+        claims: await getGroundingClaims(rev.id),
+        profileRevision: await describeProfileRevision(rev.profileRevisionId),
+      };
+    }
   }
   return {
     id: gen.id,

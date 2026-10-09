@@ -91,13 +91,13 @@ const CONTRACT: Row[] = [
   ["Delivery", "DELIVERY_NOT_FOUND", 404],
   ["Delivery", "DRAFT_NOT_FOUND", 404],
   ["Delivery", "DAILY_LIMIT_REACHED", 409],
-  // RevealError (contacts) — sentinel envelopes for two codes, generic table otherwise
-  ["Reveal", "RATE_LIMITED", 429, "RATE_LIMITED", "RATE_LIMITED"],
-  ["Reveal", "IDEMPOTENCY_CONFLICT", 409, "CONFLICT", "CONFLICT"],
+  // RevealError (contacts) — stable status/code envelope, human message otherwise
+  ["Reveal", "RATE_LIMITED", 429, "RATE_LIMITED", "That was a little too fast. Please wait a moment."],
+  ["Reveal", "IDEMPOTENCY_CONFLICT", 409, "CONFLICT", "This reveal was already used with different details."],
   ["Reveal", "CONTACT_NOT_FOUND", 500, "INTERNAL", GENERIC_500],
   ["Reveal", "CONTACT_INVALID", 500, "INTERNAL", GENERIC_500],
   // OpportunityError (opportunities)
-  ["Opportunity", "NOT_FOUND", 404, "NOT_FOUND", "NOT_FOUND"],
+  ["Opportunity", "NOT_FOUND", 404, "NOT_FOUND", "This opportunity no longer exists."],
   ["Opportunity", "EMPTY_NOTE", 500, "INTERNAL", GENERIC_500],
 ];
 
@@ -122,9 +122,17 @@ describe("error → HTTP contract", () => {
     }
   });
 
-  it("still maps plain sentinels through the generic table", async () => {
+  it("still maps plain sentinels through the generic table, without echoing the code as copy", async () => {
     const e = await envelope(new Error("UNAUTHORIZED"));
-    expect(e).toMatchObject({ status: 401, code: "UNAUTHENTICATED", message: "UNAUTHORIZED" });
+    expect(e).toMatchObject({ status: 401, code: "UNAUTHENTICATED", message: "You are signed out. Sign in again to continue." });
+  });
+
+  it("never shows a bare sentinel code as the message a user reads", async () => {
+    for (const code of ["UNKNOWN_STATE", "PROFILE_LOCKED", "SOMETHING_NEW"]) {
+      const e = await envelope(new Error(code));
+      expect(e.code).toBe("INTERNAL");
+      expect(e.message).toBe(GENERIC_500);
+    }
   });
 
   it("still maps CreditError to 409 with the service's code and message", async () => {

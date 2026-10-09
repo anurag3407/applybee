@@ -224,18 +224,27 @@ class MockDraftModel implements DraftModel {
       input.companyEvidence.length > 0
         ? ` I noticed ${input.companyEvidence[0]!.value.toLowerCase()}`
         : "";
+    const name = input.candidateName.trim();
+    // Observed in a real draft: a fact that already ends with punctuation plus a
+    // hard-coded "." produced "…payments service..", and an account with no
+    // display name produced "I'm ." — both read as broken to the recipient.
+    const sentence = (text: string) => `${text.replace(/[.\s]+$/, "")}.`;
+    const lead = sentence(`${mainFact}${evidenceLine}`);
+    const followUp = facts[1]
+      ? sentence(`Recently, ${facts[1]!.text.charAt(0).toLowerCase()}${facts[1]!.text.slice(1)}`)
+      : "";
     const body = [
       `Hi ${firstName},`,
       "",
-      `I'm ${input.candidateName}. ${mainFact}${evidenceLine}.`,
-      facts[1] ? `Recently, ${facts[1]!.text.charAt(0).toLowerCase()}${facts[1]!.text.slice(1)}.` : "",
+      name ? `I'm ${name}. ${lead}` : lead,
+      followUp,
       "",
       input.intent === "referral"
         ? "Would you be open to pointing me to the right person, or sharing a short note of advice?"
         : "Would you be open to a brief conversation about how my work might fit?",
       "",
       "Thank you for your time,",
-      input.candidateName,
+      name,
     ]
       .filter(Boolean)
       .join("\n");
@@ -267,6 +276,7 @@ HARD RULES:
 - The call to action must match the intent: role consideration, advice/referral request, or a short conversation.
 - For advertised roles or job inquiries, support a courteous soft-bypass closing line (e.g., offering to formally submit through their official careers portal or requisition if preferred).
 - Plain text only. No placeholders like [Company]. No markdown.
+- Sign off with the candidate name from the snapshot. If it is empty, never write a blank such as "I'm ." — open on the work instead and omit the signature line.
 
 Return STRICT JSON matching:
 {"subject": string, "body": string, "intent": string, "candidateFactIds": string[], "companyEvidenceIds": string[], "claimReferences": [{"excerpt": string, "factIds": string[], "evidenceIds": string[]}], "warnings": string[]}`;

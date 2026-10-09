@@ -9,12 +9,14 @@ import {
   gmailDeliveries,
 } from "@/db/schema";
 import { draftPatchSchema, findUnknownTemplateVariables } from "@/lib/validation";
+import { describeProfileRevision, getGroundingClaims } from "@/server/services/generations";
 import { sha256Hex } from "@/server/crypto";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
 import { buildMimeMessage, validateEmailAddress } from "@/server/adapters/mime";
 import { acceptGeneratedProposal, CreditError } from "@/server/services/credits";
 import { audit } from "@/server/services/audit";
 import { decryptEnvelope } from "@/server/crypto";
+import { logger } from "@/server/logger";
 import { companies, contacts, contactUnlockss } from "@/db/schema";
 
 /**
@@ -86,6 +88,22 @@ export async function createDraft(params: {
   return draft.id;
 }
 
+/**
+ * A retired key version or a corrupt envelope used to throw out of the draft
+ * read, which 500ed both the editor page and the `.eml` download for that user.
+ * The address is simply unavailable until it can be re-read; everything else
+ * about the draft still renders.
+ */
+function decryptContactEmail(emailEnc: string | null, contactId: string): string | null {
+  if (!emailEnc) return null;
+  try {
+    return decryptEnvelope(emailEnc, `contact:${contactId}`);
+  } catch {
+    logger.warn("contact.email_undecryptable", { contactId });
+    return null;
+  }
+}
+
 export async function getDraftForUser(userId: string, draftId: string) {
   const draft = (
     await db.select().from(drafts).where(and(eq(drafts.id, draftId), eq(drafts.userId, userId))).limit(1)
@@ -126,7 +144,7 @@ export async function getDraftForUser(userId: string, draftId: string) {
       name: rows[0]?.name ?? null,
       title: rows[0]?.title ?? null,
       companyName: rows[0]?.companyName ?? null,
-      email: unlock.length > 0 && rows[0]?.emailEnc ? decryptEnvelope(rows[0].emailEnc, `contact:${draft.contactId}`) : null,
+      email: unlock.length > 0 && rows[0]?.emailEnc ? decryptContactEmail(rows[0].emailEnc, draft.contactId) : null,
       unlocked: unlock.length > 0,
     };
   } else if (draft.ownRecipientEmail) {
@@ -158,6 +176,7 @@ export async function getDraftForUser(userId: string, draftId: string) {
     latestGeneration && latestGeneration.state === "ready" && latestGeneration.acceptanceState === "pending"
       ? revisionRows.find((r) => r.id === latestGeneration.proposedRevisionId) ?? null
       : null;
+  const pendingClaims = pendingProposal ? await getGroundingClaims(pendingProposal.id) : [];
 
   return {
     draft,
@@ -165,7 +184,14 @@ export async function getDraftForUser(userId: string, draftId: string) {
     revisionCount: revisionRows.length,
     recipient,
     latestGeneration: latestGeneration ?? null,
-    pendingProposal: pendingProposal ? { subject: pendingProposal.subject, body: pendingProposal.body } : null,
+    pendingProposal: pendingProposal
+      ? {
+          subject: pendingProposal.subject,
+          body: pendingProposal.body,
+          claims: pendingClaims,
+          profileRevision: await describeProfileRevision(pendingProposal.profileRevisionId),
+        }
+      : null,
     latestDelivery: latestDelivery ?? null,
   };
 }

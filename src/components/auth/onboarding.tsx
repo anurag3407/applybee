@@ -20,7 +20,6 @@ export function OnboardingShell({ step, children }: { step: string; children: Re
 const STEPS: Array<{ key: string; label: string }> = [
   { key: "profile", label: "Your profile" },
   { key: "resume", label: "Resume (optional)" },
-  { key: "gmail", label: "Gmail (optional)" },
   { key: "complete", label: "Done" },
 ];
 

@@ -213,6 +213,21 @@ const draftGenerate: Handler = async (ctx) => {
         })
         .where(eq(generationRequests.id, gen.id));
 
+      // Committed with the artifact. A generation can now outlive the client's
+      // poll by several minutes, so this is the only signal that the draft the
+      // user was charged for actually arrived.
+      await tx
+        .insert(notifications)
+        .values({
+          userId: gen.userId,
+          kind: "generation.ready",
+          sourceEntity: `draft:${gen.draftId}`,
+          sourceEvent: `generation.ready:${gen.id}`,
+          title: "Your AI draft is ready",
+          body: "Open the draft to read it against the facts it was built from, then apply or dismiss it.",
+        })
+        .onConflictDoNothing();
+
       return revisionId;
     });
 
@@ -253,6 +268,17 @@ const draftGenerate: Handler = async (ctx) => {
         .set({ state: "failed", failureCode, failureMessage, completedAt: new Date() })
         .where(eq(generationRequests.id, gen.id));
       await resetGeneratingDraft(gen.draftId);
+      await db
+        .insert(notifications)
+        .values({
+          userId: gen.userId,
+          kind: "generation.failed",
+          sourceEntity: `draft:${gen.draftId}`,
+          sourceEvent: `generation.failed:${gen.id}`,
+          title: "The AI could not finish this draft",
+          body: `${failureMessage} Your credit was returned — press Generate again.`,
+        })
+        .onConflictDoNothing();
       return { status: "failed", errorCode: failureCode, errorMessage: message };
     }
     // Transient provider issue: retry within budget; release happens on final

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireActiveUser } from "@/server/auth/session";
 import { getDraftForUser } from "@/server/services/drafts";
 import { getBalances } from "@/server/services/credits";
-import { hasApprovedProfile, listResumes } from "@/server/services/resumes";
+import { getPendingProfileReview, getProfileForUser, hasApprovedProfile, listResumes } from "@/server/services/resumes";
 import { getConnection } from "@/server/services/gmail";
 import { getConfig } from "@/server/config";
 import { Composer } from "@/components/composer/composer";
@@ -16,13 +16,16 @@ export default async function DraftEditorPage({ params }: { params: Promise<{ dr
   const data = await getDraftForUser(user.id, draftId);
   if (!data || data.draft.status === "deleted") notFound();
 
-  const [balances, profileReady, resumes, gmail, config] = await Promise.all([
+  const [balances, profileReady, resumes, gmail, config, pendingReview, profile] = await Promise.all([
     getBalances(user.id),
     hasApprovedProfile(user.id),
     listResumes(user.id),
     getConnection(user.id),
     import("@/server/config").then((m) => m.getConfig()),
+    getPendingProfileReview(user.id),
+    getProfileForUser(user.id),
   ]);
+  const profileTargetRole = (profile.revision?.extracted as { targetRole?: string | null } | null)?.targetRole ?? "";
 
   const gen = data.latestGeneration;
   const del = data.latestDelivery;
@@ -46,6 +49,9 @@ export default async function DraftEditorPage({ params }: { params: Promise<{ dr
           mode: config.gmailMode,
         }}
         hasApprovedProfile={profileReady}
+        candidateName={user.displayName ?? ""}
+        profileTargetRole={profileTargetRole}
+        pendingProfileReview={pendingReview}
         resumeOptions={resumes
           .filter(
             (r) =>

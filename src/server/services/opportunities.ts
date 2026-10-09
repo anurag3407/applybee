@@ -33,7 +33,9 @@ export class OpportunityError extends Error {
   /** NOT_FOUND answers with the sentinel envelope; EMPTY_NOTE keeps the
    * generic 500 it has always had (its message is user copy, not a code). */
   apiErrorSpec() {
-    if (this.code === "NOT_FOUND") return { status: 404, code: "NOT_FOUND", message: "NOT_FOUND" };
+    if (this.code === "NOT_FOUND") {
+      return { status: 404, code: "NOT_FOUND", message: "This opportunity no longer exists." };
+    }
     return undefined;
   }
 }

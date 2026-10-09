@@ -121,9 +121,11 @@ export default function Footer25() {
           
           <div className="flex w-full flex-wrap items-center justify-between gap-6 md:w-auto md:justify-end sm:gap-8 lg:gap-12">
             {[
-              { label: "TWITTER / X", href: "https://x.com" },
-              { label: "LINKEDIN", href: "https://linkedin.com" },
-              { label: "GITHUB", href: "https://github.com" },
+              // No placeholder externals: a link to a bare `https://x.com` is a
+              // broken promise on a launch page. Only destinations that exist.
+              { label: "HOW IT WORKS", href: "/how-it-works" },
+              { label: "PRICING", href: "/pricing" },
+              { label: "SECURITY", href: "/security" },
               { label: "CONTACT US", href: "/contact" },
             ].map((social) => (
               <a

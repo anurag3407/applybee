@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { requireActiveUser } from "@/server/auth/session";
 import { createDraft } from "@/server/services/drafts";
 import { db } from "@/db/client";
-import { drafts as draftsTable, draftRevisions } from "@/db/schema";
+import { drafts as draftsTable } from "@/db/schema";
 import { and, eq, sql, desc } from "drizzle-orm";
 import { z } from "zod";
 
@@ -24,21 +24,27 @@ export default async function NewDraftPage({ searchParams }: { searchParams: Pro
     ? (sp.intent as "intro")
     : "intro";
 
-  // Check if there is an untouched empty draft for this user created within the last 15 minutes
+  // Reuse a still-untouched draft minted minutes ago so repeat visits do not
+  // pile up empty shells in the list. "Untouched" has to be judged from the
+  // revisions: drafts.current_revision_id stays NULL until a proposal is
+  // accepted (only accept_generated_proposal writes it), so joining on it made
+  // this query unsatisfiable and every visit created a new row.
   const existingDrafts = await db
     .select({ id: draftsTable.id })
     .from(draftsTable)
-    .innerJoin(draftRevisions, eq(draftRevisions.id, draftsTable.currentRevisionId))
     .where(
       and(
         eq(draftsTable.userId, user.id),
         eq(draftsTable.status, "active"),
         eq(draftsTable.mode, mode),
+        eq(draftsTable.intent, intent),
         contactId ? eq(draftsTable.contactId, contactId) : sql`${draftsTable.contactId} IS NULL`,
-        sql`(${draftRevisions.subject} = '' OR ${draftRevisions.subject} IS NULL)`,
-        sql`(${draftRevisions.body} = '' OR ${draftRevisions.body} IS NULL)`,
-        sql`${draftsTable.createdAt} > now() - interval '15 minutes'`
-      )
+        sql`${draftsTable.createdAt} > now() - interval '15 minutes'`,
+        sql`NOT EXISTS (
+          SELECT 1 FROM draft_revisions r
+          WHERE r.draft_id = ${draftsTable.id} AND (r.subject <> '' OR r.body <> '')
+        )`,
+      ),
     )
     .orderBy(desc(draftsTable.createdAt))
     .limit(1);

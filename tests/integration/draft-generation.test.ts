@@ -166,13 +166,27 @@ describe("draft.generate end to end", () => {
     expect(status?.proposal?.subject).toBe(revision.subject);
     expect(status?.usage).toMatchObject({ warnings: ["missing_company_context", "missing_role_context"] });
 
+    // The grounding panel's contract: every claim the draft rests on, resolved
+    // back to the confirmed sentence behind it.
+    const pollClaims = status?.proposal?.claims ?? [];
+    expect(pollClaims.length).toBeGreaterThan(0);
+    expect(pollClaims[0]!.facts.length).toBeGreaterThan(0);
+    expect(pollClaims[0]!.facts[0]!.text).toContain("p99 latency");
+    expect(pollClaims[0]!.excerpt.length).toBeGreaterThan(0);
+
     // Reload path: the editor is re-rendered server-side from getDraftForUser,
     // which must hand back the still-pending proposal. Without it the composer
     // shows Apply/Dismiss (driven by the generation state) over an empty preview,
     // so the user approves an email they cannot read.
     const { getDraftForUser } = await import("@/server/services/drafts");
     const reloaded = await getDraftForUser(userId, draftId);
-    expect(reloaded?.pendingProposal).toEqual({ subject: revision.subject, body: revision.body });
+    expect(reloaded?.pendingProposal?.subject).toBe(revision.subject);
+    expect(reloaded?.pendingProposal?.body).toBe(revision.body);
+    expect(reloaded?.pendingProposal?.claims).toEqual(pollClaims);
+    // Provenance: a draft names the confirmed profile revision it was written
+    // from, so a newer profile cannot be silently ignored.
+    expect(status?.proposal?.profileRevision).toMatchObject({ revisionNo: 1, source: "resume" });
+    expect(reloaded?.pendingProposal?.profileRevision).toMatchObject({ revisionNo: 1, source: "resume" });
   });
 
   it("refuses to draft for a user with no approved facts and spends nothing", async () => {
@@ -196,5 +210,55 @@ describe("draft.generate end to end", () => {
     ).rejects.toMatchObject({ code: "NO_CONFIRMED_FACTS" });
 
     expect(await aiAccount(userId)).toEqual({ available: 2, reserved: 0 });
+  });
+
+  it("confirms only the selected facts, leaving the rest unusable by the AI", async () => {
+    const userId = await createTestUser(`subset-${randomUUID()}@test.example`, 5, 2);
+    const profile = await client.query<{ id: string }>(
+      `INSERT INTO candidate_profiles (user_id) VALUES ($1) RETURNING id`,
+      [userId],
+    );
+    const revision = await client.query<{ id: string }>(
+      `INSERT INTO candidate_profile_revisions
+         (user_id, profile_id, revision_no, source, content_hash)
+        VALUES ($1, $2, 1, 'resume', 'seed-hash') RETURNING id`,
+      [userId, profile.rows[0]!.id],
+    );
+    const revisionId = revision.rows[0]!.id;
+    const inserted = await client.query<{ id: string }>(
+      `INSERT INTO candidate_facts (profile_revision_id, user_id, fact_type, text, approved)
+       VALUES ($1, $2, 'achievement', 'Cut p99 latency 40%.', false),
+              ($1, $2, 'skill', 'TypeScript and PostgreSQL', false),
+              ($1, $2, 'experience', 'Worked at a fintech for two years', false)
+       RETURNING id`,
+      [revisionId, userId],
+    );
+    const keepA = inserted.rows[0]!.id;
+    const keepB = inserted.rows[1]!.id;
+    const drop = inserted.rows[2]!.id;
+
+    const { approveProfileRevision, hasApprovedProfile } = await import("@/server/services/resumes");
+    await approveProfileRevision(userId, revisionId, [keepA, keepB]);
+
+    const states = await client.query<{ id: string; approved: boolean }>(
+      `SELECT id, approved FROM candidate_facts WHERE profile_revision_id = $1`,
+      [revisionId],
+    );
+    const byId = new Map(states.rows.map((r) => [r.id, r.approved]));
+    expect(byId.get(keepA)).toBe(true);
+    expect(byId.get(keepB)).toBe(true);
+    // Declined facts stay unapproved rather than deleted, so they can be confirmed
+    // later without re-parsing the resume.
+    expect(byId.get(drop)).toBe(false);
+
+    const current = await client.query<{ current_revision_id: string }>(
+      `SELECT current_revision_id FROM candidate_profiles WHERE user_id = $1`,
+      [userId],
+    );
+    expect(current.rows[0]!.current_revision_id).toBe(revisionId);
+    expect(await hasApprovedProfile(userId)).toBe(true);
+
+    // Ids that are not part of this revision cannot approve anything.
+    await expect(approveProfileRevision(userId, revisionId, [randomUUID()])).rejects.toThrow("NO_FACTS_TO_APPROVE");
   });
 });
