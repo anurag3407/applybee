@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search } from "lucide-react";
+import { IconSearch } from "@/components/svg/icons";
 import { Input, Select, Button } from "@/components/ui/primitives";
 
 const DEPARTMENTS = [
-  { value: "", label: "All Professions" },
-  { value: "engineering", label: "💻 Software & Engineering" },
-  { value: "design", label: "🎨 Product & Design" },
-  { value: "content", label: "✍️ Content & Writing" },
-  { value: "sales", label: "💼 Sales & BizDev" },
-  { value: "product_ops", label: "🚀 Product & Operations" },
+  { value: "", label: "All professions" },
+  { value: "engineering", label: "Software & Engineering" },
+  { value: "design", label: "Product & Design" },
+  { value: "content", label: "Content & Writing" },
+  { value: "sales", label: "Sales & BizDev" },
+  { value: "product_ops", label: "Product & Operations" },
 ];
 
 const ROLES = [
@@ -67,8 +67,11 @@ export function SearchToolbar() {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="relative min-w-56 flex-1">
-        <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+      <div className="group relative min-w-56 flex-1">
+        <IconSearch
+          size={16}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary transition-colors duration-150 group-focus-within:text-ink"
+        />
         <Input
           aria-label="Search contacts"
           placeholder="Search name, title, or company…"
@@ -109,7 +112,7 @@ export function SearchToolbar() {
       </Select>
       {params.toString() ? (
         <Button size="sm" variant="ghost" onClick={() => router.replace(pathname, { scroll: false })}>
-          Clear
+          Clear filters
         </Button>
       ) : null}
     </div>

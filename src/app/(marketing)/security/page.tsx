@@ -14,7 +14,7 @@ export default function SecurityPage() {
           <h2 className="text-xl font-bold text-ink">Permissions we ask for</h2>
           <ul className="prose-measure mt-2 space-y-2 text-[0.95rem] leading-relaxed text-text-secondary">
             <li>• <strong>Sign-in:</strong> your ReachBee account. Signing in with Google is separate from connecting Gmail.</li>
-            <li>• <strong>Gmail (optional):</strong> the gmail.compose scope from a dedicated OAuth project. Google documents it as permitting managing drafts and sending email. ReachBee only creates drafts you approved — our code has no send path, and the HTTP layer rejects send endpoints even by mistake.</li>
+            <li>• <strong>Gmail (optional):</strong> the gmail.compose scope from a dedicated OAuth project. Google documents it as permitting managing drafts and sending email. ReachBee only creates drafts you approved. Our code has no send path, and the HTTP layer rejects send endpoints even by mistake.</li>
             <li>• <strong>Nothing else:</strong> no mailbox reads, no contacts reads, no drive access.</li>
           </ul>
         </section>
@@ -30,7 +30,7 @@ export default function SecurityPage() {
             Resumes live in private storage with quarantine → scan → immutable clean storage. Downloads require your signed-in
             session and an ownership check on the server; there are no public or guessable file URLs, and a file must
             pass the scan gate before it can be downloaded or attached. Directory emails are protected at rest with
-            envelope encryption and never appear in list responses, exports, or logs — only revealed to the account
+            envelope encryption and never appear in list responses, exports, or logs. They are revealed only to the account
             that unlocked them.
           </p>
         </section>

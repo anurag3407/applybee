@@ -13,7 +13,7 @@ const MESSAGES: Record<string, { title: string; tone: "success" | "warning" | "d
   declined: {
     title: "Connection declined",
     tone: "warning",
-    body: "You declined the Gmail permission. Everything else keeps working — copy and export are always available.",
+    body: "You declined the Gmail permission. Everything else keeps working. Copy and export are always available.",
   },
   partial_scope: {
     title: "Permission incomplete",
@@ -60,7 +60,7 @@ export default async function GmailResultPage({ searchParams }: { searchParams: 
           <p className="mt-2 text-sm font-semibold text-ink">Connected mailbox: {mailbox}</p>
         ) : null}
         <p className="mt-3 text-xs text-ink/80">
-          No OAuth codes, tokens, or state parameters are kept in this page’s address — the callback redirected here cleanly.
+          No OAuth codes, tokens, or state parameters are kept in this page’s address. The callback redirected here cleanly.
         </p>
       </Card>
       <div className="flex gap-3">

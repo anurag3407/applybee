@@ -45,7 +45,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
         body: [
           "Drafts, profiles, and resumes persist until you delete them or close your account.",
           "Quarantined/failed uploads are removed within 24 hours. Operational logs are kept 14–30 days without private content. Financial records are retained as required by law, pseudonymized where lawful.",
-          "Account deletion blocks new work immediately and removes files and derived content; existing Gmail drafts already created in your mailbox remain there — we cannot remove external copies.",
+          "Account deletion blocks new work immediately and removes files and derived content; existing Gmail drafts already created in your mailbox remain there, we cannot remove external copies.",
         ],
       },
       {
@@ -89,7 +89,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Availability and changes",
         body: [
-          "We may modify or discontinue features with notice where feasible. Kill switches may temporarily disable AI, Gmail delivery, uploads, or sales to protect users — disabled features are announced in the app, never silently.",
+          "We may modify or discontinue features with notice where feasible. Kill switches may temporarily disable AI, Gmail delivery, uploads, or sales to protect users, disabled features are announced in the app, never silently.",
         ],
       },
     ],
@@ -187,7 +187,7 @@ export const LEGAL_DOCS: LegalDoc[] = [
       {
         heading: "Essential cookies",
         body: [
-          "ab_session — your signed-in session (httpOnly, SameSite=Lax, 30 days). Required for the workspace; no consent needed because nothing else would work.",
+          "ab_session, your signed-in session (httpOnly, SameSite=Lax, 30 days). Required for the workspace; no consent needed because nothing else would work.",
           "Authentication providers (when enabled) may set their own essential cookies during sign-in.",
         ],
       },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { IconClose } from "@/components/svg/icons";
 import { cn } from "@/lib/cn";
 
 /**
@@ -87,8 +87,8 @@ export function Dialog({
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        "m-auto w-[min(92vw,34rem)] rounded-card border border-border-decorative bg-surface p-0 shadow-dialog",
-        "backdrop:bg-ink/40 backdrop:backdrop-blur-[2px]",
+        "ab-dialog m-auto w-[min(92vw,34rem)] rounded-card border border-border-decorative bg-surface p-0 shadow-dialog",
+        "backdrop:bg-veil backdrop:backdrop-blur-[2px]",
         wide && "w-[min(94vw,46rem)]",
       )}
     >
@@ -99,9 +99,9 @@ export function Dialog({
         <button
           onClick={onClose}
           aria-label="Close dialog"
-          className="rounded-control p-1.5 text-text-secondary hover:bg-surface-subtle hover:text-ink"
+          className="ab-press rounded-control p-1.5 text-text-secondary hover:bg-surface-subtle hover:text-ink"
         >
-          <X size={18} aria-hidden />
+          <IconClose size={18} />
         </button>
       </div>
       <div className="px-5 py-4">{children}</div>

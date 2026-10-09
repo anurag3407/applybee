@@ -8,7 +8,7 @@ export default function ContactPage() {
     <div className="mx-auto max-w-2xl px-5 py-16">
       <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">Contact</h1>
       <p className="mt-3 text-text-secondary">
-        Questions, billing issues, data requests, or security reports — one form, triaged by category.
+        Questions, billing issues, data requests, or security reports. One form, triaged by category.
       </p>
       <div className="mt-8">
         <ContactForm />

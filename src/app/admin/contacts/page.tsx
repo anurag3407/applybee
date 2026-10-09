@@ -28,7 +28,7 @@ export default async function AdminContactsPage() {
       <Card className="p-0">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-border-decorative text-xs uppercase tracking-wide text-text-secondary">
+            <tr className="border-b border-border-decorative text-sm font-semibold text-text-secondary">
               <th className="px-4 py-3 font-semibold">Contact</th>
               <th className="px-4 py-3 font-semibold">Company</th>
               <th className="px-4 py-3 font-semibold">Status</th>

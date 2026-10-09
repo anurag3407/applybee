@@ -1,0 +1,434 @@
+/*
+ * Motion layer for the signed-in app.
+ *
+ * Contract:
+ *  - `.ab-pre` is applied by a ref callback before first paint, so there is no
+ *    flash-then-hide. If JS never runs, the class never lands and content shows.
+ *  - Every animation is finite except the two that represent real ongoing work
+ *    (`ab-spin`, `ab-comb-wave`), which stop when the request stops.
+ *  - Reduced motion collapses everything to the end state.
+ */
+
+/* --------------------------------- reveal --------------------------------- */
+
+.ab-pre {
+  opacity: 0;
+  transform: translateY(var(--ab-reveal-y, 14px));
+}
+
+.ab-in {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity var(--ab-duration-enter) var(--ab-ease-out) var(--ab-reveal-delay, 0ms),
+    transform var(--ab-duration-enter) var(--ab-ease-out) var(--ab-reveal-delay, 0ms),
+    color var(--ab-duration-fast) linear,
+    background-color var(--ab-duration-fast) linear,
+    border-color var(--ab-duration-fast) linear;
+}
+
+/* ------------------------------ stagger lists ------------------------------ */
+
+.ab-stagger.ab-pre {
+  opacity: 1;
+  transform: none;
+}
+
+.ab-stagger.ab-pre > * {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.ab-stagger.ab-in > * {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--ab-duration-enter) var(--ab-ease-out),
+    transform var(--ab-duration-enter) var(--ab-ease-out);
+}
+
+.ab-stagger.ab-in > :nth-child(1) { transition-delay: 0ms; }
+.ab-stagger.ab-in > :nth-child(2) { transition-delay: 45ms; }
+.ab-stagger.ab-in > :nth-child(3) { transition-delay: 90ms; }
+.ab-stagger.ab-in > :nth-child(4) { transition-delay: 135ms; }
+.ab-stagger.ab-in > :nth-child(5) { transition-delay: 180ms; }
+.ab-stagger.ab-in > :nth-child(6) { transition-delay: 225ms; }
+.ab-stagger.ab-in > :nth-child(7) { transition-delay: 270ms; }
+.ab-stagger.ab-in > :nth-child(8) { transition-delay: 315ms; }
+.ab-stagger.ab-in > :nth-child(9) { transition-delay: 360ms; }
+.ab-stagger.ab-in > :nth-child(n + 10) { transition-delay: 400ms; }
+
+/* ------------------------------ page transition ---------------------------- */
+
+@keyframes ab-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ab-page-enter {
+  animation: ab-rise var(--ab-duration-enter) var(--ab-ease-out) both;
+}
+
+/* Accordion content arriving: short drop, once. */
+@keyframes ab-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ab-fade-down {
+  animation: ab-drop var(--ab-duration-enter) var(--ab-ease-out) both;
+}
+
+/* --------------------------------- feedback ------------------------------- */
+
+/* Press: 2% scale settles the tap without moving the layout. */
+.ab-press {
+  transition:
+    transform var(--ab-duration-press) var(--ab-ease-out),
+    background-color var(--ab-duration-fast) linear,
+    border-color var(--ab-duration-fast) linear,
+    box-shadow var(--ab-duration-fast) linear,
+    color var(--ab-duration-fast) linear;
+}
+
+.ab-press:active:not(:disabled) {
+  transform: scale(0.975);
+}
+
+.ab-lift {
+  transition:
+    transform var(--ab-duration-normal) var(--ab-ease-out),
+    box-shadow var(--ab-duration-normal) var(--ab-ease-out),
+    border-color var(--ab-duration-fast) linear;
+}
+
+.ab-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Top-edge light on raised surfaces. One hairline on the one elevated block
+ * per view; it grounds the shadow instead of glowing. */
+.ab-hairline {
+  position: relative;
+}
+
+.ab-hairline::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--ab-honey) 55%, transparent),
+    transparent
+  );
+  opacity: 0.7;
+}
+
+.dark .ab-hairline::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.22),
+    transparent
+  );
+}
+
+/* Row/link affordance: the chevron travels, the row does not jump. */
+.ab-slide-icon {
+  transition: transform var(--ab-duration-normal) var(--ab-ease-out);
+}
+
+.ab-slide:hover .ab-slide-icon,
+a:hover > .ab-slide-group .ab-slide-icon {
+  transform: translateX(3px);
+}
+
+/* ------------------------------ draw-in SVGs ------------------------------ */
+
+@keyframes ab-draw-in {
+  from {
+    stroke-dashoffset: var(--ab-len, 1200);
+    opacity: 0.2;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* One dash longer than any path in these drawings, so the end state is a
+ * fully solid line rather than a partial one. */
+.ab-draw :is(path, circle, rect) {
+  stroke-dasharray: var(--ab-len, 1200);
+  stroke-dashoffset: 0;
+  animation: ab-draw-in 900ms var(--ab-ease-out) both;
+}
+
+.ab-draw :is(path, circle, rect):nth-child(2n) { animation-delay: 90ms; }
+.ab-draw :is(path, circle, rect):nth-child(3n) { animation-delay: 170ms; }
+.ab-draw :is(path, circle, rect):nth-child(4n) { animation-delay: 250ms; }
+
+@keyframes ab-cell-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ab-cell {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ab-cell-in 320ms var(--ab-ease-out) both;
+  animation-delay: calc(var(--ab-i, 0) * 28ms);
+  transition: fill var(--ab-duration-normal) linear;
+}
+
+@keyframes ab-ring-in {
+  from {
+    stroke-dashoffset: var(--ab-circ, 1000);
+  }
+  to {
+    stroke-dashoffset: var(--ab-dash, 0);
+  }
+}
+
+.ab-ring circle:last-of-type {
+  animation: ab-ring-in 760ms var(--ab-ease-out) both;
+}
+
+/* Loading comb: cells take turns while a request is actually in flight. */
+@keyframes ab-wave {
+  0%, 100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.ab-comb-wave > path {
+  transform-box: fill-box;
+  animation: ab-wave 1.1s var(--ab-ease-in-out) infinite;
+}
+
+.ab-comb-wave > path:nth-child(2) { animation-delay: 0.12s; }
+.ab-comb-wave > path:nth-child(3) { animation-delay: 0.24s; }
+
+@keyframes ab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ab-spin {
+  animation: ab-spin 900ms linear infinite;
+  transform-origin: center;
+}
+
+/* --------------------------------- skeleton ------------------------------- */
+
+@keyframes ab-shimmer {
+  from {
+    background-position: -160% 0;
+  }
+  to {
+    background-position: 160% 0;
+  }
+}
+
+.ab-shimmer {
+  background-color: var(--ab-surface-subtle);
+  background-image: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, var(--ab-honey) 22%, transparent) 45%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: ab-shimmer 1.4s var(--ab-ease-in-out) infinite;
+}
+
+/* ---------------------------- overlays / popovers -------------------------- */
+
+@keyframes ab-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ab-dialog-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+
+@keyframes ab-veil-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ab-dialog[data-state="open"] {
+  animation: ab-dialog-in var(--ab-duration-enter) var(--ab-ease-out);
+}
+
+/* Native <dialog> has no data-state; animate off the [open] attribute. */
+dialog[open].ab-dialog {
+  animation: ab-dialog-in var(--ab-duration-enter) var(--ab-ease-out);
+}
+
+dialog::backdrop {
+  animation: ab-veil-in var(--ab-duration-fast) linear;
+}
+
+.ab-dialog[data-state="closed"] {
+  animation: ab-dialog-out var(--ab-duration-exit) var(--ab-ease-in) ;
+}
+
+.ab-veil[data-state="open"] {
+  animation: ab-veil-in var(--ab-duration-normal) linear;
+}
+
+@keyframes ab-sheet-in {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+
+@keyframes ab-sheet-slide {
+  from { transform: translateX(-100%); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+
+.ab-sheet[data-state="open"] {
+  animation: ab-sheet-in var(--ab-duration-enter) var(--ab-ease-out);
+}
+
+@keyframes ab-sheet-from-right {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+
+@keyframes ab-sheet-out-right {
+  from { transform: none; }
+  to { transform: translateX(100%); }
+}
+
+@keyframes ab-sheet-out-left {
+  from { transform: none; }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes ab-veil-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Radix reports the active edge on data-side; enter and exit differ in speed. */
+.ab-sheet[data-state="open"][data-side="right"] { animation: ab-sheet-from-right var(--ab-duration-enter) var(--ab-ease-out); }
+.ab-sheet[data-state="open"][data-side="left"] { animation: ab-sheet-in var(--ab-duration-enter) var(--ab-ease-out); }
+.ab-sheet[data-state="open"][data-side="top"] { animation: ab-sheet-in var(--ab-duration-enter) var(--ab-ease-out); }
+.ab-sheet[data-state="open"][data-side="bottom"] { animation: ab-sheet-in var(--ab-duration-enter) var(--ab-ease-out); }
+.ab-sheet[data-state="closed"][data-side="right"] { animation: ab-sheet-out-right var(--ab-duration-exit) var(--ab-ease-in) forwards; }
+.ab-sheet[data-state="closed"][data-side="left"] { animation: ab-sheet-out-left var(--ab-duration-exit) var(--ab-ease-in) forwards; }
+.ab-veil[data-state="closed"] { animation: ab-veil-out var(--ab-duration-exit) linear forwards; }
+
+/* Nav marker: the active rail is drawn, not faded — it shows where you are. */
+@keyframes ab-rail-in {
+  from { transform: scaleY(0.2); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+.ab-rail {
+  transform-origin: center;
+  animation: ab-rail-in var(--ab-duration-enter) var(--ab-ease-out);
+}
+
+/* Brand mark: the honeycomb bands answer each other once, on intent. */
+@keyframes ab-band {
+  from { opacity: 0.15; transform: translateY(-2px); }
+  to { opacity: 1; transform: none; }
+}
+
+.ab-mark:hover svg > * {
+  animation: ab-band 420ms var(--ab-ease-out) both;
+}
+
+.ab-mark:hover svg > :nth-child(2n) { animation-delay: 60ms; }
+.ab-mark:hover svg > :nth-child(3n) { animation-delay: 120ms; }
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* -------------------------------- reduced -------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ab-pre,
+  .ab-stagger.ab-pre > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .ab-in,
+  .ab-page-enter,
+  .ab-cell,
+  .ab-ring circle,
+  .ab-draw :is(path, circle, rect),
+  .ab-comb-wave > path,
+  .ab-spin,
+  .ab-shimmer,
+  .ab-dialog,
+  .ab-veil,
+  .ab-sheet,
+  .ab-rail,
+  .ab-mark:hover svg > * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .ab-lift:hover {
+    transform: none;
+  }
+
+  .ab-fade-down {
+    animation: none !important;
+  }
+
+  .ab-fade-down,
+  .ab-page-enter {
+    opacity: 1;
+    transform: none;
+  }
+}

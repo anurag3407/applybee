@@ -151,8 +151,8 @@ export async function sendWelcomeEmail(email: string, displayName?: string | nul
     <div class="meta-box">
       <div style="font-weight: 700; margin-bottom: 8px;">Your Free Starter Credits:</div>
       <ul style="margin: 0; padding-left: 20px; color: #403e38;">
-        <li><strong>5 Contact Reveals</strong> — Unlock direct verified work emails</li>
-        <li><strong>2 AI Resume Drafts</strong> — 1-click tailored pitches staged in your Gmail Drafts</li>
+        <li><strong>5 Contact Reveals</strong>, Unlock direct verified work emails</li>
+        <li><strong>2 AI Resume Drafts</strong>, 1-click tailored pitches staged in your Gmail Drafts</li>
       </ul>
     </div>
     <p style="font-size: 14px; color: #403e38;">
@@ -163,7 +163,7 @@ export async function sendWelcomeEmail(email: string, displayName?: string | nul
 
   return sendEmail({
     to: email,
-    subject: "Welcome to ReachBee AI — Your 5 Free Credits are Ready",
+    subject: "Welcome to ReachBee AI, Your 5 Free Credits are Ready",
     html,
     text: `Welcome to ReachBee! Your workspace is ready with 5 free contact reveals and 2 AI drafts. Visit ${baseUrl}/app to get started.`,
   });
@@ -208,7 +208,7 @@ export async function sendSupportTicketNotification(params: {
 
   await sendEmail({
     to: "anurag@sayalabs.in",
-    subject: `🚨 [Support] ${params.publicRef}: ${params.category} from ${params.userEmail}`,
+    subject: `[Support] ${params.publicRef}: ${params.category} from ${params.userEmail}`,
     html: adminHtml,
   });
 }
@@ -263,7 +263,7 @@ export async function sendPaymentReceiptEmail(params: {
   const baseUrl = getAppBaseUrl();
   const inr = (params.amountPaise / 100).toFixed(0);
   const html = emailWrapper(`
-    <h2 style="margin-top: 0; font-size: 20px; color: #166534;">Payment Confirmed — Credits Added!</h2>
+    <h2 style="margin-top: 0; font-size: 20px; color: #166534;">Payment Confirmed, Credits Added!</h2>
     <p style="font-size: 14px; color: #403e38;">
       Thank you for your purchase. Your account has been credited with the <strong>${params.skuName}</strong> pack.
     </p>

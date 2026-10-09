@@ -58,7 +58,7 @@ export default async function IntegrationsPage() {
                 <span className="text-sm text-ink">{formatDateTime(d.createdAt)}</span>
                 <StatusChip
                   status={d.state === "created" ? "success" : d.state === "known_failed" ? "danger" : d.state === "needs_confirmation" ? "warning" : "info"}
-                  label={d.state === "created" ? "Created — nothing sent" : d.state}
+                  label={d.state === "created" ? "Created, nothing sent" : d.state}
                 />
               </li>
             ))}

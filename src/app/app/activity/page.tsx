@@ -11,7 +11,7 @@ const KIND_LABELS: Record<string, string> = {
   grant: "Credits granted",
   reserve: "AI generation reserved",
   consume: "AI generation used",
-  release: "Generation failed — credit returned",
+  release: "Generation failed, credit returned",
   reveal: "Contact email revealed",
   adjustment: "Support adjustment",
 };
@@ -44,7 +44,7 @@ export default async function ActivityPage() {
             : d.state === "needs_confirmation"
               ? "Gmail draft needs confirmation"
               : `Gmail delivery ${d.state}`,
-      detail: "Draft creation only — nothing was sent.",
+      detail: "Draft creation only. Nothing was sent.",
     });
   }
 

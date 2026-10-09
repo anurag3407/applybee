@@ -26,7 +26,7 @@ export default function HelpIndexPage() {
       ) : (
         categories.map((cat) => (
           <section key={cat} className="mt-10">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-text-secondary">{cat}</h2>
+            <h2 className="text-sm font-bold text-text-secondary">{cat}</h2>
             <ul className="mt-3 divide-y divide-border-decorative rounded-card border border-border-decorative bg-surface">
               {HELP_ARTICLES.filter((a) => a.category === cat).map((a) => (
                 <li key={a.slug}>

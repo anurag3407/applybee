@@ -20,7 +20,7 @@ export default async function LegalDocPage({ params }: { params: Promise<{ doc: 
   if (!found) notFound();
   return (
     <article className="mx-auto max-w-3xl px-5 py-16">
-      <p className="text-sm font-bold uppercase tracking-wider text-text-secondary">Legal</p>
+      <p className="text-sm font-bold text-text-secondary">Legal</p>
       <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink">{found.title}</h1>
       <p className="mt-3 text-text-secondary">{found.summary}</p>
       <p className="mt-1 text-sm text-text-disabled">Last reviewed: {formatDate(found.updated)}</p>

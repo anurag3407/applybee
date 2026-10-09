@@ -41,7 +41,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
               role="note"
             >
               <strong>Development build:</strong> this environment uses a local labeled session adapter. Production
-              sign-in uses Clerk with Google sign-in — see <code>docs/adr/0001-platform.md</code>.
+              sign-in uses Clerk with Google sign-in. See <code>docs/adr/0001-platform.md</code>.
             </div>
             <DevSignInForm mode="sign-in" redirectTo={safeTarget} />
           </>

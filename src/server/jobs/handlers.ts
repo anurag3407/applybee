@@ -121,7 +121,7 @@ const draftGenerate: Handler = async (ctx) => {
         .set({
           state: "failed",
           failureCode: "NO_CONFIRMED_FACTS",
-          failureMessage: "Confirm a few profile facts first — AI drafts are written only from details you have confirmed.",
+          failureMessage: "Confirm a few profile facts first, AI drafts are written only from details you have confirmed.",
           completedAt: new Date(),
         })
         .where(eq(generationRequests.id, gen.id));
@@ -241,7 +241,7 @@ const draftGenerate: Handler = async (ctx) => {
       logger.warn("generation.provider_transient", { generationId: gen.id, error: message });
       await db
         .update(generationRequests)
-        .set({ state: "generating", failureCode: "PROVIDER_TRANSIENT", failureMessage: "The model provider is temporarily unavailable — retrying." })
+        .set({ state: "generating", failureCode: "PROVIDER_TRANSIENT", failureMessage: "The model provider is temporarily unavailable, retrying." })
         .where(eq(generationRequests.id, gen.id));
       return {
         status: "retry",
@@ -276,7 +276,7 @@ const draftGenerate: Handler = async (ctx) => {
           sourceEntity: `draft:${gen.draftId}`,
           sourceEvent: `generation.failed:${gen.id}`,
           title: "The AI could not finish this draft",
-          body: `${failureMessage} Your credit was returned — press Generate again.`,
+          body: `${failureMessage} Your credit was returned, press Generate again.`,
         })
         .onConflictDoNothing();
       return { status: "failed", errorCode: failureCode, errorMessage: message };
@@ -711,7 +711,7 @@ const paymentFulfill: Handler = async (ctx) => {
     const message = err instanceof Error ? err.message : String(err);
     if (message.includes("ORDER_NOT_FOUND") || message.includes("PAYMENT_MISMATCH")) {
       await db.update(webhookEvents).set({ processState: "quarantined", lastError: message }).where(eq(webhookEvents.id, event.id));
-      return { status: "failed", errorCode: "PAYMENT_MISMATCH", errorMessage: "Payment does not match a stored order — quarantined for review." };
+      return { status: "failed", errorCode: "PAYMENT_MISMATCH", errorMessage: "Payment does not match a stored order, quarantined for review." };
     }
     return { status: "retry", retryAfterSeconds: 15, errorCode: "FULFILL_TRANSIENT", errorMessage: message };
   }
@@ -739,7 +739,7 @@ const resumeScanParse: Handler = async (ctx) => {
   // Scan gate: structural validation always; isolated processor when configured.
   await db.update(resumes).set({ state: "scanning", updatedAt: new Date() }).where(eq(resumes.id, resume.id));
   const bytes = await quarantine.get(resume.objectKey);
-  let scanNote = "Structural validation passed (local development scanner — no antivirus signatures).";
+  let scanNote = "Structural validation passed (local development scanner, no antivirus signatures).";
   let cleanScan = true;
   if (config.DOCUMENT_PROCESSOR_ENDPOINT && config.DOCUMENT_PROCESSOR_SIGNING_SECRET) {
     try {
@@ -756,7 +756,7 @@ const resumeScanParse: Handler = async (ctx) => {
       logger.warn("resume.scanner_unavailable", { resumeId: resume.id, error: String(err) });
       await db
         .update(resumes)
-        .set({ state: "uploaded", scanStatus: "unavailable", scanNote: "Scanner temporarily unavailable — file remains quarantined.", updatedAt: new Date() })
+        .set({ state: "uploaded", scanStatus: "unavailable", scanNote: "Scanner temporarily unavailable, file remains quarantined.", updatedAt: new Date() })
         .where(eq(resumes.id, resume.id));
       return { status: "retry", retryAfterSeconds: 60, errorCode: "SCANNER_UNAVAILABLE", errorMessage: "Scanner unavailable" };
     }
@@ -846,7 +846,7 @@ const resumeScanParse: Handler = async (ctx) => {
       kind: "resume.ready_for_review",
       sourceEntity: `resume:${resume.id}`,
       sourceEvent: `resume.review:${resume.id}`,
-      title: "Your resume was parsed — review the details",
+      title: "Your resume was parsed, review the details",
       body: "Confirm or correct the extracted profile before it is used in AI drafts.",
     }).onConflictDoNothing();
 
@@ -855,7 +855,7 @@ const resumeScanParse: Handler = async (ctx) => {
     const message = err instanceof Error ? err.message : String(err);
     await db
       .update(resumes)
-      .set({ state: "parse_failed", parseState: "failed", scanNote: "Parsing failed — you can still enter your profile manually.", updatedAt: new Date() })
+      .set({ state: "parse_failed", parseState: "failed", scanNote: "Parsing failed, you can still enter your profile manually.", updatedAt: new Date() })
       .where(eq(resumes.id, resume.id));
     return { status: "failed", errorCode: "PARSE_FAILED", errorMessage: message };
   }

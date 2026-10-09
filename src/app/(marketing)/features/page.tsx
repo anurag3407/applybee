@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductFacts, DirectoryFeature, WorkspaceTeaser, Trust } from "@/components/marketing/landing";
-import Features2 from "@/components/ui/features-2";
-import Bento2 from "@/components/ui/bento2";
 import { Button } from "@/components/ui/primitives";
 
 export const metadata: Metadata = { title: "Features · ReachBee AI" };
@@ -13,7 +11,7 @@ export default function FeaturesPage() {
       <div className="mx-auto max-w-3xl px-5 py-16">
         <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">Features</h1>
         <p className="prose-measure mt-3 text-lg text-text-secondary">
-          Directory, profile, three writing modes, pipeline, and trust — deep links into the full walkthrough below.
+          Directory, profile, three writing modes, pipeline, and trust. Deep links into the full walkthrough below.
         </p>
         <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <li><Link href="/#directory" className="font-semibold text-ink underline">Directory</Link></li>
@@ -26,8 +24,6 @@ export default function FeaturesPage() {
           <Link href="/sign-up"><Button variant="accent">Start free</Button></Link>
         </div>
       </div>
-      <Features2 />
-      <Bento2 />
       <ProductFacts />
       <DirectoryFeature />
       <WorkspaceTeaser />

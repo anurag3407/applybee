@@ -33,3 +33,6 @@ gui-test-screenshots/
 *.tsbuildinfo
 __pycache__/
 *.pyc
+
+# /brag video render output (large binaries, regenerable)
+brag-output*/

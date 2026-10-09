@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown } from "lucide-react";
+import { IconChevronDown } from "@/components/svg/icons";
 import { cn } from "@/lib/utils";
 
 interface AccordionContextValue {
@@ -146,7 +146,7 @@ export const AccordionTrigger = React.forwardRef<
         {...props}
       >
         {children}
-        <ChevronDown
+        <IconChevronDown
           data-slot="accordion-trigger-icon"
           className={cn(
             "h-4 w-4 shrink-0 transition-transform duration-200",
@@ -176,7 +176,7 @@ export const AccordionContent = React.forwardRef<
       ref={ref}
       data-state={isOpen ? "open" : "closed"}
       className={cn(
-        "overflow-hidden text-sm transition-all animate-in fade-in-50 duration-200 pb-4 pt-0",
+        "overflow-hidden text-sm ab-fade-down pb-4 pt-0",
         className
       )}
       {...props}

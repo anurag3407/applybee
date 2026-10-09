@@ -349,7 +349,7 @@ export async function getDigestPostsForUser(userId: string, limit = 10): Promise
         department: "engineering",
         sourcePlatform: "reachbee",
         sourceUrl: null,
-        postSnippet: `${c.name} (${c.title}) at ${c.companyName}. Outreach contact in the ReachBee directory — mailbox checked at the last verification pass.`,
+        postSnippet: `${c.name} (${c.title}) at ${c.companyName}. Outreach contact in the ReachBee directory, mailbox checked at the last verification pass.`,
         techStack: ["Next.js", "Node.js", "PostgreSQL", "Full-Stack"],
         hiringManagerName: c.name,
         hiringManagerTitle: c.title,
@@ -390,46 +390,46 @@ export function renderDailyDigestHtml(params: {
         .slice(0, 4)
         .map(
           (tech) =>
-            `<span style="display:inline-block; background:#f3f4f6; color:#374151; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; margin-right:4px; margin-bottom:4px;">${escapeHtml(tech)}</span>`,
+            `<span style="display:inline-block; background:#eeeade; color:#586257; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; margin-right:4px; margin-bottom:4px;">${escapeHtml(tech)}</span>`,
         )
         .join("");
 
       const sourceBadge =
         p.sourcePlatform === "twitter"
-          ? `<span style="background:#e0f2fe; color:#0369a1; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">🐦 X / Founder Post</span>`
+          ? `<span style="background:#e7eef9; color:#245ead; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">X / founder post</span>`
           : p.sourcePlatform === "wellfound"
-            ? `<span style="background:#fef3c7; color:#92400e; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">🔥 Startup Lead</span>`
+            ? `<span style="background:#faedc9; color:#704a08; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">Startup lead</span>`
             : // Only claim verification when the directory actually verified the
               // mailbox. Previously every backfilled contact got a "Verified
               // Decision-Maker" badge, including ones marked unknown or
               // catch-all — a false claim in an email sent to every user.
               p.verificationStatus === "verified"
-              ? `<span style="background:#dcfce7; color:#166534; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">✅ Verified mailbox</span>`
+              ? `<span style="background:#e5f0e7; color:#245a3b; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">Verified mailbox</span>`
               : p.verificationStatus === "catch_all"
-                ? `<span style="background:#fef3c7; color:#92400e; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">⚠️ Catch-all domain</span>`
-                : `<span style="background:#f3f4f6; color:#374151; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">Directory contact</span>`;
+                ? `<span style="background:#fff0cf; color:#704a08; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">Catch-all domain</span>`
+                : `<span style="background:#eeeade; color:#586257; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;">Directory contact</span>`;
 
       return `
-      <div style="border:1px solid #e5e7eb; border-radius:10px; padding:16px; margin-bottom:14px; background:#ffffff;">
+      <div style="border:1px solid #dcdace; border-radius:10px; padding:16px; margin-bottom:14px; background:#fffdf7;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
           <div>
             <div style="margin-bottom:4px;">${sourceBadge}</div>
-            <div style="font-size:16px; font-weight:700; color:#111827; margin:0 0 2px;">
+            <div style="font-size:16px; font-weight:700; color:#18231e; margin:0 0 2px;">
               ${index + 1}. ${escapeHtml(p.title)}
             </div>
-            <div style="font-size:13px; font-weight:600; color:#4b5563;">
-              🏢 ${escapeHtml(p.companyName)} &bull; <span style="font-weight:400; color:#6b7280;">📍 ${escapeHtml(p.location ?? "Remote / Flexible")}</span>
+            <div style="font-size:13px; font-weight:600; color:#586257;">
+              ${escapeHtml(p.companyName)} &bull; <span style="font-weight:400; color:#586257;">${escapeHtml(p.location ?? "Remote / Flexible")}</span>
             </div>
           </div>
         </div>
 
-        <p style="font-size:13px; line-height:1.5; color:#374151; margin:8px 0 10px; background:#f9fafb; padding:10px; border-radius:6px; border-left:3px solid #f59e0b;">
+        <p style="font-size:13px; line-height:1.5; color:#586257; margin:8px 0 10px; background:#f7f4ec; padding:10px; border-radius:6px; border-left:3px solid #c8932a;">
           ${escapeHtml(p.postSnippet)}
         </p>
 
         ${
           p.hiringManagerName
-            ? `<div style="font-size:12px; color:#4b5563; margin-bottom:10px;">
+            ? `<div style="font-size:12px; color:#586257; margin-bottom:10px;">
                 <strong>Hiring Lead:</strong> ${escapeHtml(p.hiringManagerName)} ${p.hiringManagerTitle ? `(${escapeHtml(p.hiringManagerTitle)})` : ""}
               </div>`
             : ""
@@ -439,11 +439,11 @@ export function renderDailyDigestHtml(params: {
 
         <!-- High-Converting Action Triggers -->
         <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-          <a href="${draftUrl}" style="background-color:#111827; color:#ffffff !important; text-decoration:none; font-size:12px; font-weight:600; padding:8px 14px; border-radius:6px; display:inline-block;">
-            ⚡ 1-Click Draft to Gmail
+          <a href="${draftUrl}" style="background-color:#18231e; color:#fffdf7 !important; text-decoration:none; font-size:12px; font-weight:600; padding:8px 14px; border-radius:6px; display:inline-block;">
+            Draft in Gmail
           </a>
-          <a href="${revealUrl}" style="background-color:#f3f4f6; color:#1f2937 !important; border:1px solid #d1d5db; text-decoration:none; font-size:12px; font-weight:600; padding:7px 12px; border-radius:6px; display:inline-block;">
-            🔓 Reveal Direct Email
+          <a href="${revealUrl}" style="background-color:#eeeade; color:#18231e !important; border:1px solid #cfd0c6; text-decoration:none; font-size:12px; font-weight:600; padding:7px 12px; border-radius:6px; display:inline-block;">
+            Reveal email
           </a>
         </div>
       </div>
@@ -458,26 +458,26 @@ export function renderDailyDigestHtml(params: {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f6f2; margin: 0; padding: 20px; color: #1f1e1a; }
-    .card { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 14px; border: 1px solid #e7e5dc; padding: 28px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
-    .header { margin-bottom: 20px; border-bottom: 1px solid #f0eee6; padding-bottom: 16px; }
-    .logo { font-size: 20px; font-weight: 800; color: #1f1e1a; text-decoration: none; }
-    .logo span { color: #f59e0b; }
-    .balance-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin: 16px 0 24px; font-size: 13px; color: #92400e; display: flex; justify-content: space-between; align-items: center; }
-    .footer { margin-top: 32px; font-size: 12px; color: #78756c; text-align: center; line-height: 1.5; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f7f4ec; margin: 0; padding: 20px; color: #18231e; }
+    .card { max-width: 600px; margin: 0 auto; background: #fffdf7; border-radius: 14px; border: 1px solid #dcdace; padding: 28px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+    .header { margin-bottom: 20px; border-bottom: 1px solid #e9e5d8; padding-bottom: 16px; }
+    .logo { font-size: 20px; font-weight: 800; color: #18231e; text-decoration: none; }
+    .logo span { color: #c8932a; }
+    .balance-box { background: #faedc9; border: 1px solid #efd9a4; border-radius: 8px; padding: 12px 16px; margin: 16px 0 24px; font-size: 13px; color: #704a08; display: flex; justify-content: space-between; align-items: center; }
+    .footer { margin-top: 32px; font-size: 12px; color: #71796f; text-align: center; line-height: 1.5; }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="header">
       <a href="${baseUrl}" class="logo">ReachBee <span>AI</span></a>
-      <div style="float: right; font-size: 12px; font-weight: 600; color: #b45309; background: #fef3c7; padding: 4px 10px; border-radius: 12px;">
+      <div style="float: right; font-size: 12px; font-weight: 600; color: #8a5f13; background: #faedc9; padding: 4px 10px; border-radius: 12px;">
         Daily Morning Dispatch
       </div>
     </div>
 
-    <h2 style="margin: 0 0 6px; font-size: 22px; color: #111827;">Good morning, ${escapeHtml(name)}! ☀️</h2>
-    <p style="font-size: 14px; color: #4b5563; margin: 0 0 16px; line-height: 1.5;">
+    <h2 style="margin: 0 0 6px; font-size: 22px; color: #18231e;">Good morning, ${escapeHtml(name)}!</h2>
+    <p style="font-size: 14px; color: #586257; margin: 0 0 16px; line-height: 1.5;">
       Here are today's <strong>10 curated hiring leads & active founders</strong> looking for developers. Click any post to prepare a tailored intro directly in your Gmail.
     </p>
 
@@ -485,10 +485,10 @@ export function renderDailyDigestHtml(params: {
     <div class="balance-box">
       <div>
         <strong>Your Workspace Balance:</strong><br/>
-        <span>⚡ ${params.contactCredits} Contact Reveals</span> &bull; <span>📝 ${params.aiCredits} AI Drafts Available</span>
+        <span>${params.contactCredits} Contact Reveals</span> &bull; <span>${params.aiCredits} AI Drafts Available</span>
       </div>
       <div>
-        <a href="${baseUrl}/app/billing" style="color: #b45309; text-decoration: underline; font-weight: 700; font-size: 12px;">Get More</a>
+        <a href="${baseUrl}/app/billing" style="color: #8a5f13; text-decoration: underline; font-weight: 700; font-size: 12px;">Get More</a>
       </div>
     </div>
 
@@ -498,9 +498,9 @@ export function renderDailyDigestHtml(params: {
     </div>
 
     <!-- Footer Banner -->
-    <div style="background:#f3f4f6; border-radius:8px; padding:16px; text-align:center; margin-top:24px;">
-      <p style="font-size:13px; font-weight:600; color:#1f2937; margin:0 0 6px;">Need more direct founder contacts or AI resume drafts?</p>
-      <a href="${baseUrl}/app/billing" style="display:inline-block; background-color:#111827; color:#ffffff !important; font-size:12px; font-weight:600; padding:8px 16px; border-radius:6px; text-decoration:none;">
+    <div style="background:#eeeade; border-radius:8px; padding:16px; text-align:center; margin-top:24px;">
+      <p style="font-size:13px; font-weight:600; color:#18231e; margin:0 0 6px;">Need more direct founder contacts or AI resume drafts?</p>
+      <a href="${baseUrl}/app/billing" style="display:inline-block; background-color:#18231e; color:#fffdf7 !important; font-size:12px; font-weight:600; padding:8px 16px; border-radius:6px; text-decoration:none;">
         Explore Outreach Packs (from ₹150) &rarr;
       </a>
     </div>
@@ -509,7 +509,7 @@ export function renderDailyDigestHtml(params: {
       <p>
         ReachBee AI by SayaLabs Studio • ${escapeHtml(baseUrl.replace(/^https?:\/\//, ""))}<br/>
         Autonomous Career Outreach & Decision-Maker Intelligence<br/>
-        <a href="${baseUrl}/app/settings" style="color:#6b7280; text-decoration:underline;">Update morning digest preferences or unsubscribe</a>
+        <a href="${baseUrl}/app/settings" style="color:#586257; text-decoration:underline;">Update morning digest preferences or unsubscribe</a>
       </p>
     </div>
   </div>
@@ -645,7 +645,7 @@ export async function dispatchDigestForUser(
 
   // 6. Send email via Resend. A thrown error must still release the claim,
   // otherwise one provider outage silently costs the user their digest.
-  const subject = `🔥 Today's 10 Tech Hiring Leads — ReachBee Daily Dispatch (${dispatchDate})`;
+  const subject = `${posts.length} hiring ${posts.length === 1 ? "lead" : "leads"}, ReachBee digest (${dispatchDate})`;
   let sendResult: SendEmailResult;
   try {
     sendResult = await sendEmail({

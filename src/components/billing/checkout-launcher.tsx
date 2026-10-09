@@ -106,24 +106,24 @@ export function CheckoutLauncher({ sku, priceLabel, salesLive }: { sku: string; 
       <Dialog open={open} onClose={() => !busy && setOpen(false)} title="Confirm purchase">
         <div className="space-y-3 text-sm">
           {!salesLive ? (
-            <Badge tone="warning">Sandbox checkout — no money moves, credits are simulated and labeled</Badge>
+            <Badge tone="warning">Sandbox checkout. No money moves, credits are simulated and labeled</Badge>
           ) : null}
           <p className="text-ink">
             Pack <strong>{sku}</strong> for <strong>{priceLabel}</strong> (one-time).
           </p>
           {stage === "done" ? (
             <p className="rounded-control bg-success-wash px-3 py-2 text-success" role="status">
-              Payment confirmed — credits granted exactly once. Redirecting…
+              Payment confirmed, credits granted exactly once. Redirecting…
             </p>
           ) : stage === "pending" ? (
             <p className="rounded-control bg-warning-wash px-3 py-2 text-warning" role="status">
-              Payment is being confirmed. Don’t pay again for this order — the order page shows live status.
+              Payment is being confirmed. Don’t pay again for this order. The order page shows live status.
             </p>
           ) : (
             <>
               {error ? <InlineError>{error}</InlineError> : null}
               <p className="text-text-secondary">
-                Credits are granted when your payment is confirmed — usually within seconds. If confirmation is delayed,
+                Credits are granted when your payment is confirmed. Usually within seconds. If confirmation is delayed,
                 the payment page keeps trying; a captured payment is never lost.
               </p>
             </>

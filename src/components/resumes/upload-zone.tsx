@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { UploadCloud } from "lucide-react";
+import { IconUpload } from "@/components/svg/icons";
 import { Button } from "@/components/ui/primitives";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -74,7 +74,7 @@ export function UploadZone({ onDone }: { onDone?: () => void }) {
           if (file) void handleFile(file);
         }}
       />
-      <UploadCloud size={24} aria-hidden className="mx-auto text-text-secondary" />
+      <IconUpload size={24} aria-hidden className="mx-auto text-text-secondary" />
       {filename ? (
         <p className="mt-2 text-sm font-semibold text-ink" aria-live="polite">
           {busy ? `Uploading ${filename}…` : `${filename} uploaded`}

@@ -29,7 +29,7 @@ export default async function CreditsLedgerPage({ searchParams }: { searchParams
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-ink">Credit ledger</h2>
         <p className="text-sm text-text-secondary">
-          Append-only history. Balances are the sum of these entries — no opaque deductions.
+          Append-only history. Balances are the sum of these entries, no opaque deductions.
         </p>
       </div>
 
@@ -53,7 +53,7 @@ export default async function CreditsLedgerPage({ searchParams }: { searchParams
         <table className="w-full text-left text-sm">
           <caption className="sr-only">Credit ledger entries</caption>
           <thead>
-            <tr className="border-b border-border-decorative text-xs uppercase tracking-wide text-text-secondary">
+            <tr className="border-b border-border-decorative text-sm font-semibold text-text-secondary">
               <th scope="col" className="px-4 py-3 font-semibold">Event</th>
               <th scope="col" className="px-4 py-3 font-semibold">Available Δ</th>
               <th scope="col" className="px-4 py-3 font-semibold">Reserved Δ</th>

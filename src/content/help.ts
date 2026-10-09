@@ -12,7 +12,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     category: "Getting started",
     title: "Getting started with ReachBee",
     body: [
-      "Create an account — no card required. You get a small trial allowance of contact reveals and AI generations.",
+      "Create an account, no card required. You get a small trial allowance of contact reveals and AI generations.",
       "Confirm a few profile facts (from your resume or typed by hand). AI drafts use only confirmed facts.",
       "Find a contact or enter your own recipient. Write manually for free, or generate a draft for one AI credit.",
       "Review the draft, edit it as you like, and either copy it or create a Gmail draft (optional). Sending is always your action.",
@@ -38,7 +38,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Using ReachBee without Gmail",
     body: [
       "Everything except mailbox draft creation works without connecting Gmail: writing, AI drafts, templates, saving, copying, .eml export, and the pipeline.",
-      "When you connect Gmail, Google’s permission allows managing drafts and sending email. ReachBee uses it only to create drafts you approved — we never send automatically or read your inbox.",
+      "When you connect Gmail, Google’s permission allows managing drafts and sending email. ReachBee uses it only to create drafts you approved, we never send automatically or read your inbox.",
       "You can disconnect at any time from Settings → Integrations. Your drafts stay saved here.",
     ],
     related: ["gmail-failed"],
@@ -49,7 +49,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "What if Gmail draft creation fails?",
     body: [
       "Known failure (permission, quota): your draft stays saved in ReachBee. Fix the cause (e.g. reconnect) and retry, or copy the text.",
-      "Uncertain outcome: if Gmail accepted the request but we lost the confirmation, we mark it “checking” and try a bounded reconciliation. If it stays unresolved you’ll see “Needs confirmation” — check your Gmail Drafts folder before creating another copy.",
+      "Uncertain outcome: if Gmail accepted the request but we lost the confirmation, we mark it “checking” and try a bounded reconciliation. If it stays unresolved you’ll see “Needs confirmation”, check your Gmail Drafts folder before creating another copy.",
       "We never blindly retry a Gmail creation, because that could duplicate drafts.",
     ],
     related: ["use-without-gmail"],
@@ -71,7 +71,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Payments and refunds",
     body: [
       "Packs are one-time purchases in INR via Razorpay (UPI, cards, netbanking). No subscriptions, no auto-renewal.",
-      "Credits appear as soon as your payment is confirmed — usually seconds. If the confirmation is delayed, don’t pay again; the order page shows live status and grants exactly once.",
+      "Credits appear as soon as your payment is confirmed, usually seconds. If the confirmation is delayed, don’t pay again; the order page shows live status and grants exactly once.",
       "Unused purchased credits are refundable under the refunds policy. Contact support with your payment reference.",
     ],
     related: ["when-credits-charge"],

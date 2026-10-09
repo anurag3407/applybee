@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { IconTrash } from "@/components/svg/icons";
 import { Button } from "@/components/ui/primitives";
 import { Dialog } from "@/components/ui/dialog";
 
@@ -22,7 +22,7 @@ export function DeleteResumeButton({ resumeId }: { resumeId: string }) {
   return (
     <>
       <Button size="sm" variant="ghost" onClick={() => setOpen(true)} aria-label="Delete resume">
-        <Trash2 size={14} aria-hidden /> Delete
+        <IconTrash size={14} aria-hidden /> Delete
       </Button>
       <Dialog
         open={open}
@@ -40,7 +40,7 @@ export function DeleteResumeButton({ resumeId }: { resumeId: string }) {
         }
       >
         <p className="text-sm text-text-secondary">
-          The stored file is deleted. Existing Gmail drafts with this attachment keep their copies — ReachBee cannot
+          The stored file is deleted. Existing Gmail drafts with this attachment keep their copies. ReachBee cannot
           remove those. Pending approvals that reference this file are invalidated.
         </p>
       </Dialog>

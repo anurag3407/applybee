@@ -6,6 +6,7 @@ import { getBalances } from "@/server/services/credits";
 import { SearchToolbar } from "@/components/directory/search-toolbar";
 import { RevealAction, SaveContactButton, WriteToContactButton, OneClickOutreachButton } from "@/components/directory/reveal";
 import { Badge, Button, EmptyState, Card } from "@/components/ui/primitives";
+import { CountUp, Reveal } from "@/components/motion";
 import { relativeTime } from "@/lib/format";
 import { Suspense } from "react";
 
@@ -27,11 +28,11 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const DEPT_LABELS: Record<string, string> = {
-  engineering: "💻 Engineering",
-  design: "🎨 Design",
-  content: "✍️ Content",
-  sales: "💼 Sales",
-  product_ops: "🚀 Product / Ops",
+  engineering: "Engineering",
+  design: "Design",
+  content: "Content",
+  sales: "Sales",
+  product_ops: "Product / Ops",
 };
 
 const VERIFICATION_TONES: Record<string, "success" | "warning" | "neutral" | "danger"> = {
@@ -67,25 +68,27 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
     <div className="mx-auto max-w-6xl space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-ink">Find contacts</h2>
+          <h2 className="text-2xl font-extrabold tracking-tight text-ink">Find contacts</h2>
           <p className="text-sm text-text-secondary">
-            Browsing is free. Reveal shows a full address once for one credit — reopening it is always free.
+            Browsing is free. Reveal shows a full address once for one credit. Reopening it is always free.
           </p>
         </div>
         <p className="tabular text-sm font-semibold text-ink">
-          {balances.contact.available} contact {balances.contact.available === 1 ? "reveal" : "reveals"}
+          <CountUp value={balances.contact.available} /> contact{" "}
+          {balances.contact.available === 1 ? "reveal" : "reveals"}
           {balances.contact.reserved > 0 ? ` · ${balances.contact.reserved} in use` : ""}
         </p>
       </div>
 
-      <Suspense fallback={<div className="h-11 animate-pulse rounded-control bg-surface-subtle" />}>
+      <Suspense fallback={<div className="ab-shimmer h-11 rounded-control" />}>
         <SearchToolbar />
       </Suspense>
 
       {rows.length === 0 ? (
         <EmptyState
+          art="contacts"
           title="No matching contacts"
-          description="Try clearing a filter — or write to someone you already know by entering your own recipient in the composer."
+          description="Try clearing a filter, or write to someone you already know by entering your own recipient in the composer."
           action={
             <Link href="/app/drafts/new">
               <Button variant="secondary">Write with your own recipient</Button>
@@ -99,7 +102,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Directory contacts</caption>
               <thead>
-                <tr className="border-b border-border-decorative text-xs uppercase tracking-wide text-text-secondary">
+                <tr className="border-b border-border-decorative text-sm text-text-secondary">
                   <th scope="col" className="px-4 py-3 font-semibold">Name & title</th>
                   <th scope="col" className="px-4 py-3 font-semibold">Company</th>
                   <th scope="col" className="px-4 py-3 font-semibold">Location</th>
@@ -109,7 +112,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
               </thead>
               <tbody className="divide-y divide-border-decorative/70">
                 {rows.map((c) => (
-                  <tr key={c.id} className="hover:bg-surface-subtle/50">
+                  <tr key={c.id} className="transition-colors hover:bg-surface-subtle/50">
                     <td className="px-4 py-3">
                       <Link href={`/app/contacts/${c.id}`} className="font-bold text-ink hover:underline">
                         {c.name}
@@ -143,7 +146,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                           <OneClickOutreachButton contactId={c.id} contactName={c.name} availableCredits={balances.contact.available} />
                         )}
                         <SaveContactButton contactId={c.id} saved={c.saved} />
-                        <Link href={`/app/contacts/${c.id}`} className="flex min-h-9 items-center rounded-control border border-border-control px-2.5 text-xs font-semibold text-text-secondary hover:text-ink hover:bg-surface-subtle" title="View details and company context">
+                        <Link href={`/app/contacts/${c.id}`} className="ab-press flex min-h-9 items-center rounded-control border border-border-control px-2.5 text-xs font-semibold text-text-secondary hover:text-ink hover:bg-surface-subtle" title="View details and company context">
                           Details
                         </Link>
                       </div>
@@ -157,7 +160,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
           {/* Mobile cards (§12.3): same labeled fields, no crushed tables */}
           <div className="space-y-3 md:hidden">
             {rows.map((c) => (
-              <Card key={c.id}>
+              <Card key={c.id} interactive>
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <Link href={`/app/contacts/${c.id}`} className="font-bold text-ink">
@@ -188,7 +191,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                     </>
                   )}
                   <SaveContactButton contactId={c.id} saved={c.saved} />
-                  <Link href={`/app/contacts/${c.id}`} className="flex min-h-9 items-center rounded-control border border-border-control px-3 text-xs font-semibold text-text-secondary hover:text-ink hover:bg-surface-subtle">
+                  <Link href={`/app/contacts/${c.id}`} className="ab-press flex min-h-9 items-center rounded-control border border-border-control px-3 text-xs font-semibold text-text-secondary hover:text-ink hover:bg-surface-subtle">
                     Details
                   </Link>
                 </div>
@@ -207,7 +210,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
       )}
 
       <p className="text-xs text-text-disabled">
-        “Verified” reflects an email check at the shown date — not hiring intent or consent to outreach. Employment
+        “Verified” reflects an email check at the shown date, not hiring intent or consent to outreach. Employment
         freshness is tracked separately. Listing a contact never implies an active vacancy.
       </p>
     </div>

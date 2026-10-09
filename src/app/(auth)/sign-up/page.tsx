@@ -42,7 +42,7 @@ export default async function SignUpPage({ searchParams }: { searchParams: Promi
               className="rounded-control border border-warning/30 bg-warning-wash px-3 py-2 text-xs leading-relaxed text-warning"
               role="note"
             >
-              <strong>Development build:</strong> local labeled session adapter. Production uses Clerk — see{" "}
+              <strong>Development build:</strong> local labeled session adapter. Production uses Clerk. See{" "}
               <code>docs/adr/0001-platform.md</code>.
             </div>
             <DevSignInForm mode="sign-up" redirectTo={destination} />

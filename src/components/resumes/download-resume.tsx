@@ -1,6 +1,6 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { IconDownload } from "@/components/svg/icons";
 import { Button } from "@/components/ui/primitives";
 
 /**
@@ -28,7 +28,7 @@ export function DownloadResumeButton({
       className={disabled ? "pointer-events-none opacity-50" : undefined}
     >
       <Button size="sm" variant="secondary" disabled={disabled}>
-        <Download size={14} aria-hidden /> Download
+        <IconDownload size={14} aria-hidden /> Download
       </Button>
     </a>
   );

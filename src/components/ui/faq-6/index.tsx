@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/base-ui/accordion';
-import { FaPlus, FaMinus } from 'react-icons/fa';
+import { IconPlus } from '@/components/svg/icons';
 import { cn } from '@/lib/utils';
 
 export interface FaqItem {
@@ -62,8 +62,11 @@ export function Faq6({
                     </span>
                   </div>
                   <div className="bg-muted text-muted-foreground ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-colors group-hover:bg-muted/80">
-                    <FaPlus className="block h-3 w-3 group-data-[state=open]:hidden" />
-                    <FaMinus className="hidden h-3 w-3 group-data-[state=open]:block" />
+                    {/* One glyph: the plus turns 45° into a cross when open. */}
+                    <IconPlus
+                      size={14}
+                      className="transition-transform duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-data-[state=open]:rotate-45"
+                    />
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-8 pl-[3.25rem] pr-12">

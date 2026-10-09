@@ -56,7 +56,7 @@ export async function startConnect(params: {
   if (!config.GOOGLE_OAUTH_CLIENT_ID || !config.GOOGLE_OAUTH_CLIENT_SECRET || !config.GOOGLE_OAUTH_REDIRECT_URI) {
     return {
       error:
-        "Gmail connection is not configured in this environment. You can still write, copy, and export drafts — see Pricing and Security pages for what works without Gmail.",
+        "Gmail connection is not configured in this environment. You can still write, copy, and export drafts, see Pricing and Security pages for what works without Gmail.",
     };
   }
 
@@ -293,7 +293,7 @@ export async function approveDraftDelivery(params: {
   }
   const connection = await getConnection(params.userId);
   if (!connection) {
-    throw new DeliveryPreflightError("NOT_CONNECTED", "Connect Gmail first — or copy the draft content.");
+    throw new DeliveryPreflightError("NOT_CONNECTED", "Connect Gmail first, or copy the draft content.");
   }
 
   const draft = (

@@ -24,7 +24,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ paymen
 
   const statusLabel =
     order.status === "fulfilled"
-      ? "Paid — credits granted"
+      ? "Paid, credits granted"
       : order.status === "pending"
         ? "Payment is being confirmed. Please don’t pay again for this order."
         : order.status === "cancelled"

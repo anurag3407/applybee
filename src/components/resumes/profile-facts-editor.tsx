@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Plus, Trash2 } from "lucide-react";
+import { IconCheck, IconPlus, IconTrash } from "@/components/svg/icons";
 import { Button, Badge, Input, Label, Select } from "@/components/ui/primitives";
 
 type Fact = { id: string; factType: string; text: string; approved: boolean; sourceRef?: string | null };
@@ -78,7 +78,7 @@ export function ProfileFactsEditor({
     const additions = facts.filter((f) => isNew(f.id));
     const payloadFacts = kept.map((f) => ({ factType: f.factType, text: f.text }));
     if (payloadFacts.length === 0) {
-      setSaved("Keep at least one detail — AI drafting needs something confirmed to write from.");
+      setSaved("Keep at least one detail, AI drafting needs something confirmed to write from.");
       return;
     }
     if (additions.length > 0) {
@@ -90,7 +90,7 @@ export function ProfileFactsEditor({
           facts: payloadFacts,
           approve: true,
         },
-        "Confirmed — these details are now usable in AI drafts.",
+        "Confirmed. These details are now usable in AI drafts.",
       );
       return;
     }
@@ -100,7 +100,7 @@ export function ProfileFactsEditor({
       subset ? { revisionId, factIds: kept.map((f) => f.id) } : { revisionId },
       subset
         ? `Confirmed ${kept.length} of ${facts.length} details. The rest stay out of AI drafts.`
-        : "Facts confirmed — they're now usable in AI drafts.",
+        : "Facts confirmed. They're now usable in AI drafts.",
     );
   }
 
@@ -153,7 +153,7 @@ export function ProfileFactsEditor({
 
       {!approved ? (
         <p className="mt-3 text-xs leading-snug text-text-secondary">
-          Uncheck anything that is not true for you. Only what you confirm here can be used to write a draft — you do
+          Uncheck anything that is not true for you. Only what you confirm here can be used to write a draft, you do
           not have to delete what you want to keep for later.
         </p>
       ) : null}
@@ -177,11 +177,11 @@ export function ProfileFactsEditor({
               aria-label="Remove fact from this revision"
               className="rounded p-1 text-text-secondary hover:bg-surface-subtle hover:text-danger"
             >
-              <Trash2 size={14} aria-hidden />
+              <IconTrash size={14} aria-hidden />
             </button>
           </li>
         ))}
-        {facts.length === 0 ? <li className="text-sm text-text-secondary">No facts yet — add a few below.</li> : null}
+        {facts.length === 0 ? <li className="text-sm text-text-secondary">No facts yet. Add a few below.</li> : null}
       </ul>
 
       <div className="mt-4 flex flex-wrap items-end gap-2">
@@ -208,14 +208,14 @@ export function ProfileFactsEditor({
           />
         </div>
         <Button variant="secondary" onClick={addFact} disabled={newText.trim().length < 3}>
-          <Plus size={14} aria-hidden /> Add
+          <IconPlus size={14} aria-hidden /> Add
         </Button>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         {!approved ? (
           <Button onClick={confirmFacts} disabled={busy || kept.length === 0}>
-            <Check size={15} aria-hidden />
+            <IconCheck size={15} aria-hidden />
             {excluded.size > 0 ? `Confirm ${kept.length} of ${facts.length} details` : "Confirm these facts"}
           </Button>
         ) : (
@@ -230,7 +230,7 @@ export function ProfileFactsEditor({
         ) : null}
       </div>
       <p className="mt-2 text-xs text-text-disabled">
-        Corrections create a new revision — history is preserved and older drafts keep the versions they used.
+        Corrections create a new revision. History is preserved and older drafts keep the versions they used.
       </p>
     </div>
   );

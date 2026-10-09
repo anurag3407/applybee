@@ -11,7 +11,7 @@ import { formatDate } from "@/lib/format";
 export const metadata: Metadata = { title: "Resumes" };
 
 const STATE_LABELS: Record<string, { label: string; tone: "neutral" | "success" | "warning" | "danger" | "info" }> = {
-  uploaded: { label: "Uploaded — queued for scan", tone: "info" },
+  uploaded: { label: "Uploaded, queued for scan", tone: "info" },
   scanning: { label: "Scanning", tone: "info" },
   scanning_rejected: { label: "Rejected by scan", tone: "danger" },
   parsing: { label: "Parsing", tone: "info" },
@@ -31,7 +31,7 @@ export default async function ResumesPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-ink">Resumes</h2>
         <p className="text-sm text-text-secondary">
-          Private storage, scan-gated, owner-only downloads — files are never publicly linkable. PDF up to 5 MiB, 10 pages, 3
+          Private storage, scan-gated, owner-only downloads. Files are never publicly linkable. PDF up to 5 MiB, 10 pages, 3
           active files.
         </p>
       </div>
@@ -39,7 +39,7 @@ export default async function ResumesPage() {
       <UploadZone />
 
       {resumes.length === 0 ? (
-        <EmptyState title="No resumes" description="Upload a PDF or enter your profile manually — both paths end in facts you confirm." />
+        <EmptyState art="resume" title="No resumes" description="Upload a PDF or enter your profile manually. Both paths end in facts you confirm." />
       ) : (
         <ul className="space-y-3">
           {resumes.map((r) => {
@@ -72,7 +72,7 @@ export default async function ResumesPage() {
           <Badge tone="warning">Local development scanner</Badge>
           <p className="mt-2 text-sm text-text-secondary">
             Files receive structural validation only (magic bytes, encryption, page limits). Production deployments
-            require the isolated document processor with current antivirus signatures before any attachment use — this
+            require the isolated document processor with current antivirus signatures before any attachment use, this
             is a launch gate, not an option. Attachment delivery in this environment is clearly labeled sandbox
             behavior.
           </p>

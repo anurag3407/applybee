@@ -24,7 +24,7 @@ export default async function SettingsSecurityPage() {
       <Card>
         <h3 className="font-bold text-ink">Gmail authorization</h3>
         <p className="mt-2 text-sm text-text-secondary">
-          The Gmail grant lives in a dedicated OAuth project, separate from sign-in — revoking one cannot disrupt the
+          The Gmail grant lives in a dedicated OAuth project, separate from sign-in, so revoking one cannot disrupt the
           other. Manage it under{" "}
           <Link href="/app/settings/integrations" className="text-info underline">
             Integrations

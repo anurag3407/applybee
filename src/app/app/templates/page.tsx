@@ -25,6 +25,7 @@ export default async function TemplatesPage() {
       </div>
       {rows.length === 0 ? (
         <EmptyState
+          art="templates"
           title="No templates yet"
           description="Create a reusable structure with placeholders like {{recipient_first_name}} and {{achievement}}."
           action={

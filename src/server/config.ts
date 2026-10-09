@@ -135,7 +135,7 @@ export function getConfig(): AppConfig {
     const issues = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
-    throw new Error(`Invalid environment configuration — ${issues}`);
+    throw new Error(`Invalid environment configuration, ${issues}`);
   }
   const env = parsed.data;
   const isProduction = env.APP_ENV === "production";
@@ -200,7 +200,7 @@ export function getConfig(): AppConfig {
   if (isProduction && aiMode === "mock") {
     // The plan requires production AI to use an approved provider; mock stays
     // for staging/demo with explicit labeling.
-    console.warn("[config] AI mock adapter active in production — verify intentionally.");
+    console.warn("[config] AI mock adapter active in production, verify intentionally.");
   }
 
   // Every browser origin that may perform a cookie-authenticated mutation.
@@ -236,14 +236,14 @@ export function getConfig(): AppConfig {
     const issues: string[] = [];
     if (authMode !== "clerk") {
       issues.push(
-        "authMode resolved to 'dev' — set CLERK_SECRET_KEY and NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (or AUTH_MODE=clerk).",
+        "authMode resolved to 'dev', set CLERK_SECRET_KEY and NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (or AUTH_MODE=clerk).",
       );
     }
     if (!env.DATABASE_URL || /localhost|127\.0\.0\.1/.test(env.DATABASE_URL)) {
       issues.push("DATABASE_URL is unset or points at localhost.");
     }
     if (!env.TOKEN_ENCRYPTION_KEY) {
-      issues.push("TOKEN_ENCRYPTION_KEY is unset — contact emails and OAuth tokens would fall back to a public derived key.");
+      issues.push("TOKEN_ENCRYPTION_KEY is unset, contact emails and OAuth tokens would fall back to a public derived key.");
     } else if (Buffer.from(env.TOKEN_ENCRYPTION_KEY, "base64").length !== 32) {
       issues.push("TOKEN_ENCRYPTION_KEY is not a 32-byte base64 key.");
     }
@@ -257,35 +257,35 @@ export function getConfig(): AppConfig {
     // concrete launch gap and must not be discovered by a user.
     const degraded: string[] = [];
     if (!env.CLERK_WEBHOOK_SIGNING_SECRET) {
-      degraded.push("CLERK_WEBHOOK_SIGNING_SECRET unset — Clerk webhooks rejected; account changes rely on first-request provisioning.");
+      degraded.push("CLERK_WEBHOOK_SIGNING_SECRET unset, Clerk webhooks rejected; account changes rely on first-request provisioning.");
     }
     if (!env.CRON_SECRET) {
-      degraded.push("CRON_SECRET unset — nothing can drive the job queue or the daily digest; the deployed Worker has no timer.");
+      degraded.push("CRON_SECRET unset, nothing can drive the job queue or the daily digest; the deployed Worker has no timer.");
     }
     if (env.FEATURE_GMAIL_ENABLED && !(env.GOOGLE_OAUTH_CLIENT_ID && env.GOOGLE_OAUTH_CLIENT_SECRET)) {
-      degraded.push("FEATURE_GMAIL_ENABLED=true but GOOGLE_OAUTH_CLIENT_ID/SECRET unset — Gmail connect is unavailable.");
+      degraded.push("FEATURE_GMAIL_ENABLED=true but GOOGLE_OAUTH_CLIENT_ID/SECRET unset, Gmail connect is unavailable.");
     } else if (env.FEATURE_GMAIL_ENABLED && !env.GOOGLE_OAUTH_REDIRECT_URI) {
-      degraded.push("GOOGLE_OAUTH_REDIRECT_URI unset — Gmail connect cannot build a callback URL.");
+      degraded.push("GOOGLE_OAUTH_REDIRECT_URI unset, Gmail connect cannot build a callback URL.");
     }
     if (env.FEATURE_LIVE_PURCHASES_ENABLED && !env.RAZORPAY_WEBHOOK_SECRET) {
-      degraded.push("FEATURE_LIVE_PURCHASES_ENABLED=true but RAZORPAY_WEBHOOK_SECRET unset — every payment webhook is rejected.");
+      degraded.push("FEATURE_LIVE_PURCHASES_ENABLED=true but RAZORPAY_WEBHOOK_SECRET unset, every payment webhook is rejected.");
     }
     if (env.PAYMENTS_MODE === "live" && !(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET)) {
       degraded.push("PAYMENTS_MODE=live but Razorpay keys unset.");
     }
     if (!env.RESEND_API_KEY) {
-      degraded.push("RESEND_API_KEY unset — transactional email and the daily digest cannot be delivered.");
+      degraded.push("RESEND_API_KEY unset, transactional email and the daily digest cannot be delivered.");
     }
     if (aiMode === "mock") {
-      degraded.push("aiMode resolved to 'mock' — no OPENROUTER_API_KEY or GEMINI_API_KEY is set, so every AI draft is sample output.");
+      degraded.push("aiMode resolved to 'mock', no OPENROUTER_API_KEY or GEMINI_API_KEY is set, so every AI draft is sample output.");
     }
     if (env.FEATURE_RESUME_ATTACHMENTS_ENABLED && !(env.DOCUMENT_PROCESSOR_ENDPOINT && env.DOCUMENT_PROCESSOR_SIGNING_SECRET)) {
       degraded.push(
-        "DOCUMENT_PROCESSOR_ENDPOINT/SIGNING_SECRET unset — uploaded resumes are marked clean on structural PDF checks alone; no malware scan runs.",
+        "DOCUMENT_PROCESSOR_ENDPOINT/SIGNING_SECRET unset, uploaded resumes are marked clean on structural PDF checks alone; no malware scan runs.",
       );
     }
     if (degraded.length > 0) {
-      console.error(`[config] PRODUCTION DEGRADED — ${degraded.length} issue(s):\n- ${degraded.join("\n- ")}`);
+      console.error(`[config] PRODUCTION DEGRADED, ${degraded.length} issue(s):\n- ${degraded.join("\n- ")}`);
     }
   }
 

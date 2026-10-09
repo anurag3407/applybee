@@ -380,7 +380,7 @@ export async function reportBounceAndRefund(params: {
   if (!admission.admitted) {
     return {
       refunded: false,
-      message: "You've reached the daily limit for bounced-email replacements. Our team reviews these manually — we'll credit you if the address was genuinely invalid.",
+      message: "You've reached the daily limit for bounced-email replacements. Our team reviews these manually, we'll credit you if the address was genuinely invalid.",
     };
   }
 

@@ -25,7 +25,7 @@ export default async function PricingPage() {
         <div className="rounded-card border border-border-decorative bg-surface p-6">
           <h2 className="text-xl font-bold text-ink">How credits behave</h2>
           <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-            <li>• Reveal a directory email once — reopen/copy it free, forever.</li>
+            <li>• Reveal a directory email once. Reopen/copy it free, forever.</li>
             <li>• One validated AI draft = one AI credit. Failed generations release automatically.</li>
             <li>• <strong>Deliverability Shield:</strong> Up to 10 AI drafts per day per account (resets daily at 00:00 UTC / 05:30 IST) to protect your personal sender reputation and avoid spam filters.</li>
             <li>• Manual writing, templates, and export are always free.</li>

@@ -52,7 +52,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
 
             <div className="mt-5 space-y-3">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wide text-text-disabled">Email</h3>
+                <h3 className="text-xs font-bold text-text-disabled">Email</h3>
                 <div className="mt-1">
                   <RevealAction
                     contactId={contact.id}

@@ -23,7 +23,7 @@ export function ExportDeletionPanel({ mode }: { mode: "export" | "delete" }) {
       const data = (await res.json()) as { data?: { requestId?: string; deletionStarted?: boolean }; error?: { message?: string } };
       if (!res.ok || !data.data) throw new Error(data.error?.message ?? "Request failed.");
       if (mode === "export") {
-        setDone("Export queued — it will be ready shortly and available for 24 hours.");
+        setDone("Export queued. It will be ready shortly and available for 24 hours.");
       } else {
         setDone("Deletion started. You have been signed out.");
         setTimeout(() => {

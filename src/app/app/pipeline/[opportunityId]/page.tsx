@@ -58,7 +58,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
       </Card>
 
       <p className="text-xs text-text-disabled">
-        Stage and outcome are self-reported. Draft creation never implies “contacted” — only you know when you hit send.
+        Stage and outcome are self-reported. Draft creation never implies “contacted”. Only you know when you hit send.
       </p>
     </div>
   );
@@ -86,7 +86,7 @@ function NotesComposer({ opportunityId }: { opportunityId: string }) {
         name="note"
         rows={2}
         maxLength={5000}
-        placeholder="Add a private note — e.g. “Spoke to Meera on Tuesday”"
+        placeholder="Add a private note, e.g. “Spoke to Meera on Tuesday”"
         className="flex-1 rounded-control border border-border-control bg-surface px-3 py-2 text-ink"
       />
       <button type="submit" className="min-h-11 rounded-control bg-ink px-4 text-sm font-semibold text-surface hover:bg-ink-soft">

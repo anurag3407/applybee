@@ -159,7 +159,7 @@ export async function startGeneration(params: {
   if (!profile || profile.facts.length === 0) {
     throw new GenerationPreflightError(
       "NO_CONFIRMED_FACTS",
-      "Confirm a few profile facts first — AI drafts are written only from details you have confirmed.",
+      "Confirm a few profile facts first, AI drafts are written only from details you have confirmed.",
     );
   }
 
@@ -180,7 +180,7 @@ export async function startGeneration(params: {
   if (!dayAdmission.admitted) {
     throw new GenerationPreflightError(
       "DAILY_LIMIT_REACHED",
-      "You've used all 10 AI drafts for today. Your copilot credits are safe — the count resets daily, or buy a pack for more.",
+      "You've used all 10 AI drafts for today. Your copilot credits are safe, the count resets daily, or buy a pack for more.",
       LIMITS.aiGenerateDaily.windowSeconds,
     );
   }

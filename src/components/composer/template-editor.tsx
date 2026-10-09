@@ -88,7 +88,7 @@ export function TemplateEditor({
       <div className="rounded-card border border-border-decorative bg-surface p-5">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-ink">Preview with sample data</h3>
-          <Badge>Escaped output — no HTML</Badge>
+          <Badge>Escaped output, no HTML</Badge>
         </div>
         <pre className="mt-2 whitespace-pre-wrap rounded-control border border-border-decorative bg-canvas p-3 text-sm text-ink">
           {preview.filled || "—"}

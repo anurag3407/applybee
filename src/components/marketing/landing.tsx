@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/marketing/brand";
+import { HeroScene } from "@/components/marketing/hero-scene";
+import { CombField } from "@/components/svg/meter";
 import { Badge, Button } from "@/components/ui/primitives";
 import { formatINRPaise } from "@/lib/format";
 import type { CatalogView } from "@/server/services/catalog";
@@ -28,11 +30,11 @@ function SectionShell({
   return (
     <section
       id={id}
-      className={tone === "surface" ? "border-y border-border-decorative bg-surface" : tone === "ink" ? "on-ink bg-ink text-surface" : ""}
+      className={tone === "surface" ? "border-y border-border-decorative bg-surface" : tone === "ink" ? "brand-panel on-ink bg-ink text-surface" : ""}
     >
       <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 py-16 md:py-28">
         {eyebrow ? (
-          <p className={`mb-3 text-sm font-bold uppercase tracking-[0.14em] ${tone === "ink" ? "text-honey" : "text-text-secondary"}`} data-motion="reveal">
+          <p className={`mb-3 text-sm font-bold ${tone === "ink" ? "text-honey" : "text-text-secondary"}`} data-motion="reveal">
             {eyebrow}
           </p>
         ) : null}
@@ -52,86 +54,65 @@ function SectionShell({
 /* 1. Hero */
 export function Hero({ trial }: { trial: { contact: number; ai: number } | null }) {
   return (
-    <section className="relative overflow-hidden">
-      <div className="mx-auto grid max-w-[calc(var(--ab-container-marketing))] items-center gap-12 px-5 pb-16 pt-14 md:grid-cols-12 md:py-24">
-        <div className="md:col-span-7">
+    <section className="relative overflow-hidden border-b border-border-decorative">
+      <CombField
+        rows={5}
+        cols={10}
+        opacity={0.14}
+        className="pointer-events-none absolute inset-x-0 top-0 h-[18rem] w-full text-honey opacity-60 [mask-image:linear-gradient(to_bottom,#000,transparent)] dark:opacity-25"
+      />
+      <div className="relative mx-auto grid max-w-[calc(var(--ab-container-marketing))] items-center gap-14 px-5 pb-20 pt-16 md:grid-cols-[minmax(0,1.02fr)_minmax(0,1fr)] md:gap-10 md:pb-28 md:pt-24 lg:gap-16">
+        <div>
           <h1
-            className="font-bold tracking-[-0.045em] text-ink"
-            style={{ fontSize: "clamp(2.75rem, 6vw, 5.5rem)", lineHeight: 1.04 }}
+            className="max-w-[20ch] font-extrabold tracking-[-0.04em] text-ink"
+            style={{ fontSize: "clamp(2.375rem, 4.3vw, 3.75rem)", lineHeight: 1.05 }}
             data-motion="reveal"
           >
-            The career outreach workspace where you stay in <span className="font-editorial font-medium text-ink">control of every draft.</span>
+            The career outreach workspace where you keep{" "}
+            <span className="font-editorial font-normal italic tracking-[-0.01em] text-honey-deep">
+              every draft
+            </span>{" "}
+            under your own review.
           </h1>
-          <p className="prose-measure mt-6 text-lg text-text-secondary" data-motion="reveal">
-            Public job boards on LinkedIn and Indeed have become algorithmic dead ends. ReachBee AI grounds your proven engineering achievements into bespoke introductions staged directly in your personal Gmail Drafts.
+          <p className="prose-measure mt-6 text-[1.0625rem] leading-relaxed text-text-secondary" data-motion="reveal">
+            Public job boards on LinkedIn and Indeed have become algorithmic dead ends. ReachBee grounds the
+            achievements you have already confirmed into bespoke introductions, staged as drafts in your own Gmail.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3" data-motion="reveal">
+          <div className="mt-9 flex flex-wrap items-center gap-3" data-motion="reveal">
             <Link href="/sign-up">
-              <Button variant="accent" className="min-h-12 px-6 text-base">
-                Start free
+              <Button variant="accent" className="min-h-12 px-7 text-base">
+                Start free, no card
               </Button>
             </Link>
             <Link href="#how-it-works">
-              <Button variant="secondary" className="min-h-12 px-6 text-base">
+              <Button variant="secondary" className="min-h-12 px-7 text-base">
                 See how it works
               </Button>
             </Link>
           </div>
           {trial ? (
-            <p className="mt-4 text-sm text-text-secondary" data-motion="reveal">
-              {trial.contact} contact reveals · {trial.ai} AI generations · No card required
+            <p className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-secondary" data-motion="reveal">
+              <span className="tabular font-bold text-ink">{trial.contact}</span> contact reveals
+              <span aria-hidden className="text-border-control">/</span>
+              <span className="tabular font-bold text-ink">{trial.ai}</span> AI generations
+              <span aria-hidden className="text-border-control">/</span>
+              <span>manual drafting stays free</span>
             </p>
           ) : null}
         </div>
-        <div className="md:col-span-5" data-motion="reveal">
-          <HeroScene />
-        </div>
+        <HeroScene />
       </div>
     </section>
-  );
-}
-
-function HeroScene() {
-  return (
-    <figure className="rounded-scene border border-border-decorative bg-surface p-4 shadow-float">
-      <figcaption className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-disabled">
-        Illustrative preview
-      </figcaption>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between rounded-control border border-border-decorative bg-canvas px-3 py-2.5">
-          <div>
-            <p className="text-sm font-bold text-ink">Priya Sharma</p>
-            <p className="text-xs text-text-secondary">Eng Manager, Platform · Lumen Analytics</p>
-          </div>
-          <Badge tone="honey">•••@lumen-analytics.example</Badge>
-        </div>
-        <div className="rounded-control border border-border-decorative bg-canvas px-3 py-2.5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Confirmed fact</p>
-          <p className="mt-1 text-sm text-ink">Built an events pipeline handling 40k events/min (per your project notes).</p>
-        </div>
-        <div className="rounded-control border border-border-decorative bg-surface-raised px-3 py-3">
-          <p className="text-sm font-semibold text-ink">Subject: Platform role — background that may fit Lumen</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-            Hi Priya, I’m Aarav. I built a realtime events pipeline last year and noticed your team works on
-            fintech analytics pipelines…
-          </p>
-          <div className="mt-2 flex items-center justify-between">
-            <Badge tone="success">Ready for review</Badge>
-            <span className="text-xs text-text-disabled">Nothing is sent without your approval</span>
-          </div>
-        </div>
-      </div>
-    </figure>
   );
 }
 
 /* 2. Product facts */
 export function ProductFacts() {
   const facts = [
-    { title: "Verified decision-makers", body: "Direct directory of Engineering Managers, Tech Leads, and Founders — with source freshness and verification labels shown plainly." },
+    { title: "Verified decision-makers", body: "Direct directory of Engineering Managers, Tech Leads, and Founders, with source freshness and verification labels shown plainly." },
     { title: "Grounding Engine (Zero Hallucination)", body: "AI drafts are written only from details you have confirmed. If a metric isn’t in your resume, we never invent one." },
     { title: "Deliverability Shield (10/day cap)", body: "Capped at 10 drafts/day by design to protect your personal Gmail domain reputation, avoid spam traps, and maximize open rates." },
-    { title: "You review before sending", body: "ReachBee prepares drafts in your personal Gmail. You edit, approve, and press send yourself — nothing leaves without your eyes on it." },
+    { title: "You review before sending", body: "ReachBee prepares drafts in your personal Gmail. You edit, approve, and press send yourself. Nothing leaves without your eyes on it." },
   ];
   return (
     <SectionShell tone="surface" id="features" heading="What ReachBee actually does" headingClass="text-[clamp(1.8rem,3vw,2.6rem)]">
@@ -171,7 +152,7 @@ export function Problem() {
     },
     {
       title: "Deterministic Grounding vs. AI Slop",
-      body: "Hiring managers instantly delete generic AI cover letters. ReachBee's Grounding Engine strictly binds your verified project achievements to target tech stacks—no fabricated percentages, no fake claims.",
+      body: "Hiring managers instantly delete generic AI cover letters. ReachBee's Grounding Engine strictly binds your verified project achievements to target tech stacks: no fabricated percentages, no fake claims.",
     },
   ];
   return (
@@ -182,7 +163,7 @@ export function Problem() {
     >
       <div className="grid gap-8 md:grid-cols-[1fr_1.4fr]">
         <div data-motion="reveal" className="rounded-card border border-border-decorative bg-surface p-5 shadow-card">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-text-secondary">The Portal Breakdown</h3>
+          <h3 className="text-sm font-bold text-text-secondary">The Portal Breakdown</h3>
           <p className="mt-3 text-sm leading-relaxed text-text-secondary">
             Traditional application funnels have broken down under bot spam and algorithmic black holes. Applying into portal forms leaves your career to chance in a 500-resume stack.
           </p>
@@ -211,7 +192,7 @@ export function DirectoryFeature() {
     { name: "Sneha Kulkarni", title: "Technical Recruiter", company: "Kite Robotics", location: "Pune", verification: "Catch-all · checked 20 d ago" },
   ];
   return (
-    <SectionShell tone="surface" id="directory" heading="Start with a person—not a generic inbox.">
+    <SectionShell tone="surface" id="directory" heading="Start with a person, not a generic inbox.">
       <div className="rounded-scene border border-border-decorative bg-canvas p-4 shadow-card" data-motion="reveal">
         <div className="mb-3 flex flex-wrap gap-2">
           <Badge>Role: Engineering manager</Badge>
@@ -219,13 +200,14 @@ export function DirectoryFeature() {
           <Badge>Stage: Growth</Badge>
           <Badge tone="honey">Illustrative preview</Badge>
         </div>
-        <table className="w-full text-left text-sm">
+        <div className="-mx-2 overflow-x-auto px-2">
+        <table className="w-full min-w-[34rem] text-left text-sm">
           <caption className="sr-only">Example directory rows</caption>
           <thead>
-            <tr className="border-b border-border-decorative text-xs uppercase tracking-wide text-text-secondary">
+            <tr className="border-b border-border-decorative text-sm font-semibold text-text-secondary">
               <th className="py-2 pr-3 font-semibold">Name & title</th>
               <th className="py-2 pr-3 font-semibold">Company</th>
-              <th className="py-2 pr-3 font-semibold">Location</th>
+              <th className="hidden py-2 pr-3 font-semibold md:table-cell">Location</th>
               <th className="py-2 font-semibold">Email</th>
             </tr>
           </thead>
@@ -237,7 +219,7 @@ export function DirectoryFeature() {
                   <p className="text-xs text-text-secondary">{r.title}</p>
                 </td>
                 <td className="py-3 pr-3 text-text-secondary">{r.company}</td>
-                <td className="py-3 pr-3 text-text-secondary">{r.location}</td>
+                <td className="hidden py-3 pr-3 text-text-secondary md:table-cell">{r.location}</td>
                 <td className="py-3">
                   <Badge tone="honey">•••@{r.company.toLowerCase().replace(/[^a-z]+/g, "-")}.example</Badge>
                   <p className="mt-1 text-xs text-text-disabled">{r.verification}</p>
@@ -246,6 +228,7 @@ export function DirectoryFeature() {
             ))}
           </tbody>
         </table>
+        </div>
         <p className="mt-3 text-xs text-text-disabled">
           Reveal shows the full address once, for one credit. Listing a contact never implies an active vacancy or consent to bulk outreach.
         </p>
@@ -254,7 +237,7 @@ export function DirectoryFeature() {
         <Link href="/sign-up">
           <Button variant="primary">Explore contacts</Button>
         </Link>
-        <p className="text-sm text-text-secondary">Search, filters, and masked emails — free to browse.</p>
+        <p className="text-sm text-text-secondary">Search, filters, and masked emails, free to browse.</p>
       </div>
     </SectionShell>
   );
@@ -266,7 +249,7 @@ export function ResumeIntelligence() {
     <SectionShell id="resume" heading="Your experience is the strongest part of the pitch.">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-card border border-border-decorative bg-surface p-5 shadow-card" data-motion="reveal">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-text-secondary">From your resume</h3>
+          <h3 className="text-sm font-bold text-text-secondary">From your resume</h3>
           <div className="mt-4 space-y-3">
             <div className="rounded-control border border-border-decorative bg-canvas px-3 py-2.5 text-sm text-ink">
               “Built an events pipeline handling 40k events/min”
@@ -283,9 +266,9 @@ export function ResumeIntelligence() {
           </p>
         </div>
         <div className="rounded-card border border-border-decorative bg-surface p-5 shadow-card" data-motion="reveal">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-text-secondary">In the draft</h3>
+          <h3 className="text-sm font-bold text-text-secondary">In the draft</h3>
           <div className="mt-4 rounded-control border border-border-decorative bg-surface-raised px-3 py-3 text-sm leading-relaxed text-ink">
-            Hi Priya — I built a realtime events pipeline last year
+            Hi Priya, I built a realtime events pipeline last year
             <span className="mx-1 rounded bg-honey-wash px-1 py-0.5 text-xs font-semibold">(fact 1)</span>
             and would love to talk about your platform work.
           </div>
@@ -305,10 +288,11 @@ export function ResumeIntelligence() {
   );
 }
 
-/* 6. Agentic workflow */
+/* 6. Agentic workflow. Three steps because that is the real product flow: pick
+   context, prepare from evidence, review. Not a template count. */
 export function AgenticWorkflow() {
   const steps = [
-    { title: "Choose your context", body: "Pick the intent — advertised role, internship, referral, or speculative intro — and paste a job description or role notes if you have one." },
+    { title: "Choose your context", body: "Pick the intent (advertised role, internship, referral, or speculative intro) and paste a job description or role notes if you have one." },
     { title: "Prepare with evidence", body: "A bounded preparation step selects relevant confirmed facts and approved, dated company context. You see exactly what was used." },
     { title: "Review with Soft-Bypass", body: "The draft arrives with its evidence references and an optional Soft-Bypass closing line ('Happy to route this through your official careers portal if preferred') to eliminate HR friction." },
   ];
@@ -324,24 +308,24 @@ export function AgenticWorkflow() {
         ))}
       </ol>
       <div className="mt-6 rounded-card border border-border-decorative bg-surface p-5 shadow-card" data-motion="reveal">
-        <h3 className="text-sm font-bold uppercase tracking-wide text-text-secondary">Evidence panel (example)</h3>
+        <h3 className="text-sm font-bold text-text-secondary">Evidence panel (example)</h3>
         <ul className="mt-3 space-y-2 text-sm text-ink">
           <li className="flex flex-wrap items-center gap-2">
-            <Badge tone="honey">Fact #12</Badge> “Built an events pipeline handling 40k events/min” — confirmed by you
+            <Badge tone="honey">Fact #12</Badge> “Built an events pipeline handling 40k events/min”, confirmed by you
           </li>
           <li className="flex flex-wrap items-center gap-2">
-            <Badge tone="info">Company note</Badge> “Public job posts mention Kafka, Flink, and Go services.” — source: careers page snapshot, Sep 2026
+            <Badge tone="info">Company note</Badge> “Public job posts mention Kafka, Flink, and Go services.” Source: careers page snapshot, Sep 2026
           </li>
           <li className="flex flex-wrap items-center gap-2">
             <Badge tone="success">Soft-Bypass Option</Badge> Includes polite official portal routing offer to eliminate recruiter protocol pushback.
           </li>
           <li className="flex flex-wrap items-center gap-2">
-            <Badge tone="warning">Uncertainty</Badge> No public evidence the team is hiring right now — the draft doesn’t claim it.
+            <Badge tone="warning">Uncertainty</Badge> No public evidence the team is hiring right now, so the draft doesn’t claim it.
           </li>
         </ul>
       </div>
       <div className="mt-6" data-motion="reveal">
-        <Link href="/sign-up">
+        <Link href="/sign-up" className="inline-flex">
           <Button variant="primary">Try agentic drafting</Button>
         </Link>
       </div>
@@ -385,7 +369,7 @@ export function WritingModes() {
         ))}
       </div>
       <p className="mt-6 text-sm text-text-secondary" data-motion="reveal">
-        Switching modes never destroys your text. Manual editing is always free — AI is optional, and one validated
+        Switching modes never destroys your text. Manual editing is always free. AI is optional, and one validated
         generation costs exactly one credit.
       </p>
     </SectionShell>
@@ -405,7 +389,7 @@ export function WorkspaceTeaser() {
               <span
                 key={s}
                 className={`rounded-pill px-3 py-1.5 text-xs font-semibold ${
-                  i === 1 ? "bg-honey text-ink" : "border border-border-control/40 text-text-secondary"
+                  i === 1 ? "bg-honey text-on-honey" : "border border-border-control/40 text-text-secondary"
                 }`}
               >
                 {s}
@@ -414,10 +398,10 @@ export function WorkspaceTeaser() {
           </div>
           <div className="mt-5 space-y-2 text-sm text-ink">
             <p className="rounded-control border border-border-decorative bg-surface px-3 py-2">
-              Meridian Cloud — Platform engineer · draft ready · next step: follow up Thu
+              Meridian Cloud, Platform engineer · draft ready · next step: follow up Thu
             </p>
             <p className="rounded-control border border-border-decorative bg-surface px-3 py-2">
-              Arambh Fintech — Backend role · conversation started · note: spoke to Meera on Tue
+              Arambh Fintech, Backend role · conversation started · note: spoke to Meera on Tue
             </p>
           </div>
           <p className="mt-4 text-xs font-semibold text-honey-deep dark:text-honey">
@@ -426,7 +410,7 @@ export function WorkspaceTeaser() {
         </div>
         <div className="flex flex-col justify-center gap-4" data-motion="reveal">
           <p className="text-text-secondary">
-            Notes and next-action dates matter more than vanity charts. Reminders appear inside ReachBee — nothing is
+            Notes and next-action dates matter more than vanity charts. Reminders appear inside ReachBee. Nothing is
             sent automatically, and no reply metrics are inferred.
           </p>
           <Link href="/sign-up">
@@ -443,7 +427,7 @@ export function WorkspaceTeaser() {
 /* 9. Trust */
 export function Trust() {
   const principles = [
-    { title: "Explicit Gmail connection", body: "Connecting Gmail is optional and separate from signing in. You choose when — and you can disconnect any time." },
+    { title: "Explicit Gmail connection", body: "Connecting Gmail is optional and separate from signing in. You choose when, and you can disconnect any time." },
     { title: "Deliverability Shield (10/day)", body: "Capped at 10 drafts/day per account to protect your personal Gmail domain reputation, avoid Google spam triggers, and maintain high open rates." },
     { title: "Private resumes", body: "Your files sit in private storage, scanned and gated. Downloads require your signed-in session. Nothing becomes public." },
     { title: "Truthful AI", body: "Drafts cite the facts they use. Unsupported claims are rejected, not dressed up." },
@@ -541,7 +525,7 @@ export function Pricing({ catalog }: { catalog: CatalogView | null }) {
           <div className="mt-6 rounded-card border border-border-decorative bg-canvas p-5 text-sm text-text-secondary" data-motion="reveal">
             <p className="font-semibold text-ink">What things cost in practice</p>
             <p className="mt-2">
-              Already know the person? Entering your own recipient and writing manually is free — no reveal or AI charge.
+              Already know the person? Entering your own recipient and writing manually is free: no reveal or AI charge.
               New contact + AI draft = one reveal credit and one AI credit, shown together before you confirm.
             </p>
             <p className="mt-2">
@@ -561,20 +545,20 @@ export function Pricing({ catalog }: { catalog: CatalogView | null }) {
 
 /* 11. FAQ */
 const FAQS: Array<{ q: string; a: string }> = [
-  { q: "Does ReachBee send emails for me?", a: "No. ReachBee prepares drafts. You review, edit, and send them yourself — or copy the text anywhere." },
+  { q: "Does ReachBee send emails for me?", a: "No. ReachBee prepares drafts. You review, edit, and send them yourself, or copy the text anywhere." },
   { q: "Why is there a daily limit of 10 AI drafts?", a: "To protect your personal Gmail domain reputation. Sending dozens of cold emails triggers Google's automated abuse filters and burns your personal address. A 10/day limit enforces quality and keeps your outreach landing directly in the recipient's primary inbox." },
   { q: "Won't recruiters get upset if I reach out to engineering managers directly?", a: "ReachBee supports a 'Soft-Bypass' protocol. Drafts focus strictly on technical stack alignment and can include a courteous closing line offering to route through their official careers portal if preferred. This transforms outreach from an aggressive bypass into a professional peer introduction." },
   { q: "What exactly does the Gmail permission allow?", a: "Google’s gmail.compose permission allows managing drafts and sending email. ReachBee uses it only to create drafts you approved. We don’t read your inbox or send mail automatically." },
   { q: "Can I use it without connecting Gmail?", a: "Yes. Manual writing, quick AI, templates, copy/export, and the pipeline all work without Gmail. Connecting is only for creating drafts in your mailbox." },
   { q: "Can I draft manually for free?", a: "Yes. The manual editor, templates, saving, and copying use no AI credits and require no purchase beyond browsing/reveals." },
-  { q: "When is a credit consumed?", a: "A reveal credit when a directory email is unlocked the first time. An AI credit when a validated draft is saved to your account — not when generation starts and not when Gmail succeeds." },
+  { q: "When is a credit consumed?", a: "A reveal credit when a directory email is unlocked the first time. An AI credit when a validated draft is saved to your account, not when generation starts and not when Gmail succeeds." },
   { q: "Do repeated email reveals cost again?", a: "No. Once you reveal a contact, reopening or copying that email is always free." },
-  { q: "What does “verified” mean?", a: "A verification provider checked the address recently. It means the mailbox existed at check time — not that the person is hiring, expects outreach, or that delivery is guaranteed." },
+  { q: "What does “verified” mean?", a: "A verification provider checked the address recently. It means the mailbox existed at check time, not that the person is hiring, expects outreach, or that delivery is guaranteed." },
   { q: "What happens when AI or Gmail fails?", a: "If generation fails, your AI credit is released automatically. If Gmail fails, your draft stays saved here and you can retry, reconcile, or copy the text." },
   { q: "Are these subscriptions?", a: "No. Packs are one-time purchases. No auto-renewal, no cancellation dates." },
   { q: "Do credits expire, and how do refunds work?", a: "Paid credits don’t expire during ordinary service. Unused purchased allowance is refundable under our published refunds policy." },
-  { q: "Can I delete my resume and profile?", a: "Yes — delete files or the whole account from settings. Deleting app content doesn’t remove copies you already created in Gmail." },
-  { q: "Will this guarantee interviews or a job?", a: "No. Nothing can. ReachBee helps you prepare relevant, truthful introductions — outcomes depend on you and the market." },
+  { q: "Can I delete my resume and profile?", a: "Yes: delete files or the whole account from settings. Deleting app content doesn’t remove copies you already created in Gmail." },
+  { q: "Will this guarantee interviews or a job?", a: "No. Nothing can. ReachBee helps you prepare relevant, truthful introductions. Outcomes depend on you and the market." },
 ];
 
 export function FAQ() {

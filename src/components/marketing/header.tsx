@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { IconClose, IconMenu } from "@/components/svg/icons";
 import { Wordmark } from "./brand";
 import { Button } from "@/components/ui/primitives";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -34,7 +34,7 @@ export function MarketingHeader({ signedIn }: { signedIn: boolean }) {
     <header
       className={cn(
         "sticky top-0 z-20 h-16 border-b transition-colors",
-        solid ? "border-border-decorative bg-surface/95" : "border-transparent bg-canvas/80",
+        solid ? "border-border-decorative bg-surface" : "border-transparent bg-canvas/80",
       )}
     >
       <div className="mx-auto flex h-full max-w-[calc(var(--ab-container-marketing))] items-center justify-between px-5">
@@ -72,7 +72,7 @@ export function MarketingHeader({ signedIn }: { signedIn: boolean }) {
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             onClick={() => setMenuOpen((v) => !v)}
           >
-            {menuOpen ? <X size={22} aria-hidden /> : <Menu size={22} aria-hidden />}
+            {menuOpen ? <IconClose size={22} aria-hidden /> : <IconMenu size={22} aria-hidden />}
           </button>
         </div>
       </div>

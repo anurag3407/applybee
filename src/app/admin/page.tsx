@@ -55,7 +55,7 @@ function MetricCard({ label, value, critical, href }: { label: string; value: nu
   return (
     <a href={href} className="block">
       <Card className={critical ? "border-danger/40" : ""}>
-        <p className="text-xs font-bold uppercase tracking-wide text-text-disabled">{label}</p>
+        <p className="text-xs font-bold text-text-disabled">{label}</p>
         <p className={`mt-1 text-3xl font-bold tabular ${critical ? "text-danger" : "text-ink"}`}>{value}</p>
         {critical ? <Badge tone="danger">Action needed</Badge> : <Badge tone="success">OK</Badge>}
       </Card>

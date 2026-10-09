@@ -18,7 +18,7 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   title: {
-    default: "ReachBee AI — Direct Outreach Beyond Saturated Job Portals",
+    default: "ReachBee AI, Direct Outreach Beyond Saturated Job Portals",
     template: "%s · ReachBee",
   },
   description:

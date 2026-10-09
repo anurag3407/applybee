@@ -18,7 +18,7 @@ export function BrandMark({ className, size = 28, variant = "brand" }: BrandMark
 
   return (
     <span
-      className={cn("inline-flex items-center justify-center shrink-0", !className?.includes("text-") && "text-ink", className)}
+      className={cn("ab-mark inline-flex items-center justify-center shrink-0", !className?.includes("text-") && "text-ink", className)}
       style={{ width: size, height: size }}
     >
       <svg

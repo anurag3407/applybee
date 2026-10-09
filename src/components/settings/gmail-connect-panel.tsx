@@ -40,7 +40,7 @@ export function GmailConnectPanel({ connected, email, mode }: { connected: boole
           Disconnect
         </Button>
         {confirmOpen ? (
-          <div className="fixed inset-0 z-70 flex items-center justify-center bg-ink/40 p-4" role="dialog" aria-modal="true" aria-label="Confirm disconnect">
+          <div className="fixed inset-0 z-70 flex items-center justify-center bg-veil p-4" role="dialog" aria-modal="true" aria-label="Confirm disconnect">
             <div className="w-full max-w-md rounded-card border border-border-decorative bg-surface p-5 shadow-dialog">
               <h3 className="text-lg font-bold text-ink">Disconnect Gmail?</h3>
               <p className="mt-2 text-sm text-text-secondary">

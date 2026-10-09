@@ -16,7 +16,7 @@ export async function register() {
   // the README and src/app/api/v1/cron/run/route.ts.
   if (process.env.CRON_SECRET && !process.env.APP_WORKER_EMBEDDED) {
     console.log(
-      "[instrumentation] CRON_SECRET is set — background jobs are driven by POST /api/v1/cron/run, not the embedded loop.",
+      "[instrumentation] CRON_SECRET is set, background jobs are driven by POST /api/v1/cron/run, not the embedded loop.",
     );
     return;
   }

@@ -19,6 +19,7 @@ export default async function SavedPage() {
       </div>
       {rows.length === 0 ? (
         <EmptyState
+          art="saved"
           title="Nothing saved yet"
           description="Save contacts from the directory to keep them handy across your search."
           action={

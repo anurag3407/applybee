@@ -30,7 +30,7 @@ export default async function BillingHistoryPage() {
       </div>
 
       {orders.length === 0 ? (
-        <EmptyState title="No purchases yet" description="One-time packs appear here when you buy them." />
+        <EmptyState art="credits" title="No purchases yet" description="One-time packs appear here when you buy them." />
       ) : (
         <ul className="space-y-3">
           {orders.map((o) => {

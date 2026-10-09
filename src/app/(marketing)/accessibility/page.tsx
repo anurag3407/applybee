@@ -26,7 +26,7 @@ export default function AccessibilityPage() {
           <h2 className="text-xl font-bold text-ink">Known limitations</h2>
           <ul className="prose-measure mt-2 list-disc space-y-1.5 pl-5 text-[0.95rem] text-text-secondary">
             <li>Third-party checkout (Razorpay) and authentication flows have their own accessibility behavior we don’t fully control.</li>
-            <li>Kanban drag-and-drop on the pipeline is accompanied by a fully equivalent list/stage dropdown — drag is never the only way.</li>
+            <li>Kanban drag-and-drop on the pipeline is accompanied by a fully equivalent list/stage dropdown. Drag is never the only way.</li>
           </ul>
         </section>
         <section className="rounded-card border border-border-decorative bg-surface p-5">

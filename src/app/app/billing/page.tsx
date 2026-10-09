@@ -16,19 +16,19 @@ export default async function BillingPage() {
     <div className="mx-auto max-w-4xl space-y-5">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-ink">Billing</h2>
-        <p className="text-sm text-text-secondary">Balances, reservations, and purchases — one place.</p>
+        <p className="text-sm text-text-secondary">Balances, reservations, and purchases, one place.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <h3 className="text-xs font-bold uppercase tracking-wide text-text-disabled">Contact reveals</h3>
+          <h3 className="text-xs font-bold text-text-disabled">Contact reveals</h3>
           <p className="mt-1 text-3xl font-bold tabular text-ink">{balances.contact.available}</p>
           <p className="text-xs text-text-secondary">
             {balances.contact.reserved > 0 ? `${balances.contact.reserved} reserved` : "No reservations"}
           </p>
         </Card>
         <Card>
-          <h3 className="text-xs font-bold uppercase tracking-wide text-text-disabled">AI generations</h3>
+          <h3 className="text-xs font-bold text-text-disabled">AI generations</h3>
           <p className="mt-1 text-3xl font-bold tabular text-ink">{balances.ai.available}</p>
           <p className="text-xs text-text-secondary">
             {balances.ai.reserved > 0 ? `${balances.ai.reserved} reserved (in progress)` : "No reservations"}
@@ -74,7 +74,7 @@ export default async function BillingPage() {
             </Link>
           </>
         ) : (
-          <p className="mt-2 text-sm text-warning">Catalog temporarily unavailable — purchases are paused honestly rather than showing invented prices.</p>
+          <p className="mt-2 text-sm text-warning">Catalog temporarily unavailable. Purchases are paused honestly rather than showing invented prices.</p>
         )}
       </Card>
     </div>

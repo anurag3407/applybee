@@ -1,9 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sun, Moon } from "lucide-react";
+import { IconMoon, IconSun } from "@/components/svg/icons";
 import { cn } from "@/lib/utils";
 
+/**
+ * Theme control. Draws from tokens only — no one-off hex, no aura: the icon
+ * swap itself is the feedback.
+ */
 export interface ThemeToggleProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "icon" | "pill";
   showLabel?: boolean;
@@ -20,8 +24,7 @@ export function ThemeToggle({
 
   useEffect(() => {
     setMounted(true);
-    const hasDarkClass = document.documentElement.classList.contains("dark");
-    setIsDark(hasDarkClass);
+    setIsDark(document.documentElement.classList.contains("dark"));
 
     const observer = new MutationObserver(() => {
       setIsDark(document.documentElement.classList.contains("dark"));
@@ -36,31 +39,26 @@ export function ThemeToggle({
 
   const toggleTheme = () => {
     const nextDark = !document.documentElement.classList.contains("dark");
-    if (nextDark) {
-      document.documentElement.classList.add("dark");
-      document.documentElement.style.colorScheme = "dark";
-      localStorage.setItem("theme", "dark");
-      setIsDark(true);
-    } else {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.style.colorScheme = "light";
-      localStorage.setItem("theme", "light");
-      setIsDark(false);
-    }
+    document.documentElement.classList.toggle("dark", nextDark);
+    document.documentElement.style.colorScheme = nextDark ? "dark" : "light";
+    localStorage.setItem("theme", nextDark ? "dark" : "light");
+    setIsDark(nextDark);
   };
+
+  const label = isDark ? "Switch to light mode" : "Switch to dark mode";
 
   if (!mounted) {
     return (
       <button
         type="button"
-        aria-label="Toggle dark mode"
+        aria-label={label}
         className={cn(
-          "relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-ink transition-all hover:bg-surface-subtle",
-          className
+          "inline-flex h-9 w-9 items-center justify-center rounded-control border border-border-decorative bg-surface text-text-disabled",
+          className,
         )}
         {...props}
       >
-        <span className="h-4 w-4 rounded-full bg-border-control opacity-40 animate-pulse" />
+        <IconSun size={16} />
       </button>
     );
   }
@@ -70,22 +68,15 @@ export function ThemeToggle({
       <button
         type="button"
         onClick={toggleTheme}
-        aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        aria-label={label}
         className={cn(
-          "group relative inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-300",
-          isDark
-            ? "border-sky-400/30 bg-[#0c182b]/90 text-sky-200 shadow-[0_0_14px_rgba(56,189,248,0.22)] hover:border-sky-400/50"
-            : "border-border-control bg-surface text-ink hover:bg-surface-subtle",
-          className
+          "ab-press group inline-flex items-center gap-2 rounded-pill border border-border-decorative px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-subtle",
+          className,
         )}
         {...props}
       >
-        <span className="relative flex h-3.5 w-3.5 items-center justify-center">
-          {isDark ? (
-            <Moon className="h-3.5 w-3.5 text-sky-400 drop-shadow-[0_0_6px_#38bdf8] transition-transform duration-300 group-hover:rotate-12" />
-          ) : (
-            <Sun className="h-3.5 w-3.5 text-amber-500 transition-transform duration-300 group-hover:rotate-45" />
-          )}
+        <span aria-hidden className="relative flex h-4 w-4 items-center justify-center">
+          <ThemeIcon isDark={isDark} />
         </span>
         <span>{isDark ? "Dark mode" : "Light mode"}</span>
       </button>
@@ -96,43 +87,42 @@ export function ThemeToggle({
     <button
       type="button"
       onClick={toggleTheme}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={label}
+      title={label}
       className={cn(
-        "group relative inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-all duration-300",
-        isDark
-          ? "border-white/[0.12] bg-[#121318] text-white shadow-[0_0_16px_rgba(56,189,248,0.18)] hover:border-sky-400/50 hover:bg-[#161a24]"
-          : "border-border-control bg-surface text-ink hover:bg-surface-subtle hover:text-ink",
-        className
+        "ab-press inline-flex h-9 w-9 items-center justify-center rounded-control border border-border-decorative",
+        "text-text-secondary hover:bg-surface-subtle hover:text-ink",
+        className,
       )}
       {...props}
     >
-      <div className="relative flex items-center justify-center">
-        {/* Sun Icon */}
-        <Sun
-          className={cn(
-            "h-4 w-4 transition-all duration-300",
-            isDark
-              ? "scale-0 -rotate-90 opacity-0 absolute"
-              : "scale-100 rotate-0 opacity-100 text-amber-600 group-hover:rotate-45"
-          )}
-        />
-        {/* Moon Icon with glowing cyan aura */}
-        <Moon
-          className={cn(
-            "h-4 w-4 text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.7)] transition-all duration-300",
-            isDark
-              ? "scale-100 rotate-0 opacity-100 group-hover:rotate-12"
-              : "scale-0 rotate-90 opacity-0 absolute"
-          )}
-        />
-      </div>
-      {showLabel && (
-        <span className="sr-only">
-          {isDark ? "Switch to light mode" : "Switch to dark mode"}
-        </span>
-      )}
+      <span aria-hidden className="relative flex h-[18px] w-[18px] items-center justify-center">
+        <ThemeIcon isDark={isDark} />
+      </span>
+      {showLabel && <span className="sr-only">{label}</span>}
     </button>
+  );
+}
+
+/** Crossfade + turn: one glyph leaves as the other arrives. */
+function ThemeIcon({ isDark }: { isDark: boolean }) {
+  return (
+    <>
+      <IconSun
+        size={18}
+        className={cn(
+          "transition-all duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+          isDark ? "absolute -rotate-90 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100",
+        )}
+      />
+      <IconMoon
+        size={18}
+        className={cn(
+          "transition-all duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+          isDark ? "rotate-0 scale-100 opacity-100" : "absolute rotate-90 scale-50 opacity-0",
+        )}
+      />
+    </>
   );
 }
 

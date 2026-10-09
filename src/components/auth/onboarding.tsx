@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/marketing/brand";
+import { StageChain } from "@/components/svg/composite";
 
 export function OnboardingShell({ step, children }: { step: string; children: React.ReactNode }) {
   return (
@@ -7,8 +8,11 @@ export function OnboardingShell({ step, children }: { step: string; children: Re
       <header className="border-b border-border-decorative bg-surface">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
           <Wordmark />
-          <Link href="/app" className="text-sm font-semibold text-text-secondary hover:text-ink">
-            Skip for now — go to workspace
+          <Link
+            href="/app"
+            className="ab-press rounded-control px-2 py-1 text-sm font-semibold text-text-secondary hover:bg-surface-subtle hover:text-ink"
+          >
+            Skip for now, go to workspace
           </Link>
         </div>
       </header>
@@ -24,26 +28,10 @@ const STEPS: Array<{ key: string; label: string }> = [
 ];
 
 export function StepProgress({ current }: { current: string }) {
+  const index = Math.max(0, STEPS.findIndex((x) => x.key === current));
   return (
-    <ol className="mb-8 flex flex-wrap items-center gap-2 text-sm" aria-label="Onboarding progress">
-      {STEPS.map((s, i) => {
-        const done = STEPS.findIndex((x) => x.key === current) > i;
-        const active = s.key === current;
-        return (
-          <li key={s.key} className="flex items-center gap-2">
-            <span
-              aria-current={active ? "step" : undefined}
-              className={`flex items-center gap-1.5 rounded-pill px-3 py-1 font-semibold ${
-                active ? "bg-ink text-surface" : done ? "bg-success-wash text-success" : "bg-surface-subtle text-text-secondary"
-              }`}
-            >
-              <span aria-hidden className="tabular text-xs">{done ? "✓" : i + 1}</span>
-              {s.label}
-            </span>
-            {i < STEPS.length - 1 ? <span aria-hidden className="text-text-disabled">→</span> : null}
-          </li>
-        );
-      })}
-    </ol>
+    <div className="mb-8" aria-label="Onboarding progress">
+      <StageChain items={STEPS} currentIndex={index} orientation="horizontal" />
+    </div>
   );
 }

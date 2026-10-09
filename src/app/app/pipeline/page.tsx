@@ -18,7 +18,7 @@ export default async function PipelinePage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-ink">Pipeline</h2>
           <p className="text-sm text-text-secondary">
-            Stages are updated by you — ReachBee doesn’t read your inbox or infer progress. Follow-up reminders appear
+            Stages are updated by you. ReachBee doesn’t read your inbox or infer progress. Follow-up reminders appear
             in-app only.
           </p>
         </div>
@@ -27,8 +27,9 @@ export default async function PipelinePage() {
 
       {rows.length === 0 ? (
         <EmptyState
+          art="pipeline"
           title="No opportunities yet"
-          description="Track companies and roles you care about. Draft creation can mark one “draft ready” — nothing is ever marked contacted automatically."
+          description="Track companies and roles you care about. Draft creation can mark one “draft ready”. Nothing is ever marked contacted automatically."
           action={<NewOpportunityButton />}
         />
       ) : (
@@ -48,7 +49,7 @@ export default async function PipelinePage() {
         <Link href="/help" className="underline">
           Why don’t I see replies or interview data?
         </Link>{" "}
-        Because we don’t read your inbox — outcomes here are entered by you.
+        Because we don’t read your inbox. Outcomes here are entered by you.
       </p>
     </div>
   );

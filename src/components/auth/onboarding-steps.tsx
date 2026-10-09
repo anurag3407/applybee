@@ -21,7 +21,7 @@ export function ProfileStep() {
     const careerStage = String(form.get("careerStage") ?? "early_career");
     const firstFact = String(form.get("firstFact") ?? "").trim();
     if (firstFact.length < 12) {
-      setError("Add one true sentence about your work — AI drafts are written only from details you confirm.");
+      setError("Add one true sentence about your work, AI drafts are written only from details you confirm.");
       setBusy(false);
       return;
     }
@@ -76,7 +76,7 @@ export function ProfileStep() {
       router.push("/onboarding/resume");
       router.refresh();
     } catch {
-      setError("Saving failed. Please try again — your details were not saved.");
+      setError("Saving failed. Please try again. Your details were not saved.");
       setBusy(false);
     }
   }
@@ -143,7 +143,7 @@ export function ResumeStep() {
       <div className="rounded-card border border-border-decorative bg-surface p-6">
         <h2 className="text-xl font-bold text-ink">Add your resume (optional)</h2>
         <p className="mt-1 text-sm text-text-secondary">
-          PDF up to 5 MiB. We parse it into a draft profile that you review and confirm — nothing is trusted
+          PDF up to 5 MiB. We parse it into a draft profile that you review and confirm. Nothing is trusted
           automatically. You can also type facts manually later.
         </p>
         <div className="mt-5">
@@ -151,7 +151,7 @@ export function ResumeStep() {
         </div>
         {done ? (
           <p className="mt-3 text-sm text-success" role="status">
-            Uploaded — we’ll parse it and you can review the extracted facts in your Career profile.
+            Uploaded, we’ll parse it and you can review the extracted facts in your Career profile.
           </p>
         ) : null}
       </div>

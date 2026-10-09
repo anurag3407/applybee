@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, Copy, PenLine, Bookmark, BookmarkCheck, Flag, Sparkles } from "lucide-react";
+import {
+  IconBee, IconCompose, IconCopy, IconFlag, IconLock, IconPocket, IconPocketFilled, IconSend
+} from "@/components/svg/icons";
 import { Dialog } from "@/components/ui/dialog";
 import { Button, Badge, InlineError } from "@/components/ui/primitives";
 
@@ -78,7 +80,7 @@ export function RevealAction({
             {email}
           </code>
           <Button size="sm" variant="secondary" onClick={copy} aria-label="Copy email address">
-            <Copy size={14} aria-hidden /> {copied ? "Copied" : "Copy"}
+            <IconCopy size={14} aria-hidden /> {copied ? "Copied" : "Copy"}
           </Button>
           <WriteToContactButton contactId={contactId} />
         </div>
@@ -94,13 +96,12 @@ export function RevealAction({
 
   return (
     <div className="space-y-2">
-      <Badge tone="honey">
-        <Lock size={12} aria-hidden /> {maskedEmail}
-      </Badge>
+      <code className="inline-flex items-center gap-1.5 rounded-control border border-border-decorative bg-canvas px-2 py-1 text-xs font-semibold text-text-secondary">
+        <IconLock size={12} aria-hidden /> {maskedEmail}
+      </code>
       <div>
-        <Button size="sm" variant="accent" onClick={reveal} disabled={busy}>
-          <Mail size={14} aria-hidden />
-          {busy ? "Revealing…" : "Reveal email · 1 contact credit"}
+        <Button size="sm" variant="secondary" onClick={reveal} disabled={busy} icon={<IconSend size={14} />}>
+          {busy ? "Revealing…" : "Reveal · 1 credit"}
         </Button>
       </div>
       {balance && balance.available < 1 ? (
@@ -109,9 +110,6 @@ export function RevealAction({
         </p>
       ) : null}
       {error ? <InlineError>{error}</InlineError> : null}
-      <p className="text-xs text-text-disabled">
-        Revealing {contactName.split(" ")[0]}'s address costs one credit, once. Reopening it later is always free.
-      </p>
     </div>
   );
 }
@@ -137,8 +135,8 @@ export function SaveContactButton({ contactId, saved }: { contactId: string; sav
   }
 
   return (
-    <Button size="sm" variant="secondary" onClick={toggle} disabled={busy}>
-      {isSaved ? <BookmarkCheck size={14} aria-hidden /> : <Bookmark size={14} aria-hidden />}
+    <Button size="sm" variant="quiet" onClick={toggle} disabled={busy} aria-pressed={isSaved}>
+      {isSaved ? <IconPocketFilled size={14} aria-hidden /> : <IconPocket size={14} aria-hidden />}
       {isSaved ? "Saved" : "Save"}
     </Button>
   );
@@ -169,7 +167,7 @@ export function WriteToContactButton({ contactId }: { contactId: string }) {
   return (
     <div>
       <Button size="sm" variant="accent" onClick={start} disabled={busy} className="gap-1.5 shadow-sm">
-        <Sparkles size={14} aria-hidden /> {busy ? "Opening…" : "⚡ Reach Out"}
+        <IconBee size={14} /> {busy ? "Opening…" : "Reach Out"}
       </Button>
       {error ? <InlineError>{error}</InlineError> : null}
     </div>
@@ -237,11 +235,11 @@ export function OneClickOutreachButton({
         variant="accent"
         onClick={handleOneClick}
         disabled={busy}
-        className="gap-1.5 shadow-sm"
+        className="gap-1.5 whitespace-nowrap shadow-sm"
         title={`Reveal ${contactName.split(" ")[0]}'s email & start tailored outreach`}
       >
-        <Sparkles size={14} aria-hidden />
-        {busy ? "Starting…" : "⚡ 1-Click Outreach"}
+        <IconBee size={14} aria-hidden />
+        {busy ? "Starting…" : "1-Click Outreach"}
       </Button>
       {error ? (
         <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-surface p-1 shadow-md border border-danger/40">
@@ -271,7 +269,7 @@ export function ReportContactDialog({ contactId }: { contactId: string }) {
       });
       const body = await res.json();
       setDone(true);
-      setMessage(body?.data?.message || "Thanks — our team will review this report.");
+      setMessage(body?.data?.message || "Thanks. Our team will review this report.");
       setTimeout(() => {
         setOpen(false);
         router.refresh();
@@ -286,7 +284,7 @@ export function ReportContactDialog({ contactId }: { contactId: string }) {
   return (
     <>
       <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>
-        <Flag size={14} aria-hidden /> Report / Bounce Refund
+        <IconFlag size={14} aria-hidden /> Report / Bounce Refund
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} title="Report contact & request replacement">
         {done ? (
@@ -295,10 +293,10 @@ export function ReportContactDialog({ contactId }: { contactId: string }) {
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-ink" htmlFor="report-type">Reason</label>
             <select id="report-type" value={type} onChange={(e) => setType(e.target.value)} className="h-11 w-full rounded-control border border-border-control bg-surface px-3 text-ink">
-              <option value="bounced">⚡ Email Bounced / Unreachable (request a replacement credit)</option>
+              <option value="bounced">Email Bounced / Unreachable (request a replacement credit)</option>
               <option value="stale">Left the company / role changed</option>
               <option value="incorrect">Details are incorrect</option>
-              <option value="removal">I am this person — remove me</option>
+              <option value="removal">I am this person, remove me</option>
               <option value="abuse">Something else</option>
             </select>
             <label className="block text-sm font-semibold text-ink" htmlFor="report-details">

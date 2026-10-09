@@ -2,15 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, KeyRound, Bell, Shield, Lock } from "lucide-react";
+import {
+  IconBell, IconKey, IconLock, IconPerson, IconShield
+} from "@/components/svg/icons";
 import { cn } from "@/lib/cn";
 
 const TABS = [
-  { href: "/app/settings/profile", label: "Profile", icon: User },
-  { href: "/app/settings/integrations", label: "Integrations", icon: KeyRound },
-  { href: "/app/settings/notifications", label: "Notifications", icon: Bell },
-  { href: "/app/settings/security", label: "Security", icon: Shield },
-  { href: "/app/settings/privacy", label: "Privacy & Data", icon: Lock },
+  { href: "/app/settings/profile", label: "Profile", icon: IconPerson },
+  { href: "/app/settings/integrations", label: "Integrations", icon: IconKey },
+  { href: "/app/settings/notifications", label: "Notifications", icon: IconBell },
+  { href: "/app/settings/security", label: "Security", icon: IconShield },
+  { href: "/app/settings/privacy", label: "Privacy & Data", icon: IconLock },
 ];
 
 export function SettingsNav() {

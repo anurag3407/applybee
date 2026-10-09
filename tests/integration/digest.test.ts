@@ -67,8 +67,8 @@ describe("Daily Hiring Digest (Option B)", () => {
     expect(html).toContain("Good morning, Anurag!");
     expect(html).toContain("10 Contact Reveals");
     expect(html).toContain("5 AI Drafts Available");
-    expect(html).toContain("⚡ 1-Click Draft to Gmail");
-    expect(html).toContain("🔓 Reveal Direct Email");
+    expect(html).toContain("Draft in Gmail");
+    expect(html).toContain("Reveal email");
 
     // Deep links must resolve to real routes and use the configured base URL.
     // They used to point at "/app?action=draft", which the dashboard never

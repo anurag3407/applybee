@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, Copy, Download, Sparkles, ShieldCheck, AlertTriangle, RefreshCw, Mail, FileDown, KanbanSquare } from "lucide-react";
+import {
+  IconAlert, IconBee, IconBusy, IconCheck, IconCopy, IconDownload, IconExport, IconFlow, IconRefresh, IconSend, IconShield
+} from "@/components/svg/icons";
 import { Button, Badge, InlineError, Textarea, Input, Label, Select } from "@/components/ui/primitives";
 import { Dialog } from "@/components/ui/dialog";
+import { cn } from "@/lib/cn";
 import { wordCount } from "@/lib/format";
 
 /**
@@ -103,12 +106,12 @@ type DeliveryState = {
 // instead of ending as a sentence the user has to interpret.
 const WARNING_HELP: Record<string, { copy: string; label: string; href?: string; focus?: string }> = {
   missing_company_context: {
-    copy: "No approved company evidence — this was written from your facts and the role only.",
+    copy: "No approved company evidence. This was written from your facts and the role only.",
     label: "Review company evidence",
     href: "/app/contacts",
   },
   weak_match: {
-    copy: "Only a weak overlap with this role — re-read the claims before sending.",
+    copy: "Only a weak overlap with this role. Re-read the claims before sending.",
     label: "Add more confirmed facts",
     href: "/app/profile",
   },
@@ -118,7 +121,7 @@ const WARNING_HELP: Record<string, { copy: string; label: string; href?: string;
     focus: "targetRole",
   },
   placeholder_text: {
-    copy: "This still has a fill-in placeholder — replace it before sending.",
+    copy: "This still has a fill-in placeholder. Replace it before sending.",
     label: "Fix it in the message",
     focus: "body",
   },
@@ -143,7 +146,7 @@ function GroundingNotes({
         return (
           <li key={code} className="rounded-control bg-warning-wash/60 px-2.5 py-1.5 text-xs text-warning">
             <span className="flex items-start gap-1.5">
-              <AlertTriangle size={13} aria-hidden className="mt-0.5 shrink-0" />
+              <IconAlert size={13} aria-hidden className="mt-0.5 shrink-0" />
               <span>{help.copy}</span>
             </span>
             {href ? (
@@ -175,7 +178,7 @@ function GroundingPanel({ claims }: { claims: GroundingClaim[] }) {
   const uncertain = claims.filter((c) => c.result !== "supported").length;
   return (
     <div className="rounded-control border border-border-decorative bg-canvas p-3">
-      <p className="flex items-center justify-between text-xs font-bold uppercase tracking-wide text-text-disabled">
+      <p className="flex items-center justify-between text-xs font-bold text-text-disabled">
         <span>Why this is in the draft</span>
         <span className="font-semibold normal-case tracking-normal text-text-secondary">
           {claims.length - uncertain}/{claims.length} backed by a confirmed fact
@@ -189,13 +192,13 @@ function GroundingPanel({ claims }: { claims: GroundingClaim[] }) {
               <ul className="mt-1 space-y-0.5 pl-3 text-text-secondary">
                 {claim.facts.map((f) => (
                   <li key={f.id} className="flex gap-1.5">
-                    <Check size={12} aria-hidden className="mt-1 shrink-0 text-success" />
+                    <IconCheck size={12} aria-hidden className="mt-1 shrink-0 text-success" />
                     <span>{f.text}</span>
                   </li>
                 ))}
                 {claim.evidence.map((e) => (
                   <li key={e.id} className="flex gap-1.5">
-                    <Check size={12} aria-hidden className="mt-1 shrink-0 text-success" />
+                    <IconCheck size={12} aria-hidden className="mt-1 shrink-0 text-success" />
                     <span>
                       {e.value}
                       {e.sourceName ? <span className="text-text-disabled"> · {e.sourceName}</span> : null}
@@ -205,8 +208,8 @@ function GroundingPanel({ claims }: { claims: GroundingClaim[] }) {
               </ul>
             ) : (
               <p className="mt-1 flex items-center gap-1.5 text-warning">
-                <AlertTriangle size={12} aria-hidden />
-                Nothing you confirmed backs this — check the wording.
+                <IconAlert size={12} aria-hidden />
+                Nothing you confirmed backs this, check the wording.
               </p>
             )}
           </li>
@@ -274,7 +277,7 @@ function ProfileGate(p: {
   return (
     <div className="mt-2 space-y-2.5 rounded-control bg-warning-wash/70 p-3">
       <p className="text-xs font-semibold text-warning">
-        AI writes only from details you have confirmed. Add these — it takes about 15 seconds.
+        AI writes only from details you have confirmed. Add these. It takes about 15 seconds.
       </p>
       <div>
         <Label htmlFor="confirm-name">Your name (goes in the greeting and sign-off)</Label>
@@ -328,7 +331,7 @@ function ProfileGate(p: {
         </p>
       ) : null}
       <Button size="sm" variant="accent" onClick={p.onSubmit} disabled={p.busy} className="w-full justify-center">
-        <Check size={13} aria-hidden />
+        <IconCheck size={13} aria-hidden />
         {p.busy ? "Saving…" : "Confirm and unlock AI"}
       </Button>
       <p className="text-xs text-text-secondary">
@@ -441,12 +444,12 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
   async function confirmProfileFact() {
     const name = confirmName.trim();
     if (name.length < 2) {
-      setProfileNote("Add the name to greet and sign off with — a draft cannot be written without one.");
+      setProfileNote("Add the name to greet and sign off with, a draft cannot be written without one.");
       return;
     }
     const text = confirmFact.trim();
     if (text.length < 12) {
-      setProfileNote("Write a full sentence — “TypeScript” is too thin for the AI to write from.");
+      setProfileNote("Write a full sentence, “TypeScript” is too thin for the AI to write from.");
       return;
     }
     setProfileActivating(true);
@@ -539,7 +542,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
 
   /* Recipient: a draft created from the dashboard's "Create an introduction"
      button starts with none, and without this the primary call to action
-     dead-ended — the composer told users to choose a recipient but offered no
+     dead-ended, the composer told users to choose a recipient but offered no
      control to do it, so nothing could be generated. */
   const [rcptName, setRcptName] = useState("");
   const [rcptEmail, setRcptEmail] = useState("");
@@ -663,7 +666,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
       }
       if (!controller.signal.aborted) {
         setActionError(
-          "Still writing — the model is slow right now, not stuck. Keep this tab open, or reopen the draft in a few minutes and the draft will be here.",
+          "Still writing. The model is slow right now, not stuck. Keep this tab open, or reopen the draft in a few minutes and the draft will be here.",
         );
       }
     },
@@ -789,7 +792,7 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
     try {
       // Flush latest content first: approval covers the current version.
       const flush = await save({ subject, body, expectedVersion: savedVersion.current, intent, mode });
-      if (flush !== "ok") throw new Error("Save your draft first — it changed and needs a clean save.");
+      if (flush !== "ok") throw new Error("Save your draft first. It changed and needs a clean save.");
       const approval = await fetch(`/api/v1/drafts/${draftId}/approvals`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -877,14 +880,14 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
       {/* Left context rail */}
       <aside className="order-2 space-y-4 xl:order-1">
         <div className="rounded-card border border-border-decorative bg-surface p-4">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-text-disabled">Recipient</h3>
+          <h3 className="text-xs font-bold text-text-disabled">Recipient</h3>
           {recipient && !editingRcpt ? (
             <div className="mt-2 text-sm">
               <p className="font-bold text-ink">{recipient.name ?? recipient.email}</p>
               {recipient.title ? <p className="text-text-secondary">{recipient.title}</p> : null}
               {recipient.companyName ? <p className="text-text-secondary">{recipient.companyName}</p> : null}
               {recipient.kind === "directory" && !recipient.unlocked ? (
-                <Badge tone="warning">Email locked — reveal in directory before Gmail delivery</Badge>
+                <Badge tone="warning">Email locked, reveal in directory before Gmail delivery</Badge>
               ) : null}
               <div className="mt-2 flex flex-wrap gap-3">
                 <button
@@ -987,7 +990,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           </Select>
           {intent === "follow_up" ? (
             <p className="mt-2 rounded-control bg-warning-wash px-2.5 py-1.5 text-xs text-warning">
-              Follow-ups need your confirmed prior outreach — the draft won’t claim an email was sent unless you say so.
+              Follow-ups need your confirmed prior outreach, the draft won’t claim an email was sent unless you say so.
             </p>
           ) : null}
         </div>
@@ -1001,7 +1004,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
             onChange={(e) => setJobDescription(e.target.value)}
             rows={5}
             maxLength={20000}
-            placeholder="Paste the posting text. Treated as data — never as instructions."
+            placeholder="Paste the posting text. Treated as data, never as instructions."
           />
         </div>
       </aside>
@@ -1019,16 +1022,35 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                   setMode(m);
                   markDirty();
                 }}
-                className={`min-h-9 rounded-control px-3 text-sm font-semibold ${
-                  mode === m ? "bg-ink text-surface" : "text-text-secondary hover:bg-surface-subtle"
-                }`}
+                className={cn(
+                  "ab-press min-h-9 rounded-control px-3 text-sm font-semibold transition-colors",
+                  mode === m
+                    ? "bg-ink text-surface shadow-[inset_0_1px_0_rgb(255_255_255/0.12)]"
+                    : "text-text-secondary hover:bg-surface-subtle hover:text-ink",
+                )}
               >
                 {m === "manual" ? "Manual" : m === "quick_ai" ? "Quick AI" : "Agentic"}
               </button>
             ))}
           </div>
-          <p aria-live="polite" className="text-xs font-semibold text-text-secondary">
-            {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Save failed — retrying on next edit" : saveState === "conflict" ? "Conflicting changes" : "Unsaved changes"}
+          <p aria-live="polite" className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
+            {saveState === "saving" ? (
+              <>
+                <IconBusy size={12} className="text-info" /> Saving
+              </>
+            ) : saveState === "saved" ? (
+              <>
+                <IconCheck size={12} className="text-success" /> Saved
+              </>
+            ) : saveState === "error" ? (
+              <>
+                <IconAlert size={12} className="text-danger" /> Save failed, retrying on next edit
+              </>
+            ) : saveState === "conflict" ? (
+              "Conflicting changes"
+            ) : (
+              "Unsaved changes"
+            )}
           </p>
         </div>
 
@@ -1042,7 +1064,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           <div className="rounded-card border-2 border-honey bg-honey-wash/30 p-4 space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-sm font-bold text-ink">
-                <Sparkles size={16} className="text-honey-deep" />
+                <IconBee size={16} className="text-honey-deep" />
                 AI Generated Introduction Ready
               </span>
               <Badge tone="honey">1 AI Credit</Badge>
@@ -1058,7 +1080,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                 {REVISION_SOURCE[proposal.profileRevision.source]
                   ? ` (${REVISION_SOURCE[proposal.profileRevision.source]})`
                   : ""}{" "}
-                —{" "}
+               ,{" "}
                 <Link href="/app/profile" className="underline">
                   view
                 </Link>
@@ -1070,7 +1092,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                 Dismiss
               </Button>
               <Button size="sm" variant="accent" onClick={acceptProposal} disabled={busy}>
-                <Check size={14} aria-hidden /> Apply pitch to editor
+                <IconCheck size={14} aria-hidden /> Apply pitch to editor
               </Button>
             </div>
           </div>
@@ -1080,19 +1102,19 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           <Label htmlFor="subject">Subject</Label>
           <Input id="subject" value={subject} onChange={(e) => { setSubject(e.target.value); markDirty(); }} maxLength={160} />
           <Label htmlFor="body" className="mt-3">
-            Message <span className="font-normal text-text-secondary">(plain text — 75–120 words reads best)</span>
+            Message <span className="font-normal text-text-secondary">(plain text, 75–120 words reads best)</span>
           </Label>
           <Textarea id="body" value={body} onChange={(e) => { setBody(e.target.value); markDirty(); }} rows={14} maxLength={20000} className="font-[inherit] leading-relaxed" />
           <div className="mt-2 flex items-center justify-between text-xs text-text-disabled">
             <span className={words > 180 ? "font-bold text-warning" : ""}>{words} words</span>
-            <span>No Send button — ReachBee never sends email.</span>
+            <span>No Send button. ReachBee never sends email.</span>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {gmail?.connected ? (
             <Button size="sm" variant="accent" onClick={() => setApprovalOpen(true)} disabled={busy} className="gap-1.5 shadow-sm">
-              <ShieldCheck size={14} aria-hidden /> 🚀 Push to Gmail Drafts
+              <IconShield size={14} /> Push to Gmail Drafts
             </Button>
           ) : recipient?.email ? (
             <Button
@@ -1106,13 +1128,13 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               }}
               className="gap-1.5 shadow-sm"
             >
-              <Mail size={14} aria-hidden /> 📋 Copy & Open Gmail Web
+              <IconSend size={14} /> Copy & Open Gmail Web
             </Button>
           ) : null}
           <CopyAllButton subject={subject} body={body} recipientEmail={recipient?.email ?? null} />
           <a href={`/api/v1/drafts/${draftId}/export.eml`} download>
             <Button size="sm" variant="secondary">
-              <FileDown size={14} aria-hidden /> Download .eml
+              <IconExport size={14} aria-hidden /> Download .eml
             </Button>
           </a>
         </div>
@@ -1122,7 +1144,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
       <aside className="order-3 space-y-4">
         <div className="rounded-card border border-border-decorative bg-surface p-4">
           <h3 className="flex items-center gap-2 text-sm font-bold text-ink">
-            <Sparkles size={15} aria-hidden className="text-honey-deep" />
+            <IconBee size={15} aria-hidden className="text-honey-deep" />
             {mode === "agentic" ? "Agentic preparation" : "Quick AI"}
           </h3>
           {!profileReady ? (
@@ -1166,7 +1188,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                     : generation.state === "ready"
                       ? "Draft ready for review"
                       : generation.state === "cancelled" || generation.state === "released"
-                        ? "Cancelled — credit released"
+                        ? "Cancelled, credit released"
                         : `Generation failed`}
               </p>
               {generation.state === "failed" ? (
@@ -1178,7 +1200,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               generation.state === "reserved" || generation.state === "preparing" ? (
                 <p className="text-xs text-text-secondary">
                   If this has been sitting a while, the background worker may not be running. Press Generate again to
-                  restart it — your credit is only spent once a draft is actually saved.
+                  restart it, your credit is only spent once a draft is actually saved.
                 </p>
               ) : null}
               {generation.state === "ready" && generation.acceptanceState === "pending" ? (
@@ -1187,12 +1209,12 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                   // second copy of the draft with its own Apply/Dismiss here gave
                   // the user two identical calls to action for one decision.
                   <p className="text-xs text-text-secondary">
-                    Ready for you in the editor — review it there, then apply or dismiss.
+                    Ready for you in the editor. Review it there, then apply or dismiss.
                   </p>
                 ) : (
                   <div className="flex gap-2">
                     <Button size="sm" onClick={acceptProposal} disabled={busy}>
-                      <Check size={14} aria-hidden /> Apply proposal
+                      <IconCheck size={14} aria-hidden /> Apply proposal
                     </Button>
                     <Button size="sm" variant="ghost" onClick={dismissProposal}>
                       Dismiss
@@ -1209,7 +1231,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           ) : (
             <div className="mt-3 space-y-2">
               <Button size="sm" variant="accent" onClick={startGeneration} disabled={busy || !canGenerate || throttled}>
-                <Sparkles size={14} aria-hidden />
+                <IconBee size={14} aria-hidden />
                 {throttled
                   ? `Wait ${formatCountdown(retrySecondsLeft)} · 1 AI credit`
                   : mode === "agentic"
@@ -1220,14 +1242,14 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                 <p className="text-xs text-text-secondary" role="status">
                   {throttleCode === "DAILY_LIMIT_REACHED"
                     ? quotaResetsAt
-                      ? `Daily quota reached — it lifts at ${quotaResetsAt} your time. Your credits are safe.`
+                      ? `Daily quota reached. It lifts at ${quotaResetsAt} your time. Your credits are safe.`
                       : "Daily quota reached at midnight UTC. Your credits are safe."
                     : "Too many requests in a row. This unlocks by itself."}
                 </p>
               ) : null}
               {balances.ai.available < 1 ? (
                 <p className="text-xs text-warning">
-                  No AI credits left. <a href="/app/billing/plans" className="underline">Add credits</a> or keep writing manually — manual is free.
+                  No AI credits left. <a href="/app/billing/plans" className="underline">Add credits</a> or keep writing manually, manual is free.
                 </p>
               ) : generationInFlight ? (
                 <p className="text-xs text-text-secondary">
@@ -1241,7 +1263,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                 <p className="text-xs text-text-disabled">Gmail is not required. You can copy the result or export it.</p>
               )}
               <p className="text-xs text-text-disabled">
-                One copilot credit buys one draft. Up to {AI_DRAFTS_PER_DAY} AI drafts a day — the count lifts at{" "}
+                One copilot credit buys one draft. Up to {AI_DRAFTS_PER_DAY} AI drafts a day. The count lifts at{" "}
                 {quotaResetsAt ? `${quotaResetsAt} your time` : "midnight UTC"}.
               </p>
             </div>
@@ -1250,7 +1272,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
 
         <div className="rounded-card border border-border-decorative bg-surface p-4">
           <h3 className="flex items-center gap-2 text-sm font-bold text-ink">
-            <Mail size={15} aria-hidden className="text-info" />
+            <IconSend size={15} aria-hidden className="text-info" />
             Gmail draft
           </h3>
           {resumeOptions.length > 0 ? (
@@ -1272,7 +1294,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               {delivery.state === "created" ? (
                 <div className="space-y-2.5">
                   <p className="rounded-control bg-success-wash px-2.5 py-1.5 text-sm text-success" role="status">
-                    Created in Gmail. Nothing has been sent — review and send it there yourself.
+                    Created in Gmail. Nothing has been sent. Review and send it there yourself.
                   </p>
                   <div className="rounded-control border border-border-decorative bg-canvas p-2.5 text-xs space-y-2">
                     <p className="font-semibold text-ink">Next step: Keep track of this conversation</p>
@@ -1282,7 +1304,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                     <div className="flex flex-wrap gap-2 pt-0.5">
                       <Link href="/app/pipeline">
                         <Button size="sm" variant="secondary" className="gap-1 text-xs">
-                          <KanbanSquare size={13} aria-hidden /> Track in Pipeline
+                          <IconFlow size={13} aria-hidden /> Track in Pipeline
                         </Button>
                       </Link>
                       {recipient?.contactId ? (
@@ -1298,7 +1320,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               ) : delivery.state === "unknown" || delivery.state === "reconciling" ? (
                 <div className="space-y-2">
                   <p className="flex items-center gap-2 rounded-control bg-warning-wash px-2.5 py-1.5 text-sm text-warning" role="status">
-                    <RefreshCw size={14} aria-hidden className="animate-spin" style={{ animationDuration: "2s" }} />
+                    <IconBusy size={14} />
                     Checking whether Gmail created the draft…
                   </p>
                   <Button size="sm" variant="secondary" onClick={reconcile}>Check again</Button>
@@ -1306,7 +1328,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               ) : delivery.state === "needs_confirmation" ? (
                 <div className="space-y-2">
                   <p className="flex items-start gap-2 rounded-control bg-warning-wash px-2.5 py-1.5 text-xs text-warning" role="alert">
-                    <AlertTriangle size={14} aria-hidden className="mt-0.5 shrink-0" />
+                    <IconAlert size={14} aria-hidden className="mt-0.5 shrink-0" />
                     Gmail may have created the draft, but we didn’t receive confirmation. Check your Drafts folder before
                     creating another.
                   </p>
@@ -1333,7 +1355,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           ) : (
             <div className="mt-3 space-y-2">
               <Button size="sm" variant="primary" onClick={() => setApprovalOpen(true)} disabled={busy}>
-                <ShieldCheck size={14} aria-hidden /> Review and create Gmail draft
+                <IconShield size={14} aria-hidden /> Review and create Gmail draft
               </Button>
               {!gmail?.connected ? (
                 <p className="text-xs text-text-secondary">
@@ -1348,24 +1370,27 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
           )}
         </div>
 
-        {/* Candidate Outreach Guardian & Deliverability Checklist */}
+        {/* Outreach guardrails. Advice, not enforced state, no checkmarks. */}
         <div className="rounded-card border border-border-decorative bg-surface p-4 space-y-2.5">
-          <h4 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-ink">
-            <ShieldCheck size={14} className="text-accent" /> Candidate Outreach Guardian
+          <h4 className="flex items-center gap-1.5 text-sm font-bold text-ink">
+            <IconShield size={14} className="text-honey-deep" /> Outreach guardrails
           </h4>
           <ul className="space-y-2 text-xs text-text-secondary">
-            <li className="flex items-start gap-1.5">
-              <span className="text-success font-bold">✓</span>
-              <span><strong>Pacing Limit:</strong> Maximum 10–15 messages per 24 hours to keep your domain reputation safe.</span>
-            </li>
-            <li className="flex items-start gap-1.5">
-              <span className="text-success font-bold">✓</span>
-              <span><strong>Optimal Timing:</strong> Send during local working hours (10:00 AM – 4:00 PM) for maximum replies.</span>
-            </li>
-            <li className="flex items-start gap-1.5">
-              <span className="text-success font-bold">✓</span>
-              <span><strong>Bounce Guarantee:</strong> If an address bounces, report it for an instant replacement credit.</span>
-            </li>
+            {GUARDRAILS.map((g) => (
+              <li key={g.label} className="flex items-start gap-2">
+                <svg width="10" height="12" viewBox="0 0 10 12" aria-hidden className="mt-[3px] shrink-0">
+                  <path
+                    d="M5 .8l4 2.3v5.4L5 10.8 1 8.5V3.1z"
+                    fill="var(--ab-surface-subtle)"
+                    stroke="var(--ab-border-control)"
+                    strokeWidth="1.1"
+                  />
+                </svg>
+                <span>
+                  <strong>{g.label}:</strong> {g.body}
+                </span>
+              </li>
+            ))}
           </ul>
         </div>
       </aside>
@@ -1388,7 +1413,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
       >
         <div className="space-y-3 text-sm">
           <p className="rounded-control bg-success-wash px-3 py-2 font-semibold text-success">
-            Nothing will be sent. This creates a draft in your Gmail — sending stays with you.
+            Nothing will be sent. This creates a draft in your Gmail. Sending stays with you.
           </p>
           <dl className="space-y-1.5">
             <Row label="Recipient" value={recipient?.email ?? (recipient?.kind === "directory" ? "Locked email — reveal first" : "—")} />
@@ -1397,7 +1422,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
             <Row label="Attachment" value={resumeOptions.find((r) => r.id === attachmentId)?.name ?? "None"} />
           </dl>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-text-disabled">Message preview</p>
+            <p className="text-xs font-bold text-text-disabled">Message preview</p>
             <pre className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-control border border-border-decorative bg-canvas p-3 text-sm text-ink">
               {body || "(empty)"}
             </pre>
@@ -1430,8 +1455,22 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
+const GUARDRAILS = [
+  {
+    label: "Suggested pacing",
+    body: "Keep it to 10–15 messages a day. ReachBee never sends. The limit is advice for your own mailbox reputation.",
+  },
+  {
+    label: "Suggested timing",
+    body: "Weekday working hours tend to draw more replies than nights and weekends.",
+  },
+  {
+    label: "Bounced address",
+    body: "Report it from the contact page and the reveal credit is returned.",
+  },
+];
+
+function Row({ label, value }: { label: string; value: string }) {  return (
     <div className="flex justify-between gap-3">
       <dt className="text-text-secondary">{label}</dt>
       <dd className="max-w-[60%] truncate text-right font-semibold text-ink">{value}</dd>
@@ -1452,8 +1491,8 @@ function CopyAllButton({ subject, body, recipientEmail }: { subject: string; bod
         setTimeout(() => setCopied(false), 2000);
       }}
     >
-      <Copy size={14} aria-hidden /> {copied ? "Copied" : "Copy draft"}
-      <Download aria-hidden className="hidden" />
+      <IconCopy size={14} aria-hidden /> {copied ? "Copied" : "Copy draft"}
+      <IconDownload aria-hidden className="hidden" />
     </Button>
   );
 }

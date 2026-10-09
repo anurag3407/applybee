@@ -20,7 +20,7 @@ export default async function SessionExpiredPage({ searchParams }: { searchParam
         <DevSignInForm mode="sign-in" redirectTo={safeTarget} />
       )}
       <p className="mt-4 text-xs text-text-disabled">
-        Unsaved in-editor text from your last session isn’t recovered automatically — the editor warns you before
+        Unsaved in-editor text from your last session isn’t recovered automatically. The editor warns you before
         signing out.
       </p>
       <Link href="/" className="mt-4 block text-center text-sm font-semibold text-ink underline">

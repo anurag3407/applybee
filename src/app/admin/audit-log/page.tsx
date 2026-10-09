@@ -24,7 +24,7 @@ export default async function AdminAuditPage() {
       <Card className="p-0">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-border-decorative text-xs uppercase tracking-wide text-text-secondary">
+            <tr className="border-b border-border-decorative text-sm font-semibold text-text-secondary">
               <th className="px-4 py-3 font-semibold">Action</th>
               <th className="px-4 py-3 font-semibold">Actor</th>
               <th className="px-4 py-3 font-semibold">Entity</th>

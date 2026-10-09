@@ -1,8 +1,8 @@
 "use client";
 
-import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { IconBusy, IconExit } from "@/components/svg/icons";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -16,9 +16,9 @@ export function SignOutButton() {
         router.push("/");
         router.refresh();
       }}
-      className="flex w-full items-center gap-2 rounded-control px-3 py-2 text-sm font-semibold text-ink hover:bg-surface-subtle disabled:opacity-50"
+      className="ab-press flex w-full items-center gap-2 rounded-control px-3 py-2 text-sm font-semibold text-ink hover:bg-surface-subtle disabled:opacity-50"
     >
-      <LogOut size={15} aria-hidden />
+      {busy ? <IconBusy size={15} /> : <IconExit size={15} />}
       {busy ? "Signing out…" : "Sign out"}
     </button>
   );

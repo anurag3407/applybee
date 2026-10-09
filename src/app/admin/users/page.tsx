@@ -29,7 +29,7 @@ export default async function AdminUsersPage() {
       <Card className="p-0">
         <table className="w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-border-decorative text-xs uppercase tracking-wide text-text-secondary">
+            <tr className="border-b border-border-decorative text-sm font-semibold text-text-secondary">
               <th className="px-4 py-3 font-semibold">Email</th>
               <th className="px-4 py-3 font-semibold">Status</th>
               <th className="px-4 py-3 font-semibold">Reveals</th>
@@ -63,7 +63,7 @@ export default async function AdminUsersPage() {
       </Card>
       <p className="mt-3 text-xs text-text-disabled">
         No resume or draft-body access from this view. Exceptional sensitive access requires explicit permission, a
-        reason, and an audit record — never default support convenience (§29.5).
+        reason, and an audit record, never default support convenience (§29.5).
       </p>
       <p className="text-xs text-text-disabled">Balances shown are materialized account values; run credits.reconcile for lot-level verification. Money totals live under Payments.</p>
     </AdminShell>

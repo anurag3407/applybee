@@ -201,7 +201,7 @@ export async function verifyCheckout(params: {
 
   const secret = config.RAZORPAY_KEY_SECRET!;
   const valid = await verifyCheckoutSignature(params.providerOrderId, params.providerPaymentId, params.signature, secret);
-  if (!valid) throw new OrderError("INVALID_SIGNATURE", "Payment verification failed. Do not pay again — contact support with this reference.");
+  if (!valid) throw new OrderError("INVALID_SIGNATURE", "Payment verification failed. Do not pay again, contact support with this reference.");
 
   // Fetch authoritative provider state before granting.
   const payment = await gateway.fetchPayment(params.providerPaymentId);

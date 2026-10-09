@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { IconArrowRight } from "@/components/svg/icons";
 import { requireActiveUser } from "@/server/auth/session";
 import { listNotifications } from "@/server/services/opportunities";
 import { NotificationActions } from "@/components/pipeline/notification-actions";
@@ -41,7 +41,7 @@ export default async function NotificationsPage() {
         </p>
       </div>
       {rows.length === 0 ? (
-        <EmptyState title="All clear" description="Reminders you set on opportunities and operational updates will appear here." />
+        <EmptyState art="notifications" title="All clear" description="Reminders you set on opportunities and operational updates will appear here." />
       ) : (
         <ul className="space-y-3">
           {rows.map((n) => {
@@ -58,7 +58,7 @@ export default async function NotificationsPage() {
                   <p className="text-xs text-text-disabled">{formatDateTime(n.createdAt)}</p>
                   {href ? (
                     <Link href={href} className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-ink underline">
-                      {notificationCta(n.kind)} <ArrowRight size={14} aria-hidden />
+                      {notificationCta(n.kind)} <IconArrowRight size={14} aria-hidden />
                     </Link>
                   ) : null}
                 </div>

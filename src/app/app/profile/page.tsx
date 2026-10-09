@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { IconDraft } from "@/components/svg/icons";
 import { requireActiveUser } from "@/server/auth/session";
 import { getReviewableProfile, getProfileForUser } from "@/server/services/resumes";
 import { ProfileFactsEditor } from "@/components/resumes/profile-facts-editor";
@@ -24,7 +24,7 @@ export default async function ProfilePage() {
         </div>
         <Link href="/app/resumes">
           <Button variant="secondary" size="sm" className="gap-1.5">
-            <FileText size={14} /> Resumes & Uploads
+            <IconDraft size={14} /> Resumes & Uploads
           </Button>
         </Link>
       </div>
@@ -32,7 +32,7 @@ export default async function ProfilePage() {
       {reviewable && !reviewable.revision.approvedAt ? (
         <Card className="border-warning/40 bg-warning-wash/40">
           <p className="text-sm font-semibold text-warning">
-            Parsed resume awaiting review — confirm or correct these facts to make them usable for AI.
+            Parsed resume awaiting review. Confirm or correct these facts to make them usable for AI.
           </p>
         </Card>
       ) : null}
@@ -57,7 +57,7 @@ export default async function ProfilePage() {
           <div>
             <h3 className="font-semibold text-ink">No profile yet</h3>
             <p className="mt-1 text-sm text-text-secondary">
-              Upload a resume or type facts manually — both end here for your review.
+              Upload a resume or type facts manually. Both end here for your review.
             </p>
           </div>
           <Link href="/app/resumes">

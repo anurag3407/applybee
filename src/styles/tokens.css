@@ -11,10 +11,12 @@
   --ab-ink: #18231e;
   --ab-ink-soft: #2c3a33;
   --ab-text-secondary: #586257;
-  --ab-text-disabled: #71796f;
+  --ab-text-disabled: #697067;
   --ab-honey: #e8b544;
-  --ab-honey-deep: #c8932a;
+  --ab-honey-deep: #8d6310;
   --ab-honey-wash: #faedc9;
+  /* Ink stays ink on honey in both themes: white on honey is ~2.9:1. */
+  --ab-on-honey: #18231e;
   --ab-border-decorative: #dcdace;
   --ab-border-control: #7b8478;
   --ab-focus: #245ead;
@@ -52,7 +54,14 @@
   --ab-duration-fast: 140ms;
   --ab-duration-normal: 220ms;
   --ab-duration-reveal: 500ms;
+  --ab-duration-press: 110ms;
+  --ab-duration-enter: 260ms;
+  --ab-duration-exit: 150ms;
   --ab-ease-ui: cubic-bezier(0.22, 1, 0.36, 1);
+  --ab-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ab-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ab-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ab-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 
   --ab-container-marketing: 77.5rem;
   --ab-container-app: 90rem;
@@ -71,6 +80,67 @@
   --line: var(--ab-border-decorative);
   --tooltip-bg: #18231e;
   --tooltip-muted: #8f94a2;
+
+  /*
+   * Overlay veil. Never derived from --ab-ink: in the dark theme ink is white,
+   * so an ink-based scrim lightens the page behind a dialog instead of darkening it.
+   */
+  --ab-veil: rgba(24, 35, 30, 0.55);
+}
+
+/*
+ * Brand surface. Panels that carry the ink-coloured brand slab — the auth
+ * aside, admin bar, "ink" marketing sections — must stay dark in both themes.
+ *
+ * Both token families are set: Tailwind resolves `--color-*` where it is
+ * declared (:root), so overriding only `--ab-*` here would not reach
+ * `bg-ink`/`text-surface`. Components that read `var(--ab-*)` directly
+ * (CombField strokes) need the raw token too.
+ */
+.brand-panel {
+  --ab-ink: #18231e;
+  --ab-ink-soft: #2c3a33;
+  --ab-surface: #fffdf7;
+  --ab-surface-subtle: #eeeade;
+  --ab-surface-raised: #ffffff;
+  --ab-text-secondary: #586257;
+  --ab-text-disabled: #697067;
+  --ab-honey: #e8b544;
+  --ab-honey-deep: #8d6310;
+  --ab-honey-wash: #faedc9;
+  --ab-on-honey: #18231e;
+  --ab-border-decorative: rgba(255, 253, 247, 0.16);
+  --ab-border-control: rgba(255, 253, 247, 0.4);
+
+  --color-ink: #18231e;
+  --color-surface: #fffdf7;
+  --color-surface-subtle: #eeeade;
+  --color-surface-raised: #ffffff;
+  --color-text-secondary: #586257;
+  --color-text-disabled: #697067;
+  --color-honey: #e8b544;
+  --color-honey-deep: #8d6310;
+  --color-honey-wash: #faedc9;
+  --color-on-honey: #18231e;
+  --color-border-decorative: rgba(255, 253, 247, 0.16);
+  --color-border-control: rgba(255, 253, 247, 0.4);
+  --color-canvas: #18231e;
+  --color-foreground: #fffdf7;
+}
+
+.dark .brand-panel {
+  --ab-ink: #0a1210;
+  --ab-surface: #f4f1e8;
+  --ab-honey-wash: rgba(232, 181, 68, 0.16);
+  --ab-border-decorative: rgba(255, 255, 255, 0.12);
+  --ab-border-control: rgba(255, 255, 255, 0.32);
+
+  --color-ink: #0a1210;
+  --color-surface: #f4f1e8;
+  --color-honey-wash: rgba(232, 181, 68, 0.16);
+  --color-border-decorative: rgba(255, 255, 255, 0.12);
+  --color-border-control: rgba(255, 255, 255, 0.32);
+  --color-canvas: #0a1210;
 }
 
 /*
@@ -87,10 +157,11 @@
   --ab-ink: #ffffff;
   --ab-ink-soft: #e2e4e9;
   --ab-text-secondary: #8f94a2;
-  --ab-text-disabled: #545c6e;
+  --ab-text-disabled: #767e8f;
   --ab-honey: #f97316;
   --ab-honey-deep: #ea580c;
   --ab-honey-wash: rgba(249, 115, 22, 0.16);
+  --ab-on-honey: #18231e;
   --ab-border-decorative: rgba(255, 255, 255, 0.08);
   --ab-border-control: rgba(255, 255, 255, 0.18);
   --ab-focus: #38bdf8;
