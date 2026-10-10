@@ -1,5 +1,6 @@
 import "server-only";
 import { sql } from "drizzle-orm";
+import { cache } from "react";
 import { db } from "@/db/client";
 
 /**
@@ -119,6 +120,16 @@ export async function getBalances(userId: string): Promise<{
   }
   return out;
 }
+
+/**
+ * Request-scoped view of `getBalances` for Server Components. The workspace
+ * shell and the page rendered inside it both need the same two rows, and
+ * without this every workspace page read `credit_accounts` twice.
+ *
+ * Deliberately not applied to the services or API routes: a credit decision has
+ * to read the row, not a value cached earlier in the request.
+ */
+export const getBalancesForRequest = cache(getBalances);
 
 export async function getLedger(userId: string, type: CreditType | "all", limit = 50, offset = 0) {
   const rows = await db.execute(sql`

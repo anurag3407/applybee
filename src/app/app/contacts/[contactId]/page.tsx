@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { requireActiveUser } from "@/server/auth/session";
 import { getContactForUser, getCompanyWithEvidence } from "@/server/services/contacts";
 import { RevealAction, SaveContactButton, WriteToContactButton, ReportContactDialog } from "@/components/directory/reveal";
-import { getBalances } from "@/server/services/credits";
+import { getBalancesForRequest } from "@/server/services/credits";
 import { Badge, Card, StatusChip } from "@/components/ui/primitives";
 import { formatDate } from "@/lib/format";
 
@@ -16,7 +16,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
   const contact = await getContactForUser(user.id, contactId);
   if (!contact) notFound();
   const [balances, company] = await Promise.all([
-    getBalances(user.id),
+    getBalancesForRequest(user.id),
     getCompanyWithEvidence(contact.companyId).catch(() => null),
   ]);
 

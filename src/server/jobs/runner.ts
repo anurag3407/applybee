@@ -28,8 +28,11 @@ const JOB_LEASE_SECONDS = 300;
 const JOB_DEADLINE_SECONDS = 300;
 
 export async function processDueJobs(limit = 5): Promise<number> {
+  // user_id/entity_id come out with the due row: they were re-read one query per
+  // job right after claiming it, which made three round trips per job for data
+  // that cannot change between the two reads.
   const due = await db.execute(sql`
-    SELECT id, kind FROM jobs
+    SELECT id, kind, user_id, entity_id FROM jobs
     WHERE (state IN ('queued','retry_wait','deferred') AND available_after <= now())
        OR (state = 'running' AND (lease_expires_at IS NULL OR lease_expires_at < now()))
     ORDER BY available_after ASC
@@ -37,7 +40,12 @@ export async function processDueJobs(limit = 5): Promise<number> {
   `);
 
   let processed = 0;
-  for (const row of due.rows as Array<{ id: string; kind: string }>) {
+  for (const row of due.rows as Array<{
+    id: string;
+    kind: string;
+    user_id: string | null;
+    entity_id: string | null;
+  }>) {
     const claimed = await db.execute(sql`
       SELECT claim_job(${row.id}::uuid, ${WORKER_ID}, ${JOB_LEASE_SECONDS}, ${JOB_DEADLINE_SECONDS}) AS out
     `);
@@ -45,13 +53,17 @@ export async function processDueJobs(limit = 5): Promise<number> {
     if (!claim) continue;
     processed++;
     try {
-      const ctx = await loadContext(row.id);
       const handler = HANDLERS[row.kind];
       if (!handler) {
         await complete(row.id, claim.fencing_token, { status: "failed", errorCode: "NO_HANDLER", errorMessage: `No handler for ${row.kind}` });
         continue;
       }
-      const outcome = await handler({ jobId: row.id, ...ctx, fencingToken: claim.fencing_token });
+      const outcome = await handler({
+        jobId: row.id,
+        userId: row.user_id,
+        entityId: row.entity_id,
+        fencingToken: claim.fencing_token,
+      });
       await settle(row.id, claim.fencing_token, outcome);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -76,14 +88,6 @@ export async function processDueJobs(limit = 5): Promise<number> {
     }
   }
   return processed;
-}
-
-async function loadContext(jobId: string): Promise<{ userId: string | null; entityId: string | null }> {
-  const rows = await db.execute(sql`SELECT user_id, entity_id FROM jobs WHERE id = ${jobId}::uuid`);
-  const row = rows.rows[0] as { user_id: string | null; entity_id: string | null } | undefined;
-  // Same guard as settle(): a missing row must not throw inside the claim loop.
-  if (!row) return { userId: null, entityId: null };
-  return { userId: row.user_id, entityId: row.entity_id };
 }
 
 async function settle(jobId: string, fencingToken: number, outcome: HandlerOutcome): Promise<void> {
@@ -148,6 +152,10 @@ async function complete(
  * production publishes to the queue and only then marks the event. */
 export async function dispatchOutbox(limit = 50): Promise<number> {
   const config = getConfig();
+  // SKIP LOCKED keeps two overlapping cron runs from claiming the same rows:
+  // without it both dispatched the same batch and each counted the other's
+  // events as its own. `payload` is not returned — nothing here publishes it,
+  // and the JSONB round trip was the bulk of the bytes on this query.
   const rows = await db.execute(sql`
     UPDATE outbox_events
     SET publish_state = 'published', published_at = now(), attempts = attempts + 1
@@ -156,8 +164,9 @@ export async function dispatchOutbox(limit = 50): Promise<number> {
       WHERE publish_state = 'pending' AND next_attempt_at <= now()
       ORDER BY created_at ASC
       LIMIT ${limit}
+      FOR UPDATE SKIP LOCKED
     )
-    RETURNING id, kind, payload
+    RETURNING id, kind
   `);
   if (rows.rows.length > 0 && config.APP_ENV === "development") {
     logger.debug("outbox.dispatched", { count: rows.rows.length });

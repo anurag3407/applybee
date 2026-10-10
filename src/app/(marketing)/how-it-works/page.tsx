@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AgenticWorkflow, WritingModes, DirectoryFeature, ResumeIntelligence } from "@/components/marketing/landing";
 import { Button } from "@/components/ui/primitives";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema } from "@/lib/seo-schema";
+import { breadcrumbTrail, pageMetaFor } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "How it works · ReachBee AI" };
+export const metadata: Metadata = pageMetaFor("/how-it-works");
 
 export default function HowItWorksPage() {
   return (
     <div>
+      <JsonLd data={breadcrumbSchema(breadcrumbTrail("How it works", "/how-it-works"))} />
       <div className="mx-auto max-w-3xl px-5 py-16">
         <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">How it works</h1>
         <p className="prose-measure mt-3 text-lg text-text-secondary">

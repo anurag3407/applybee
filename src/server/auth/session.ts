@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { db, pool } from "@/db/client";
-import { authSessions, userRoleAssignments, users } from "@/db/schema";
+import { authSessions, users } from "@/db/schema";
 import { getConfig } from "@/server/config";
 import { identityFingerprint, randomToken, sha256Hex } from "@/server/crypto";
 import { logger } from "@/server/logger";
@@ -37,7 +37,7 @@ export type SessionUser = {
 type SessionUserRow = Pick<
   SessionUser,
   "id" | "clerkId" | "email" | "displayName" | "status" | "onboardingStep"
->;
+> & { roles: string[] };
 
 const userColumns = {
   id: users.id,
@@ -48,20 +48,28 @@ const userColumns = {
   onboardingStep: users.onboardingStep,
 } as const;
 
-async function withRoles(row: SessionUserRow, authMode: "clerk" | "dev"): Promise<SessionUser> {
-  const roles = await db
-    .select({ role: userRoleAssignments.role })
-    .from(userRoleAssignments)
-    .where(eq(userRoleAssignments.userId, row.id));
-  return {
-    ...row,
-    isAdmin: roles.some((r) => r.role === "admin"),
-    authMode,
-  };
+/**
+ * Roles travel with the user row. Reading them separately added a second
+ * database round trip to every authenticated page and API request — the most
+ * frequent query in the app, for a value that is only ever compared to "admin".
+ */
+const rolesColumn = sql<string[]>`(
+  select coalesce(array_agg(r.role), '{}'::text[])
+  from user_role_assignments r
+  where r.user_id = ${users.id}
+)`.as("roles");
+
+function toSessionUser(row: SessionUserRow, authMode: "clerk" | "dev"): SessionUser {
+  const { roles, ...user } = row;
+  return { ...user, isAdmin: roles.includes("admin"), authMode };
 }
 
 async function selectUserByClerkId(clerkId: string): Promise<SessionUserRow | null> {
-  const rows = await db.select(userColumns).from(users).where(eq(users.clerkId, clerkId)).limit(1);
+  const rows = await db
+    .select({ ...userColumns, roles: rolesColumn })
+    .from(users)
+    .where(eq(users.clerkId, clerkId))
+    .limit(1);
   return rows[0] ?? null;
 }
 
@@ -107,7 +115,7 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
     }
 
     if (!row) return null;
-    return withRoles(row, "clerk");
+    return toSessionUser(row, "clerk");
   } catch (err) {
     logger.warn("auth.clerk_session_check_failed", { error: String(err) });
     return null;
@@ -120,14 +128,14 @@ async function getDevSessionUser(): Promise<SessionUser | null> {
   if (!raw) return null;
   const tokenHash = sha256Hex(raw);
   const rows = await db
-    .select(userColumns)
+    .select({ ...userColumns, roles: rolesColumn })
     .from(authSessions)
     .innerJoin(users, eq(users.id, authSessions.userId))
     .where(and(eq(authSessions.tokenHash, tokenHash), gt(authSessions.expiresAt, new Date())))
     .limit(1);
   const row = rows[0];
   if (!row) return null;
-  return withRoles(row, "dev");
+  return toSessionUser(row, "dev");
 }
 
 /** Provision (idempotently) and open a dev session. Trial grant happens once. */

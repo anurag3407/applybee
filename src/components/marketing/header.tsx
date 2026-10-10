@@ -11,10 +11,30 @@ import { cn } from "@/lib/cn";
 /**
  * Sticky 64–72 px header; translucent-to-solid on scroll, but legibility never
  * depends on backdrop filtering (§10.1). Signed-in CTA becomes Open workspace.
+ *
+ * The session is read here, on the client, rather than passed down from the
+ * layout: an awaited session in the layout made every marketing route dynamic.
+ * The signed-out CTA is what the prerendered page ships with, and a visitor who
+ * is actually signed in gets "Open workspace" one request later. Both variants
+ * link to routes that authorize server-side regardless of what this shows.
  */
-export function MarketingHeader({ signedIn }: { signedIn: boolean }) {
+export function MarketingHeader() {
   const [solid, setSolid] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/session-status", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { data?: { signedIn?: boolean } } | null) => {
+        if (data?.data?.signedIn && !cancelled) setSignedIn(true);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 8);

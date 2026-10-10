@@ -139,32 +139,37 @@ function maskEmailForDisplay(domain: string): string {
 }
 
 export async function getContactForUser(userId: string, contactId: string) {
-  const rows = await db
-    .select({
-      contact: contacts,
-      companyName: companies.name,
-      companyDomain: companies.domain,
-      companyStage: companies.stage,
-      companyDescription: companies.description,
-    })
-    .from(contacts)
-    .innerJoin(companies, eq(companies.id, contacts.companyId))
-    .where(eq(contacts.id, contactId))
-    .limit(1);
-  const row = rows[0];
+  // Three independent reads on the hottest detail screen, previously in series.
+  const [row, unlock, saved] = await Promise.all([
+    db
+      .select({
+        contact: contacts,
+        companyName: companies.name,
+        companyDomain: companies.domain,
+        companyStage: companies.stage,
+        companyDescription: companies.description,
+      })
+      .from(contacts)
+      .innerJoin(companies, eq(companies.id, contacts.companyId))
+      .where(eq(contacts.id, contactId))
+      .limit(1)
+      .then((r) => r[0] ?? null),
+    db
+      .select({ id: contactUnlockss.id, unlockedAt: contactUnlockss.unlockedAt })
+      .from(contactUnlockss)
+      .where(and(eq(contactUnlockss.userId, userId), eq(contactUnlockss.contactId, contactId)))
+      .limit(1)
+      .then((r) => r[0] ?? null),
+    db
+      .select({ id: savedContacts.id })
+      .from(savedContacts)
+      .where(and(eq(savedContacts.userId, userId), eq(savedContacts.contactId, contactId)))
+      .limit(1)
+      .then((r) => r[0] ?? null),
+  ]);
   if (!row) return null;
-  const unlock = await db
-    .select({ id: contactUnlockss.id, unlockedAt: contactUnlockss.unlockedAt })
-    .from(contactUnlockss)
-    .where(and(eq(contactUnlockss.userId, userId), eq(contactUnlockss.contactId, contactId)))
-    .limit(1);
-  const saved = await db
-    .select({ id: savedContacts.id })
-    .from(savedContacts)
-    .where(and(eq(savedContacts.userId, userId), eq(savedContacts.contactId, contactId)))
-    .limit(1);
 
-  const unlocked = unlock.length > 0;
+  const unlocked = Boolean(unlock);
   return {
     ...row.contact,
     companyName: row.companyName,
@@ -172,8 +177,8 @@ export async function getContactForUser(userId: string, contactId: string) {
     companyStage: row.companyStage,
     companyDescription: row.companyDescription,
     unlocked,
-    unlockedAt: unlocked ? unlock[0]!.unlockedAt : null,
-    saved: saved.length > 0,
+    unlockedAt: unlocked ? unlock!.unlockedAt : null,
+    saved: Boolean(saved),
     // Email only leaves the server when an unlock exists (§3.2).
     email: unlocked && row.contact.emailEnc ? decryptEnvelope(row.contact.emailEnc, `contact:${row.contact.id}`) : null,
     maskedEmail: maskEmailForDisplay(row.companyDomain),

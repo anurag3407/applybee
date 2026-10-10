@@ -17,6 +17,49 @@ function motionOk() {
   return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/**
+ * One IntersectionObserver per distinct option set, shared by every Reveal and
+ * Stagger on the page. Each of the 6–9 blocks an app page carries used to own
+ * an observer; the browser then ran a separate intersection pass for each one.
+ */
+const revealCallbacks = new WeakMap<Element, () => void>();
+const sharedObservers = new Map<string, IntersectionObserver>();
+
+function sharedObserver(key: string, options: IntersectionObserverInit): IntersectionObserver {
+  const existing = sharedObservers.get(key);
+  if (existing) return existing;
+  const created: IntersectionObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      revealCallbacks.get(entry.target)?.();
+      revealCallbacks.delete(entry.target);
+      created.unobserve(entry.target);
+    }
+  }, options);
+  sharedObservers.set(key, created);
+  return created;
+}
+
+function observeReveal(
+  node: HTMLElement,
+  key: string,
+  options: IntersectionObserverInit,
+  onEnter: () => void,
+): () => void {
+  revealCallbacks.set(node, onEnter);
+  const io = sharedObserver(key, options);
+  io.observe(node);
+  return () => {
+    revealCallbacks.delete(node);
+    io.unobserve(node);
+  };
+}
+
+const REVEAL_KEY = "reveal";
+const REVEAL_OPTIONS: IntersectionObserverInit = { rootMargin: "0px 0px -6% 0px", threshold: 0.01 };
+const STAGGER_KEY = "stagger";
+const STAGGER_OPTIONS: IntersectionObserverInit = { rootMargin: "0px 0px -6% 0px", threshold: 0.01 };
+
 /** Reveal on scroll, once. `y` is the travel distance in px. */
 export function Reveal({
   as: Tag = "div",
@@ -46,18 +89,9 @@ export function Reveal({
   useEffect(() => {
     const node = ref.current;
     if (!node || !node.classList.contains("ab-pre")) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add("ab-in");
-          io.unobserve(entry.target);
-        }
-      },
-      { rootMargin: "0px 0px -6% 0px", threshold: 0.01 },
+    return observeReveal(node, REVEAL_KEY, REVEAL_OPTIONS, () =>
+      node.classList.add("ab-in"),
     );
-    io.observe(node);
-    return () => io.disconnect();
   }, []);
 
   return (
@@ -93,18 +127,9 @@ export function Stagger({
   useEffect(() => {
     const node = ref.current;
     if (!node || !node.classList.contains("ab-pre")) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          entry.target.classList.add("ab-in");
-          io.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.01 },
+    return observeReveal(node, STAGGER_KEY, STAGGER_OPTIONS, () =>
+      node.classList.add("ab-in"),
     );
-    io.observe(node);
-    return () => io.disconnect();
   }, []);
 
   return (
@@ -155,9 +180,4 @@ export function CountUp({
   return (
     <span className={cn("tabular", className)}>{format(shown)}</span>
   );
-}
-
-/** Route/body enter: one short rise, then nothing moves. */
-export function PageEnter({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("ab-page-enter", className)}>{children}</div>;
 }

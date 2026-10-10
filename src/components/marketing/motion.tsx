@@ -43,13 +43,18 @@ export function MarketingMotion() {
       return () => revealObserver?.disconnect();
     }
 
+    // Legal, accessibility, security and help documents carry no reveal or
+    // stagger targets at all. Without this guard those routes paid for gsap +
+    // ScrollTrigger + Lenis to animate nothing.
+    if (document.querySelectorAll('[data-motion="reveal"], [data-motion="stagger"]').length === 0) {
+      return () => revealObserver?.disconnect();
+    }
+
     let cleanup: Array<() => void> = [];
     let cancelled = false;
 
     (async () => {
       try {
-        document.documentElement.classList.add("js-motion");
-
         const [{ gsap }, { ScrollTrigger }, { default: Lenis }] = await Promise.all([
           import("gsap"),
           import("gsap/ScrollTrigger"),
@@ -58,6 +63,16 @@ export function MarketingMotion() {
         if (cancelled) return;
 
         gsap.registerPlugin(ScrollTrigger);
+
+        // `.js-motion` hides every reveal target, so anything already on screen
+        // — the hero heading, i.e. the LCP element — has to be marked revealed
+        // before the class goes on. Hiding first and waiting for this chunk to
+        // arrive delayed the largest paint by a full network round trip.
+        const viewportBottom = window.innerHeight;
+        document.querySelectorAll<HTMLElement>('[data-motion="reveal"]').forEach((el) => {
+          if (el.getBoundingClientRect().top < viewportBottom) el.classList.add("is-revealed");
+        });
+        document.documentElement.classList.add("js-motion");
 
         // Lenis driven by GSAP's ticker (single RAF strategy, §9.3).
         const lenis = new Lenis({ duration: 0.9, smoothWheel: true });
@@ -68,6 +83,7 @@ export function MarketingMotion() {
 
         const reveals = gsap.utils.toArray<HTMLElement>('[data-motion="reveal"]');
         for (const el of reveals) {
+          if (el.classList.contains("is-revealed")) continue;
           const tween = gsap.fromTo(
             el,
             { opacity: 0, y: 16 },

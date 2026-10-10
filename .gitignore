@@ -36,3 +36,4 @@ __pycache__/
 
 # /brag video render output (large binaries, regenerable)
 brag-output*/
+vibe_images/

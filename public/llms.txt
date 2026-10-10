@@ -1,0 +1,50 @@
+# ReachBee AI
+
+> Career outreach workspace for engineers: a verified contact directory, AI introductions written only from profile facts you confirmed, and drafts staged into your Gmail. You review and send. ReachBee never sends on your behalf.
+
+ReachBee is built for the step after the job portal. Instead of applying into a saturated queue, you find the people who actually hire in the engineering org you want, then write them something true about your own work. Every AI draft cites the confirmed facts behind each sentence, and any sentence that is not backed by one is marked uncertain before you ever read it as fact.
+
+## Core facts
+
+- Contact reveals: one credit the first time you reveal a directory email. Reopening, copying and saving that contact later is always free.
+- AI drafts: one credit when a validated draft is saved. A failed generation releases the credit automatically.
+- Deliverability Shield: a hard ceiling of 10 AI drafts per account per day, resetting at 00:00 UTC (05:30 IST). This protects the sender reputation of the Gmail account doing the outreach.
+- Always free: manual writing, templates, saving, copying, `.eml` export, and the outreach pipeline.
+- Gmail: ReachBee creates drafts. Sending is always your own click in your own inbox.
+- Grounding: an AI draft is written only from profile facts you confirmed, and each sentence carries the fact or evidence IDs behind it.
+- Pricing: one-time credit packs, no subscription, no card required for the trial allowance.
+- Contact emails in the directory are stored encrypted; deleting your account or a file removes it from ReachBee (it cannot remove copies you already made in Gmail).
+
+## Pages
+
+- [Home](https://reachbee.sayalabs.in/): what the product does, end to end.
+- [How it works](https://reachbee.sayalabs.in/how-it-works): the path from confirmed facts to a Gmail draft, including the Gmail step precisely.
+- [Features](https://reachbee.sayalabs.in/features): directory search, resume intelligence, agentic drafting, writing modes, workspace, pipeline.
+- [Pricing](https://reachbee.sayalabs.in/pricing): credit packs, how credits behave, refund and payment policies.
+- [FAQ](https://reachbee.sayalabs.in/faq): credit charging, the daily AI cap, Gmail permissions, resume privacy, deletion.
+- [Security](https://reachbee.sayalabs.in/security): Gmail scopes requested, storage and encryption, retention, deliverability limits.
+- [Help centre](https://reachbee.sayalabs.in/help): goal-oriented guides.
+- [Contact](https://reachbee.sayalabs.in/contact): support and account requests.
+- [Accessibility statement](https://reachbee.sayalabs.in/accessibility): what is supported, known limitations, how to report a barrier.
+
+## Help articles
+
+- [Getting started with ReachBee](https://reachbee.sayalabs.in/help/get-started): account, confirmed facts, first draft, Gmail staging.
+- [When credits are charged (and when they aren't)](https://reachbee.sayalabs.in/help/when-credits-charge): reveal vs generation, releases on failure, what is always free.
+- [Using ReachBee without Gmail](https://reachbee.sayalabs.in/help/use-without-gmail): write, copy and export without connecting an inbox.
+- [When a Gmail draft fails](https://reachbee.sayalabs.in/help/gmail-failed): what the failure states mean and what happens to the credit.
+- [Uploading a resume](https://reachbee.sayalabs.in/help/resume-upload): parsing, confirming facts, and deleting the file.
+- [Refunds](https://reachbee.sayalabs.in/help/refunds): how credit purchases are refunded.
+
+## Policies
+
+- [Privacy policy](https://reachbee.sayalabs.in/legal/privacy)
+- [Terms of service](https://reachbee.sayalabs.in/legal/terms)
+- [Refund policy](https://reachbee.sayalabs.in/legal/refunds)
+- [Acceptable use policy](https://reachbee.sayalabs.in/legal/acceptable-use)
+- [Contact data policy](https://reachbee.sayalabs.in/legal/contact-data)
+- [Cookie notice](https://reachbee.sayalabs.in/legal/cookies)
+
+## Not indexed
+
+The signed-in workspace (`/app`), admin screens (`/admin`) and API (`/api`) are private, session-bound and disallowed to all crawlers, including AI crawlers.

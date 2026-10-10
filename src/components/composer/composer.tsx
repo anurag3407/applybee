@@ -1249,7 +1249,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
               ) : null}
               {balances.ai.available < 1 ? (
                 <p className="text-xs text-warning">
-                  No AI credits left. <a href="/app/billing/plans" className="underline">Add credits</a> or keep writing manually, manual is free.
+                  No AI credits left. <Link href="/app/billing/plans" className="underline">Add credits</Link> or keep writing manually, manual is free.
                 </p>
               ) : generationInFlight ? (
                 <p className="text-xs text-text-secondary">

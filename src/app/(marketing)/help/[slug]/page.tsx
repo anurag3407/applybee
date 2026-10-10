@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HELP_ARTICLES, getHelpArticle } from "@/content/help";
 import { Badge } from "@/components/ui/primitives";
+import { JsonLd } from "@/components/seo/json-ld";
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schema";
+import { metaDescription, pageMeta } from "@/lib/seo";
 
 export function generateStaticParams() {
   return HELP_ARTICLES.map((a) => ({ slug: a.slug }));
@@ -10,7 +13,14 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  return { title: getHelpArticle(slug)?.title ?? "Help" };
+  const article = getHelpArticle(slug);
+  if (!article) return { title: "Help" };
+  return pageMeta({
+    title: article.title,
+    description: metaDescription(article.body[0] ?? ""),
+    path: `/help/${article.slug}`,
+    type: "article",
+  });
 }
 
 export default async function HelpArticlePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -19,6 +29,21 @@ export default async function HelpArticlePage({ params }: { params: Promise<{ sl
   if (!article) notFound();
   return (
     <article className="mx-auto max-w-3xl px-5 py-16">
+      <JsonLd
+        data={[
+          articleSchema({
+            path: `/help/${article.slug}`,
+            headline: article.title,
+            description: metaDescription(article.body[0] ?? ""),
+            section: article.category,
+          }),
+          breadcrumbSchema([
+            { name: "ReachBee", path: "/" },
+            { name: "Help", path: "/help" },
+            { name: article.title, path: `/help/${article.slug}` },
+          ]),
+        ]}
+      />
       <Badge>{article.category}</Badge>
       <h1 className="mt-3 text-4xl font-bold tracking-tight text-ink">{article.title}</h1>
       <div className="prose-measure mt-6 space-y-3 text-[0.95rem] leading-relaxed text-text-secondary">

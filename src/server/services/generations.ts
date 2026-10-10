@@ -68,18 +68,19 @@ export class GenerationPreflightError extends Error {
 }
 
 async function currentApprovedProfile(userId: string) {
-  const profile = (
-    await db.select().from(candidateProfiles).where(eq(candidateProfiles.userId, userId)).limit(1)
-  )[0];
-  if (!profile?.currentRevisionId) return null;
-  const revision = (
+  const joined = (
     await db
-      .select()
-      .from(candidateProfileRevisions)
-      .where(eq(candidateProfileRevisions.id, profile.currentRevisionId))
+      .select({ revision: candidateProfileRevisions })
+      .from(candidateProfiles)
+      .innerJoin(
+        candidateProfileRevisions,
+        eq(candidateProfileRevisions.id, candidateProfiles.currentRevisionId),
+      )
+      .where(eq(candidateProfiles.userId, userId))
       .limit(1)
   )[0];
-  if (!revision?.approvedAt) return null;
+  if (!joined?.revision.approvedAt) return null;
+  const revision = joined.revision;
   const facts = await db
     .select({ id: candidateFacts.id, factType: candidateFacts.factType, text: candidateFacts.text })
     .from(candidateFacts)
@@ -321,9 +322,23 @@ export async function describeProfileRevision(revisionId: string | null | undefi
 }
 
 export async function getGenerationStatus(userId: string, generationId: string) {
+  // The composer polls this endpoint up to once a second while a generation
+  // runs. `input_snapshot` holds the pasted job description (up to 20 KB) and
+  // nothing here reads it, so the poll used to ship that payload every tick.
   const gen = (
     await db
-      .select()
+      .select({
+        id: generationRequests.id,
+        state: generationRequests.state,
+        mode: generationRequests.mode,
+        acceptanceState: generationRequests.acceptanceState,
+        proposedRevisionId: generationRequests.proposedRevisionId,
+        failureCode: generationRequests.failureCode,
+        failureMessage: generationRequests.failureMessage,
+        createdAt: generationRequests.createdAt,
+        completedAt: generationRequests.completedAt,
+        usage: generationRequests.usage,
+      })
       .from(generationRequests)
       .where(and(eq(generationRequests.id, generationId), eq(generationRequests.userId, userId)))
       .limit(1)
@@ -337,30 +352,26 @@ export async function getGenerationStatus(userId: string, generationId: string) 
   } | null = null;
   if (gen.proposedRevisionId) {
     const rev = (
-      await db.select().from(draftRevisions).where(eq(draftRevisions.id, gen.proposedRevisionId)).limit(1)
+      await db
+        .select({
+          id: draftRevisions.id,
+          subject: draftRevisions.subject,
+          body: draftRevisions.body,
+          profileRevisionId: draftRevisions.profileRevisionId,
+        })
+        .from(draftRevisions)
+        .where(eq(draftRevisions.id, gen.proposedRevisionId))
+        .limit(1)
     )[0];
     if (rev) {
-      proposal = {
-        subject: rev.subject,
-        body: rev.body,
-        claims: await getGroundingClaims(rev.id),
-        profileRevision: await describeProfileRevision(rev.profileRevisionId),
-      };
+      const [claims, profileRevision] = await Promise.all([
+        getGroundingClaims(rev.id),
+        describeProfileRevision(rev.profileRevisionId),
+      ]);
+      proposal = { subject: rev.subject, body: rev.body, claims, profileRevision };
     }
   }
-  return {
-    id: gen.id,
-    state: gen.state,
-    mode: gen.mode,
-    acceptanceState: gen.acceptanceState,
-    proposedRevisionId: gen.proposedRevisionId,
-    proposal,
-    failureCode: gen.failureCode,
-    failureMessage: gen.failureMessage,
-    createdAt: gen.createdAt,
-    completedAt: gen.completedAt,
-    usage: gen.usage,
-  };
+  return { ...gen, proposal };
 }
 
 export async function cancelGeneration(userId: string, generationId: string): Promise<{ cancelled: boolean; state: string }> {

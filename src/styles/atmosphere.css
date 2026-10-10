@@ -1,0 +1,202 @@
+/*
+ * Landing atmosphere: the dotted fields, the edge masks that stop them short
+ * of a border, and the slow idle drift that keeps the page breathing.
+ *
+ * Decoration only. Nothing here gates content visibility — a dot field without
+ * its mask or its blur is still a dot field — and every animation is either a
+ * single pass or a low-amplitude loop that `prefers-reduced-motion` collapses
+ * (globals.css zeroes animation-duration globally).
+ */
+
+/* --------------------------------- dot field -------------------------------- */
+
+.ab-dots {
+  background-image: radial-gradient(
+    circle,
+    var(--ab-dot-color) var(--ab-dot-r, 1px),
+    transparent var(--ab-dot-r, 1px)
+  );
+  background-size: var(--ab-dot-size, 18px) var(--ab-dot-size, 18px);
+}
+
+/* Two offset lattices: the same grid rotated into the honeycomb. */
+.ab-dots-hex {
+  background-image:
+    radial-gradient(circle, var(--ab-dot-color) var(--ab-dot-r, 1px), transparent var(--ab-dot-r, 1px)),
+    radial-gradient(circle, var(--ab-dot-color) var(--ab-dot-r, 1px), transparent var(--ab-dot-r, 1px));
+  background-size:
+    var(--ab-dot-size, 18px) calc(var(--ab-dot-size, 18px) * 1.7321);
+  background-position:
+    0 0,
+    calc(var(--ab-dot-size, 18px) / 2) calc(var(--ab-dot-size, 18px) * 0.866);
+}
+
+/* A texture that stops one notch short of its container's edge. */
+.ab-mask-b {
+  mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 100%);
+}
+.ab-mask-t {
+  mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 100%);
+}
+.ab-mask-l {
+  mask-image: linear-gradient(to left, #000 0%, #000 55%, transparent 100%);
+}
+.ab-mask-r {
+  mask-image: linear-gradient(to right, #000 0%, #000 55%, transparent 100%);
+}
+.ab-mask-radial {
+  mask-image: radial-gradient(circle at 50% 45%, #000 0%, transparent 72%);
+}
+.ab-mask-fade-x {
+  mask-image: linear-gradient(to right, #000 0%, transparent 100%);
+}
+
+/* --------------------------------- atmosphere ------------------------------- */
+
+/* Ambient blobs. Two of them at different periods never line up, so the
+ * composition never looks like it is looping. */
+@keyframes ab-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(10px, -14px, 0);
+  }
+}
+
+.ab-drift {
+  animation: ab-drift 21s var(--ab-ease-in-out) infinite;
+}
+
+.ab-drift-slow {
+  animation-duration: 31s;
+}
+
+/* Outbound signal: three rings leaving the same origin, evenly out of phase.
+ * The radar sweep is the brand's own motif, so it carries no data. */
+@keyframes ab-signal {
+  0% {
+    opacity: 0;
+    transform: scale(0.45);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.ab-signal > circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ab-signal 4.2s var(--ab-ease-out) infinite;
+}
+
+.ab-signal > circle:nth-child(2) {
+  animation-delay: 1.4s;
+}
+.ab-signal > circle:nth-child(3) {
+  animation-delay: 2.8s;
+}
+
+/* Marching dashes on a connector — the direction a hand-off travels. */
+@keyframes ab-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.ab-flow {
+  stroke-dasharray: 5 7;
+  animation: ab-flow 900ms linear infinite;
+}
+
+/* --------------------------------- card sheen ------------------------------- */
+
+/* One specular pass on hover. Background-position rather than transform, so
+ * the card itself is never clipped — an outline focus ring inside a rounded
+ * corner still reaches the edge. */
+@keyframes ab-sheen-bg {
+  from {
+    background-position: 160% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+
+.ab-sheen {
+  position: relative;
+  isolation: isolate;
+}
+
+.ab-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    color-mix(in oklab, var(--ab-honey) 26%, transparent) 50%,
+    transparent 62%
+  );
+  background-size: 240% 100%;
+  background-position: 160% 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--ab-duration-normal) linear;
+}
+
+.dark .ab-sheen::after {
+  background: linear-gradient(100deg, transparent 38%, rgb(255 255 255 / 0.1) 50%, transparent 62%);
+}
+
+.ab-sheen:hover::after,
+.ab-sheen:focus-within::after {
+  opacity: 1;
+  animation: ab-sheen-bg 900ms var(--ab-ease-out);
+}
+
+/* ------------------------------- hex glyph grid ----------------------------- */
+
+/* Feature icons draw in with the page instead of popping. The end state is a
+ * solid stroke, so a no-JS or pre-reveal paint is still the finished icon. */
+.ab-glyph :is(path, circle, rect, line, polyline, polygon) {
+  stroke-dasharray: var(--ab-len, 72);
+  stroke-dashoffset: 0;
+  animation: ab-draw-in 780ms var(--ab-ease-out) both;
+}
+
+.ab-glyph :is(path, circle, rect, line, polyline, polygon):nth-child(2n) {
+  animation-delay: 55ms;
+}
+.ab-glyph :is(path, circle, rect, line, polyline, polygon):nth-child(3n) {
+  animation-delay: 110ms;
+}
+.ab-glyph :is(path, circle, rect, line, polyline, polygon):nth-child(4n) {
+  animation-delay: 165ms;
+}
+
+/* --------------------------------- reduced --------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ab-drift,
+  .ab-drift-slow,
+  .ab-signal > circle,
+  .ab-flow,
+  .ab-glyph :is(path, circle, rect, line, polyline, polygon) {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  .ab-sheen:hover::after,
+  .ab-sheen:focus-within::after {
+    animation: none;
+    opacity: 0;
+  }
+}

@@ -4,7 +4,8 @@ import { requireActiveUser } from "@/server/auth/session";
 import { listOpportunities, STAGES } from "@/server/services/opportunities";
 import { PipelineBoard } from "@/components/pipeline/pipeline-board";
 import { NewOpportunityButton } from "@/components/pipeline/opportunity-forms";
-import { EmptyState, Button } from "@/components/ui/primitives";
+import { Button } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const metadata: Metadata = { title: "Pipeline" };
 

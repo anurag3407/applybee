@@ -1,6 +1,9 @@
 import { requireAdmin } from "@/server/auth/session";
+import type { Metadata } from "next";
+import { noIndexMeta } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = noIndexMeta;
 
 /**
  * Admin authorization lives here, not only in each page.

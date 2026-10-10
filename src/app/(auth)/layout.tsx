@@ -1,4 +1,8 @@
 import { ClerkScope } from "@/components/auth/clerk-scope";
+import type { Metadata } from "next";
+import { noIndexMeta } from "@/lib/seo";
+
+export const metadata: Metadata = noIndexMeta;
 
 /**
  * Auth routes are the only pages that render Clerk client components

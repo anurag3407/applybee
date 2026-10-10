@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductFacts, DirectoryFeature, WorkspaceTeaser, Trust } from "@/components/marketing/landing";
 import { Button } from "@/components/ui/primitives";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema } from "@/lib/seo-schema";
+import { breadcrumbTrail, pageMetaFor } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Features · ReachBee AI" };
+export const metadata: Metadata = pageMetaFor("/features");
 
 export default function FeaturesPage() {
   return (
     <div>
+      <JsonLd data={breadcrumbSchema(breadcrumbTrail("Features", "/features"))} />
       <div className="mx-auto max-w-3xl px-5 py-16">
         <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">Features</h1>
         <p className="prose-measure mt-3 text-lg text-text-secondary">

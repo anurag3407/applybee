@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireActiveUser } from "@/server/auth/session";
 import { listOrders, listPayments } from "@/server/services/billing";
-import { Card, Badge, EmptyState } from "@/components/ui/primitives";
+import { Card, Badge } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDateTime, formatINRPaise } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Payment history" };

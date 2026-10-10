@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button, FieldError, Input } from "@/components/ui/primitives";
 
 /**
@@ -86,9 +87,9 @@ export function NewsletterBand() {
           {error ? <FieldError id="newsletter-error">{error}</FieldError> : null}
           <p className="mt-3 text-xs text-text-disabled">
             We store the address and nothing else. See the{" "}
-            <a href="/legal/privacy" className="font-semibold text-ink underline">
+            <Link href="/legal/privacy" className="font-semibold text-ink underline">
               privacy policy
-            </a>
+            </Link>
             .
           </p>
         </div>

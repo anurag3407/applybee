@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getLegalDoc, LEGAL_DOCS } from "@/content/legal";
 import { formatDate } from "@/lib/format";
+import { JsonLd } from "@/components/seo/json-ld";
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schema";
+import { pageMeta } from "@/lib/seo";
 
 export function generateStaticParams() {
   return LEGAL_DOCS.map((d) => ({ doc: d.slug }));
@@ -11,7 +14,13 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ doc: string }> }): Promise<Metadata> {
   const { doc } = await params;
   const found = getLegalDoc(doc);
-  return { title: found?.title ?? "Legal" };
+  if (!found) return { title: "Legal" };
+  return pageMeta({
+    title: found.title,
+    description: found.summary,
+    path: `/legal/${found.slug}`,
+    type: "article",
+  });
 }
 
 export default async function LegalDocPage({ params }: { params: Promise<{ doc: string }> }) {
@@ -20,6 +29,21 @@ export default async function LegalDocPage({ params }: { params: Promise<{ doc: 
   if (!found) notFound();
   return (
     <article className="mx-auto max-w-3xl px-5 py-16">
+      <JsonLd
+        data={[
+          articleSchema({
+            path: `/legal/${found.slug}`,
+            headline: found.title,
+            description: found.summary,
+            dateModified: found.updated,
+            section: "Legal",
+          }),
+          breadcrumbSchema([
+            { name: "ReachBee", path: "/" },
+            { name: found.title, path: `/legal/${found.slug}` },
+          ]),
+        ]}
+      />
       <p className="text-sm font-bold text-text-secondary">Legal</p>
       <h1 className="mt-2 text-4xl font-bold tracking-tight text-ink">{found.title}</h1>
       <p className="mt-3 text-text-secondary">{found.summary}</p>

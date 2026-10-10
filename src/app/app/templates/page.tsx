@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireActiveUser } from "@/server/auth/session";
 import { listTemplates } from "@/server/services/drafts";
-import { Card, EmptyState, Button, Badge } from "@/components/ui/primitives";
+import { Card, Button, Badge } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
 import { relativeTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Templates" };

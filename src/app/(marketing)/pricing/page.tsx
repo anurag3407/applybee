@@ -4,16 +4,30 @@ import { Pricing } from "@/components/marketing/landing";
 import { getMarketingCatalog } from "@/server/services/catalog";
 import { Badge } from "@/components/ui/primitives";
 import { HELP_ARTICLES } from "@/content/help";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema, softwareApplicationSchema } from "@/lib/seo-schema";
+import { MARKETING_PAGES, breadcrumbTrail, pageMetaFor } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Pricing · ReachBee AI" };
+export const metadata: Metadata = pageMetaFor("/pricing");
 
 export const revalidate = 300;
 
 export default async function PricingPage() {
   const catalog = await getMarketingCatalog();
   const payments = HELP_ARTICLES.find((a) => a.slug === "refunds");
+  const page = MARKETING_PAGES.find((p) => p.path === "/pricing");
   return (
     <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 py-16">
+      <JsonLd data={breadcrumbSchema(breadcrumbTrail("Pricing", "/pricing"))} />
+      {catalog && page ? (
+        <JsonLd
+          data={softwareApplicationSchema({
+            path: "/pricing",
+            description: page.description,
+            skus: catalog.skus,
+          })}
+        />
+      ) : null}
       <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">Pricing</h1>
       <p className="prose-measure mt-3 text-lg text-text-secondary">
         One-time packs, visible costs, no subscriptions. Every action shows its price before you confirm.

@@ -5,7 +5,8 @@ import { listResumes } from "@/server/services/resumes";
 import { getConfig } from "@/server/config";
 import { UploadZone } from "@/components/resumes/upload-zone";
 import { DeleteResumeButton } from "@/components/resumes/delete-resume";
-import { Badge, Card, EmptyState, StatusChip } from "@/components/ui/primitives";
+import { Badge, Card, StatusChip } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Resumes" };

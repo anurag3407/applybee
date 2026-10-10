@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   draftRevisions,
@@ -110,12 +110,96 @@ export async function getDraftForUser(userId: string, draftId: string) {
   )[0];
   if (!draft) return null;
 
-  const revisionRows = await db
-    .select()
-    .from(draftRevisions)
-    .where(eq(draftRevisions.draftId, draftId))
-    .orderBy(desc(draftRevisions.revisionNo));
-  const current = revisionRows.find((r) => r.revisionNo === draft.currentVersion) ?? revisionRows[0];
+  const revisionColumns = {
+    id: draftRevisions.id,
+    revisionNo: draftRevisions.revisionNo,
+    subject: draftRevisions.subject,
+    body: draftRevisions.body,
+    profileRevisionId: draftRevisions.profileRevisionId,
+    recipientSnapshot: draftRevisions.recipientSnapshot,
+  } as const;
+
+  // Independent reads — none of them needs another's result, and the editor
+  // round-trip used to pay a network round trip for each in sequence.
+  const [current, revisionCount, latestGeneration, latestDelivery, contactRow, unlockRow] =
+    await Promise.all([
+      db
+        .select(revisionColumns)
+        .from(draftRevisions)
+        .where(and(eq(draftRevisions.draftId, draftId), eq(draftRevisions.revisionNo, draft.currentVersion)))
+        .limit(1)
+        .then((r) => r[0] ?? null),
+      db
+        .select({ count: sql`count(*)::int` })
+        .from(draftRevisions)
+        .where(eq(draftRevisions.draftId, draftId))
+        .then((r) => r[0]?.count ?? 0),
+      db
+        .select({
+          id: generationRequests.id,
+          state: generationRequests.state,
+          mode: generationRequests.mode,
+          acceptanceState: generationRequests.acceptanceState,
+          proposedRevisionId: generationRequests.proposedRevisionId,
+          failureCode: generationRequests.failureCode,
+          failureMessage: generationRequests.failureMessage,
+          usage: generationRequests.usage,
+          createdAt: generationRequests.createdAt,
+        })
+        .from(generationRequests)
+        .where(eq(generationRequests.draftId, draftId))
+        .orderBy(desc(generationRequests.createdAt))
+        .limit(1)
+        .then((r) => r[0] ?? null),
+      db
+        .select({
+          id: gmailDeliveries.id,
+          draftId: gmailDeliveries.draftId,
+          state: gmailDeliveries.state,
+          failureCode: gmailDeliveries.failureCode,
+          failureMessage: gmailDeliveries.failureMessage,
+          providerDraftId: gmailDeliveries.providerDraftId,
+          createdAt: gmailDeliveries.createdAt,
+        })
+        .from(gmailDeliveries)
+        .where(eq(gmailDeliveries.draftId, draftId))
+        .orderBy(desc(gmailDeliveries.createdAt))
+        .limit(1)
+        .then((r) => r[0] ?? null),
+      draft.contactId
+        ? db
+            .select({
+              name: contacts.name,
+              title: contacts.title,
+              companyName: companies.name,
+              emailEnc: contacts.emailEnc,
+            })
+            .from(contacts)
+            .innerJoin(companies, eq(companies.id, contacts.companyId))
+            .where(eq(contacts.id, draft.contactId))
+            .limit(1)
+            .then((r) => r[0] ?? null)
+        : Promise.resolve(null),
+      draft.contactId
+        ? db
+            .select({ id: contactUnlockss.id })
+            .from(contactUnlockss)
+            .where(and(eq(contactUnlockss.userId, userId), eq(contactUnlockss.contactId, draft.contactId)))
+            .limit(1)
+            .then((r) => r[0] ?? null)
+        : Promise.resolve(null),
+    ]);
+
+  // The editor only ever shows the current revision's text.
+  const currentRevision =
+    current ??
+    (await db
+      .select(revisionColumns)
+      .from(draftRevisions)
+      .where(eq(draftRevisions.draftId, draftId))
+      .orderBy(desc(draftRevisions.revisionNo))
+      .limit(1)
+      .then((r) => r[0] ?? null));
 
   let recipient: {
     kind: "directory" | "own";
@@ -127,69 +211,52 @@ export async function getDraftForUser(userId: string, draftId: string) {
     unlocked?: boolean;
   } | null = null;
   if (draft.contactId) {
-    const rows = await db
-      .select({ name: contacts.name, title: contacts.title, companyName: companies.name, emailEnc: contacts.emailEnc })
-      .from(contacts)
-      .innerJoin(companies, eq(companies.id, contacts.companyId))
-      .where(eq(contacts.id, draft.contactId))
-      .limit(1);
-    const unlock = await db
-      .select({ id: contactUnlockss.id })
-      .from(contactUnlockss)
-      .where(and(eq(contactUnlockss.userId, userId), eq(contactUnlockss.contactId, draft.contactId)))
-      .limit(1);
     recipient = {
       kind: "directory",
       contactId: draft.contactId,
-      name: rows[0]?.name ?? null,
-      title: rows[0]?.title ?? null,
-      companyName: rows[0]?.companyName ?? null,
-      email: unlock.length > 0 && rows[0]?.emailEnc ? decryptContactEmail(rows[0].emailEnc, draft.contactId) : null,
-      unlocked: unlock.length > 0,
+      name: contactRow?.name ?? null,
+      title: contactRow?.title ?? null,
+      companyName: contactRow?.companyName ?? null,
+      email:
+        unlockRow && contactRow?.emailEnc
+          ? decryptContactEmail(contactRow.emailEnc, draft.contactId)
+          : null,
+      unlocked: Boolean(unlockRow),
     };
   } else if (draft.ownRecipientEmail) {
     recipient = { kind: "own", name: draft.ownRecipientName, email: draft.ownRecipientEmail, unlocked: true };
   }
 
-  const latestGeneration = (
-    await db
-      .select()
-      .from(generationRequests)
-      .where(eq(generationRequests.draftId, draftId))
-      .orderBy(desc(generationRequests.createdAt))
-      .limit(1)
-  )[0];
-  const latestDelivery = (
-    await db
-      .select()
-      .from(gmailDeliveries)
-      .where(eq(gmailDeliveries.draftId, draftId))
-      .orderBy(desc(gmailDeliveries.createdAt))
-      .limit(1)
-  )[0];
-
   // A proposal the user has neither accepted nor dismissed has to survive a
   // reload. The composer renders Apply/Dismiss from the generation state alone,
   // so without the text they would be approving an email they cannot read.
-  // The row is already in `revisionRows` — no second query.
-  const pendingProposal =
+  const pendingGeneration =
     latestGeneration && latestGeneration.state === "ready" && latestGeneration.acceptanceState === "pending"
-      ? revisionRows.find((r) => r.id === latestGeneration.proposedRevisionId) ?? null
+      ? latestGeneration
       : null;
-  const pendingClaims = pendingProposal ? await getGroundingClaims(pendingProposal.id) : [];
+  const pendingRow = pendingGeneration?.proposedRevisionId
+    ? (
+        await db
+          .select(revisionColumns)
+          .from(draftRevisions)
+          .where(eq(draftRevisions.id, pendingGeneration.proposedRevisionId))
+          .limit(1)
+      )[0] ?? null
+    : null;
+  const pendingClaims = pendingRow ? await getGroundingClaims(pendingRow.id) : [];
 
   return {
     draft,
-    currentRevision: current ?? null,
-    revisionCount: revisionRows.length,
+    currentRevision: currentRevision ?? null,
+    revisionCount,
     recipient,
     latestGeneration: latestGeneration ?? null,
-    pendingProposal: pendingProposal
+    pendingProposal: pendingRow
       ? {
-          subject: pendingProposal.subject,
-          body: pendingProposal.body,
+          subject: pendingRow.subject,
+          body: pendingRow.body,
           claims: pendingClaims,
-          profileRevision: await describeProfileRevision(pendingProposal.profileRevisionId),
+          profileRevision: await describeProfileRevision(pendingRow.profileRevisionId),
         }
       : null,
     latestDelivery: latestDelivery ?? null,
@@ -247,6 +314,11 @@ export async function autosaveDraft(params: {
   });
   if (!admission.admitted) throw new DraftConflictError();
 
+  // Resolved before the transaction opens: `recipientColumns` reads through the
+  // pool, and doing that while this transaction holds a connection asked for a
+  // second connection from the same (small) pool on every autosave.
+  const recipientCols = await recipientColumns(params.recipient);
+
   return db.transaction(async (tx) => {
     const draft = (
       await tx
@@ -282,7 +354,7 @@ export async function autosaveDraft(params: {
         listSubject: subject,
         ...(params.intent ? { intent: params.intent as "intro" } : {}),
         ...(params.mode ? { mode: params.mode as "manual" } : {}),
-        ...(await recipientColumns(params.recipient)),
+        ...recipientCols,
       })
       .where(eq(drafts.id, draft.id));
     return { version: draft.currentVersion };

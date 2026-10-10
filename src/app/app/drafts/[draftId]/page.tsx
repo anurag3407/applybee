@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireActiveUser } from "@/server/auth/session";
 import { getDraftForUser } from "@/server/services/drafts";
-import { getBalances } from "@/server/services/credits";
+import { getBalancesForRequest } from "@/server/services/credits";
 import { getPendingProfileReview, getProfileForUser, hasApprovedProfile, listResumes } from "@/server/services/resumes";
 import { getConnection } from "@/server/services/gmail";
 import { getConfig } from "@/server/config";
@@ -17,7 +17,7 @@ export default async function DraftEditorPage({ params }: { params: Promise<{ dr
   if (!data || data.draft.status === "deleted") notFound();
 
   const [balances, profileReady, resumes, gmail, config, pendingReview, profile] = await Promise.all([
-    getBalances(user.id),
+    getBalancesForRequest(user.id),
     hasApprovedProfile(user.id),
     listResumes(user.id),
     getConnection(user.id),

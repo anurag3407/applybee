@@ -15,6 +15,9 @@
   --ab-honey: #e8b544;
   --ab-honey-deep: #8d6310;
   --ab-honey-wash: #faedc9;
+  /* Lattice ink for the dotted fields. Hex alpha keeps the dots legible on
+   * both canvases without a second token per theme. */
+  --ab-dot-color: rgb(24 35 30 / 0.18);
   /* Ink stays ink on honey in both themes: white on honey is ~2.9:1. */
   --ab-on-honey: #18231e;
   --ab-border-decorative: #dcdace;
@@ -108,6 +111,7 @@
   --ab-honey: #e8b544;
   --ab-honey-deep: #8d6310;
   --ab-honey-wash: #faedc9;
+  --ab-dot-color: rgb(255 253 247 / 0.18);
   --ab-on-honey: #18231e;
   --ab-border-decorative: rgba(255, 253, 247, 0.16);
   --ab-border-control: rgba(255, 253, 247, 0.4);
@@ -161,6 +165,7 @@
   --ab-honey: #f97316;
   --ab-honey-deep: #ea580c;
   --ab-honey-wash: rgba(249, 115, 22, 0.16);
+  --ab-dot-color: rgb(255 255 255 / 0.16);
   --ab-on-honey: #18231e;
   --ab-border-decorative: rgba(255, 255, 255, 0.08);
   --ab-border-control: rgba(255, 255, 255, 0.18);

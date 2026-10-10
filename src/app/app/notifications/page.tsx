@@ -4,7 +4,8 @@ import { IconArrowRight } from "@/components/svg/icons";
 import { requireActiveUser } from "@/server/auth/session";
 import { listNotifications } from "@/server/services/opportunities";
 import { NotificationActions } from "@/components/pipeline/notification-actions";
-import { Card, EmptyState, Badge } from "@/components/ui/primitives";
+import { Card, Badge } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Notifications" };

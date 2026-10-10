@@ -17,14 +17,14 @@ import {
   IconChevronDown,
 } from "@/components/svg/icons";
 import { requireActiveUser } from "@/server/auth/session";
-import { getBalances } from "@/server/services/credits";
+import { getBalancesForRequest } from "@/server/services/credits";
 import { unreadCount } from "@/server/services/opportunities";
 import { BrandMark } from "@/components/marketing/brand";
 import { NavList, MobileNav, type NavLink } from "@/components/shell/mobile-nav";
 import { CreditStrip } from "@/components/shell/credit-strip";
 import { SignOutButton } from "@/components/shell/sign-out";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { PageEnter } from "@/components/motion";
+import { PageEnter } from "@/components/motion/page-enter";
 import { cn } from "@/lib/cn";
 
 /**
@@ -51,8 +51,10 @@ const bottomLinks: NavLink[] = [
 
 export async function AppShell({ children, title }: { children: React.ReactNode; title: string }) {
   const user = await requireActiveUser();
-  const balances = await getBalances(user.id);
-  const unread = await unreadCount(user.id);
+  const [balances, unread] = await Promise.all([
+    getBalancesForRequest(user.id),
+    unreadCount(user.id),
+  ]);
 
   return (
     <div className="min-h-screen bg-canvas">

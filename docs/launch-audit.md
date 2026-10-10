@@ -168,4 +168,47 @@ pnpm ai:check           # confirms the AI provider end-to-end, spends no credit
 pnpm dev                # embedded worker runs the queue locally
 ```
 
+---
+
+## 2026-10-10 — performance pass and SEO surface
+
+Verified with `pnpm typecheck`, `pnpm test` (140/140) and `pnpm build`, then re-checked
+against a production `next start` on the deployed host.
+
+**Performance.** Client JS 464.4 kB → 451.1 kB gzipped; dynamic routes 100 → 89 (static 5 → 18);
+`/app` routes preload one font instead of two. Five new indexes (`0005_hot_path_indexes.sql`),
+including `contacts_updated_idx`, which `EXPLAIN` confirms replaces the directory's sort with a
+backward index scan. Fewer round trips per request: session role folded into the user read,
+draft editor 6 serial reads → 2 waves, generation polling no longer ships the 20 KB
+`input_snapshot` per tick, `credit_accounts` read once per workspace render. The landing hero
+is no longer blanked by `.js-motion` before GSAP arrives, and routes with no reveal targets
+(`/security`, `/legal/*`, `/accessibility`) stopped downloading GSAP and Lenis at all.
+
+**Reverted on purpose:** parallel digest dispatch starves the pool and blows the 30-second
+integration-test timeout. The recipient loop stays serial.
+
+**SEO.** `robots.ts`, `sitemap.ts` (22 URLs), `public/llms.txt`, a 1200×630 `public/og.jpg`
+share card, and JSON-LD for Organization/WebSite, SoftwareApplication+Offer (prices read from
+the same catalog the page renders), FAQPage (from the same `FAQS` array the page renders),
+Article and BreadcrumbList. Every public page now carries a unique title ≤60 chars,
+description ≤160, canonical, og/twitter tags. `/app`, `/admin`, `/api`, `/onboarding` and the
+auth pages are `noindex` in both meta and `X-Robots-Tag`, and disallowed in robots.txt.
+
+**Removed from the public FAQ page:** `Faq6Demo`, a registry component whose content is a
+fabricated crypto-wallet FAQ ("Legend Atlas", Ethereum/Polygon/Arbitrum). It rendered above the
+real questions on `/faq`. The `src/components/ui/faq-6/` folder is now unused.
+
+**New launch blockers found here**
+
+1. `applybee.sayalabs.in` and `reachbee.sayalabs.in` both serve the site. Canonicals and the
+   sitemap use `reachbee` (matching `wrangler.jsonc` and `deploy.yml`); `applybee` needs a 301
+   to it, or the same content competes with itself in the index. This is the same host conflict
+   already listed as configuration item 4 above.
+2. Clerk is still a test instance, so `/sign-in` and `/sign-up` are the only auth pages, both
+   `noindex` — fine for SEO, but nothing converts until the production instance exists.
+
+**Not done here (needs an account, not code):** Google Search Console + Bing Site Index
+submission, IndexNow key, and a backlink/directory push. Technical SEO being clean does not
+itself produce rankings.
+
 If `typecheck` reports errors in files this audit touched, send them over.

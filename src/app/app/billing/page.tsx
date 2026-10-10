@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireActiveUser } from "@/server/auth/session";
-import { getBalances } from "@/server/services/credits";
+import { getBalancesForRequest } from "@/server/services/credits";
 import { getPublishedCatalog } from "@/server/services/billing";
 import { Card, Badge, Button } from "@/components/ui/primitives";
 import { formatINRPaise } from "@/lib/format";
@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Billing" };
 
 export default async function BillingPage() {
   const user = await requireActiveUser();
-  const [balances, catalog] = await Promise.all([getBalances(user.id), getPublishedCatalog()]);
+  const [balances, catalog] = await Promise.all([getBalancesForRequest(user.id), getPublishedCatalog()]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">

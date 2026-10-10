@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/primitives";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema } from "@/lib/seo-schema";
+import { breadcrumbTrail, pageMetaFor } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Accessibility" };
+export const metadata: Metadata = pageMetaFor("/accessibility");
 
 export default function AccessibilityPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-16">
+      <JsonLd data={breadcrumbSchema(breadcrumbTrail("Accessibility", "/accessibility"))} />
       <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">Accessibility</h1>
       <p className="prose-measure mt-3 text-lg text-text-secondary">
         ReachBee targets WCAG 2.2 AA. This page states our actual current status, including known limitations.

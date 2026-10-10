@@ -268,18 +268,19 @@ export async function saveProfileRevision(params: {
         })
         .returning({ id: candidateProfileRevisions.id })
     )[0]!;
-    let order = 0;
-    for (const fact of params.input.facts) {
-      await tx.insert(candidateFacts).values({
-        profileRevisionId: inserted.id,
-        userId: params.userId,
-        factType: fact.factType,
-        text: fact.text,
-        numericValue: fact.numericValue ?? null,
-        unit: fact.unit ?? null,
-        approved: params.input.approve,
-        sortOrder: order++,
-      });
+    if (params.input.facts.length > 0) {
+      await tx.insert(candidateFacts).values(
+        params.input.facts.map((fact, order) => ({
+          profileRevisionId: inserted.id,
+          userId: params.userId,
+          factType: fact.factType,
+          text: fact.text,
+          numericValue: fact.numericValue ?? null,
+          unit: fact.unit ?? null,
+          approved: params.input.approve,
+          sortOrder: order,
+        })),
+      );
     }
     await tx.update(candidateProfiles).set({ currentRevisionId: inserted.id, updatedAt: new Date() }).where(eq(candidateProfiles.id, profileId!));
     return inserted.id;

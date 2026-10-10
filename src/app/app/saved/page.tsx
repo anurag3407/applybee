@@ -3,7 +3,8 @@ import Link from "next/link";
 import { requireActiveUser } from "@/server/auth/session";
 import { listSavedContacts } from "@/server/services/contacts";
 import { SaveContactButton, WriteToContactButton } from "@/components/directory/reveal";
-import { Badge, Card, EmptyState, Button } from "@/components/ui/primitives";
+import { Badge, Card, Button } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Saved contacts" };

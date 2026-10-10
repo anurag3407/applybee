@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HELP_ARTICLES } from "@/content/help";
-import { EmptyState } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema } from "@/lib/seo-schema";
+import { breadcrumbTrail, pageMetaFor } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Help" };
+export const metadata: Metadata = pageMetaFor("/help");
 
 export default function HelpIndexPage() {
   const categories = [...new Set(HELP_ARTICLES.map((a) => a.category))];
   return (
     <div className="mx-auto max-w-4xl px-5 py-16">
+      <JsonLd data={breadcrumbSchema(breadcrumbTrail("Help", "/help"))} />
       <h1 className="text-4xl font-bold tracking-tight text-ink">Help</h1>
       <p className="mt-2 text-text-secondary">Goal-oriented guides for the things people actually need.</p>
       {categories.length === 0 ? (

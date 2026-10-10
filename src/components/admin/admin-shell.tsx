@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/server/auth/session";
 import { BrandMark } from "@/components/marketing/brand";
 import { SignOutButton } from "@/components/shell/sign-out";
-import { PageEnter } from "@/components/motion";
+import { PageEnter } from "@/components/motion/page-enter";
 
 const ADMIN_NAV = [
   { href: "/admin", label: "Health" },

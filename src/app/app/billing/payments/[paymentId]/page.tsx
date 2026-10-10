@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireActiveUser } from "@/server/auth/session";
 import { getOrderForUser } from "@/server/services/billing";
-import { getBalances } from "@/server/services/credits";
+import { getBalancesForRequest } from "@/server/services/credits";
 import { Card, Badge } from "@/components/ui/primitives";
 import { formatDateTime, formatINRPaise } from "@/lib/format";
 
@@ -19,7 +19,7 @@ export default async function PaymentPage({ params }: { params: Promise<{ paymen
   const { paymentId } = await params;
   const order = await getOrderForUser(user.id, paymentId);
   if (!order) notFound();
-  const balances = await getBalances(user.id);
+  const balances = await getBalancesForRequest(user.id);
   const sku = order.skuSnapshot as { name?: string; sku?: string; contact_credits?: number; ai_credits?: number };
 
   const statusLabel =

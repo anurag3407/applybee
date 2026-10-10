@@ -28,17 +28,46 @@ const nextConfig: NextConfig = {
         ],
       },
       // Authenticated RSC payloads and APIs must never be shared-cached.
+      // X-Robots-Tag is the belt to the meta-robots braces: a private screen
+      // that is ever linked to by mistake stays out of the index.
       {
         source: "/app/:path*",
-        headers: [{ key: "Cache-Control", value: "private, no-store" }],
-      },
-      {
-        source: "/api/:path*",
-        headers: [{ key: "Cache-Control", value: "private, no-store" }],
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
       },
       {
         source: "/admin/:path*",
-        headers: [{ key: "Cache-Control", value: "private, no-store" }],
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+      {
+        source: "/onboarding/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+      },
+      {
+        source: "/sign-in",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/sign-up",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Cache-Control", value: "private, no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      },
+      // Discovery files and the share card are public and stable: let the edge
+      // serve them without asking the Worker for every visitor.
+      {
+        source: "/:file(robots.txt|sitemap.xml|llms.txt|og.jpg|icon-512.png)",
+        headers: [{ key: "Cache-Control", value: "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800" }],
       },
     ];
   },

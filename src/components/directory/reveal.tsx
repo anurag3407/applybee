@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   IconBee, IconCompose, IconCopy, IconFlag, IconLock, IconPocket, IconPocketFilled, IconSend
@@ -106,7 +107,7 @@ export function RevealAction({
       </div>
       {balance && balance.available < 1 ? (
         <p className="text-xs text-warning">
-          No contact reveals left. <a href="/app/billing/plans" className="underline">Add credits</a>.
+          No contact reveals left. <Link href="/app/billing/plans" className="underline">Add credits</Link>.
         </p>
       ) : null}
       {error ? <InlineError>{error}</InlineError> : null}
@@ -145,6 +146,7 @@ export function SaveContactButton({ contactId, saved }: { contactId: string; sav
 export function WriteToContactButton({ contactId }: { contactId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function start() {
     setBusy(true);
@@ -157,7 +159,7 @@ export function WriteToContactButton({ contactId }: { contactId: string }) {
       });
       const body = (await res.json()) as { data?: { draftId: string }; error?: { message?: string } };
       if (!res.ok || !body.data) throw new Error(body.error?.message ?? "Could not create a draft.");
-      window.location.href = `/app/drafts/${body.data.draftId}`;
+      router.push(`/app/drafts/${body.data.draftId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create a draft.");
       setBusy(false);
@@ -185,6 +187,7 @@ export function OneClickOutreachButton({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function handleOneClick() {
     if (availableCredits < 1) {
@@ -221,7 +224,7 @@ export function OneClickOutreachButton({
         throw new Error(draftBody.error?.message ?? "Could not open outreach composer.");
       }
 
-      window.location.href = `/app/drafts/${draftBody.data.draftId}`;
+      router.push(`/app/drafts/${draftBody.data.draftId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Outreach failed to start.");
       setBusy(false);

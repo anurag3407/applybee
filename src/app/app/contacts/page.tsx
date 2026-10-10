@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireActiveUser } from "@/server/auth/session";
 import { searchDirectory } from "@/server/services/contacts";
-import { getBalances } from "@/server/services/credits";
+import { getBalancesForRequest } from "@/server/services/credits";
 import { SearchToolbar } from "@/components/directory/search-toolbar";
 import { RevealAction, SaveContactButton, WriteToContactButton, OneClickOutreachButton } from "@/components/directory/reveal";
-import { Badge, Button, EmptyState, Card } from "@/components/ui/primitives";
+import { Badge, Button, Card } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
 import { CountUp, Reveal } from "@/components/motion";
 import { relativeTime } from "@/lib/format";
 import { Suspense } from "react";
@@ -45,17 +46,20 @@ const VERIFICATION_TONES: Record<string, "success" | "warning" | "neutral" | "da
 export default async function ContactsPage({ searchParams }: { searchParams: SearchParams }) {
   const user = await requireActiveUser();
   const sp = await searchParams;
-  const { rows, nextCursor } = await searchDirectory(user.id, {
-    q: one(sp.q),
-    department: one(sp.dept),
-    roleCategory: one(sp.role),
-    location: one(sp.location),
-    stage: one(sp.stage),
-    verification: one(sp.verification),
-    cursor: one(sp.cursor),
-    pageSize: 25,
-  });
-  const balances = await getBalances(user.id);
+  const [directory, balances] = await Promise.all([
+    searchDirectory(user.id, {
+      q: one(sp.q),
+      department: one(sp.dept),
+      roleCategory: one(sp.role),
+      location: one(sp.location),
+      stage: one(sp.stage),
+      verification: one(sp.verification),
+      cursor: one(sp.cursor),
+      pageSize: 25,
+    }),
+    getBalancesForRequest(user.id),
+  ]);
+  const { rows, nextCursor } = directory;
 
   const nextParams = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) {

@@ -31,15 +31,29 @@ function createDb() {
     process.env.DATABASE_URL || "postgresql://localhost:5432/applybee_dev";
   const isNeon = connectionString.includes("neon.tech");
 
+  // `max` is the one setting that decides whether a burst of requests lands or
+  // turns into SQLSTATE 53300. It is sized to the widest fan-out in the app (the
+  // draft editor issues six independent reads at once); a request asking for
+  // more than that simply queues, which is correct, and a per-request pool on
+  // Workers stays bounded by it. `connectionTimeoutMillis` makes a database that
+  // cannot answer fail the request instead of hanging it forever.
+  const poolConfig = {
+    connectionString,
+    max: isNeon && isWorkersRuntime() ? 6 : 10,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 10_000,
+    application_name: "reachbee",
+  };
+
   if (isNeon) {
-    const poolInstance = new NeonPool({ connectionString });
+    const poolInstance = new NeonPool(poolConfig);
     const instance = drizzleNeon(poolInstance, { schema });
     return {
       pool: poolInstance as unknown as PgPool,
       instance: instance as unknown as ReturnType<typeof drizzleNeon<typeof schema>>,
     };
   } else {
-    const poolInstance = new PgPool({ connectionString });
+    const poolInstance = new PgPool(poolConfig);
     const instance = drizzlePg(poolInstance, { schema });
     return {
       pool: poolInstance,

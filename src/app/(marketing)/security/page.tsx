@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/primitives";
+import { JsonLd } from "@/components/seo/json-ld";
+import { breadcrumbSchema } from "@/lib/seo-schema";
+import { breadcrumbTrail, pageMetaFor } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Security" };
+export const metadata: Metadata = pageMetaFor("/security");
 
 export default function SecurityPage() {
   return (
     <div className="mx-auto max-w-3xl px-5 py-16">
+      <JsonLd data={breadcrumbSchema(breadcrumbTrail("Security", "/security"))} />
       <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">Security</h1>
       <p className="mt-3 text-sm text-text-disabled">Last reviewed: 4 October 2026</p>
       <div className="mt-8 space-y-8">

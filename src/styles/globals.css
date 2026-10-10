@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./tokens.css";
 @import "./motion.css";
+@import "./atmosphere.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 

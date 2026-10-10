@@ -174,14 +174,20 @@ const draftGenerate: Handler = async (ctx) => {
         .returning({ id: draftRevisions.id });
       const revisionId = inserted[0]!.id;
 
-      for (const claim of draft.claimReferences) {
-        await tx.insert(draftClaims).values({
-          revisionId,
-          excerpt: claim.excerpt,
-          factIds: claim.factIds,
-          evidenceIds: claim.evidenceIds,
-          validationResult: claim.factIds.length > 0 ? "supported" : claim.evidenceIds.length > 0 ? "supported" : "uncertain",
-        });
+      // One multi-row INSERT. This ran inside the transaction that commits the
+      // generated draft, so each extra statement lengthened the window in which
+      // the credit reservation and the revision were both locked.
+      if (draft.claimReferences.length > 0) {
+        await tx.insert(draftClaims).values(
+          draft.claimReferences.map((claim) => ({
+            revisionId,
+            excerpt: claim.excerpt,
+            factIds: claim.factIds,
+            evidenceIds: claim.evidenceIds,
+            validationResult:
+              claim.factIds.length > 0 || claim.evidenceIds.length > 0 ? ("supported" as const) : ("uncertain" as const),
+          })),
+        );
       }
 
       // Consume + proposed revision + reservation state in ONE transaction.
@@ -871,24 +877,32 @@ const remindersMaterialize: Handler = async () => {
     FROM opportunities o
     WHERE o.next_action_at IS NOT NULL AND o.next_action_at <= now() AND o.stage <> 'closed'
   `);
-  let created = 0;
-  for (const row of due.rows as Array<{ id: string; user_id: string; next_action_at: string; company_name: string; role_title: string }>) {
-    const sourceEvent = `reminder:${row.id}:${new Date(row.next_action_at).toISOString()}`;
-    const inserted = await db
-      .insert(notifications)
-      .values({
+  // One INSERT for the whole due set. This handler runs every minute, and the
+  // loop it replaces issued one statement per opportunity that was due.
+  const rows = due.rows as Array<{
+    id: string;
+    user_id: string;
+    next_action_at: string;
+    company_name: string;
+    role_title: string;
+  }>;
+  if (rows.length === 0) return { status: "succeeded", result: { created: 0 } };
+
+  const inserted = await db
+    .insert(notifications)
+    .values(
+      rows.map((row) => ({
         userId: row.user_id,
         kind: "opportunity.reminder",
         sourceEntity: `opportunity:${row.id}`,
-        sourceEvent,
+        sourceEvent: `reminder:${row.id}:${new Date(row.next_action_at).toISOString()}`,
         title: `Follow up: ${row.role_title} at ${row.company_name}`,
         body: "You set a next-action reminder for this opportunity.",
-      })
-      .onConflictDoNothing()
-      .returning({ id: notifications.id });
-    if (inserted.length > 0) created++;
-  }
-  return { status: "succeeded", result: { created } };
+      })),
+    )
+    .onConflictDoNothing()
+    .returning({ id: notifications.id });
+  return { status: "succeeded", result: { created: inserted.length } };
 };
 
 /* ------------------------------------------------------------------ */

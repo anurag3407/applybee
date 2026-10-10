@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { requireActiveUser } from "@/server/auth/session";
-import { getBalances } from "@/server/services/credits";
+import { getBalancesForRequest } from "@/server/services/credits";
 import { getPendingProfileReview, hasApprovedProfile } from "@/server/services/resumes";
 import { listDrafts } from "@/server/services/drafts";
 import { upcomingReminders, STAGES } from "@/server/services/opportunities";
 import { getConnection } from "@/server/services/gmail";
-import { Card, Metric, EmptyState, StatusChip } from "@/components/ui/primitives";
+import { Card, Metric, StatusChip } from "@/components/ui/primitives";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   IconAlert,
   IconArrowRight,
@@ -32,7 +33,7 @@ import { cn } from "@/lib/cn";
 export default async function DashboardPage() {
   const user = await requireActiveUser();
   const [balances, profileReady, drafts, reminders, gmail, config, pendingReview] = await Promise.all([
-    getBalances(user.id),
+    getBalancesForRequest(user.id),
     hasApprovedProfile(user.id),
     listDrafts(user.id),
     upcomingReminders(user.id),

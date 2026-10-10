@@ -376,6 +376,9 @@ export const contacts = pgTable(
     uniqueIndex("contacts_email_fingerprint_key").on(t.emailFingerprint),
     index("contacts_directory_idx").on(t.status, t.roleCategory, t.location, t.companyId, t.id),
     index("contacts_dept_idx").on(t.status, t.department, t.location, t.id),
+    // The directory sorts and keyset-paginates on (updated_at, id); without this
+    // every page turn sorted the whole filtered set.
+    index("contacts_updated_idx").on(t.updatedAt, t.id),
     index("contacts_name_trgm_idx").using("gin", sql`name gin_trgm_ops`),
   ],
 );
@@ -451,6 +454,7 @@ export const contactUnlockss = pgTable(
   (t) => [
     uniqueIndex("contact_unlocks_user_contact_key").on(t.userId, t.contactId),
     index("contact_unlocks_user_idx").on(t.userId, t.unlockedAt),
+    index("contact_unlocks_contact_idx").on(t.contactId),
   ],
 );
 
@@ -741,7 +745,10 @@ export const gmailDeliveries = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("gmail_deliveries_user_idx").on(t.userId, t.createdAt)],
+  (t) => [
+    index("gmail_deliveries_user_idx").on(t.userId, t.createdAt),
+    index("gmail_deliveries_draft_idx").on(t.draftId, t.createdAt),
+  ],
 );
 
 export const deliveryAttempts = pgTable(
@@ -809,6 +816,7 @@ export const opportunities = pgTable(
   },
   (t) => [
     index("opportunities_user_stage_idx").on(t.userId, t.stage, t.updatedAt),
+    index("opportunities_next_action_idx").on(t.nextActionAt),
     check("opportunities_job_url_safe", sql`${t.jobUrl} is null or ${t.jobUrl} ~ '^https?://'`),
   ],
 );
@@ -1159,6 +1167,7 @@ export const jobs = pgTable(
   },
   (t) => [
     index("jobs_state_available_idx").on(t.state, t.availableAfter),
+    index("jobs_kind_entity_state_idx").on(t.kind, t.entityId, t.state),
     index("jobs_lease_expiry_idx").on(t.leaseExpiresAt),
     index("jobs_user_created_idx").on(t.userId, t.createdAt),
   ],

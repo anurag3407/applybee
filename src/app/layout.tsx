@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Manrope, Fraunces } from "next/font/google";
+import { Manrope } from "next/font/google";
+import { site } from "@/lib/seo";
 import "@/styles/globals.css";
 
 const manrope = Manrope({
@@ -8,25 +9,29 @@ const manrope = Manrope({
   display: "swap",
 });
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-  variable: "--font-fraunces",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || site.url),
   title: {
     default: "ReachBee AI, Direct Outreach Beyond Saturated Job Portals",
     template: "%s · ReachBee",
   },
   description:
     "Find verified engineering decision-makers, ground your proven technical achievements into bespoke introductions without hallucination, and stage drafts directly into your personal Gmail.",
+  applicationName: "ReachBee",
+  // The share card is what a link looks like in WhatsApp, LinkedIn and Slack —
+  // without an image here those previews fall back to a bare title.
   openGraph: {
+    siteName: "ReachBee AI",
     title: "ReachBee AI",
-    description: "Verified engineering decision-makers. Grounded introductions. You review before sending.",
+    description: "Direct outreach beyond saturated job portals.",
     type: "website",
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "ReachBee AI — direct outreach beyond saturated job portals" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ReachBee AI",
+    description: "Direct outreach beyond saturated job portals.",
+    images: ["/og.jpg"],
   },
   icons: {
     icon: [
@@ -40,7 +45,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${manrope.variable} ${fraunces.variable}`} suppressHydrationWarning>
+    <html lang="en" className={manrope.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
