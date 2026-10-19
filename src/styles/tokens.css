@@ -39,6 +39,7 @@
   --gm-rule: #e0e3e7;
   --gm-search: #eaf1fb;
   --gm-selected: #d3e3fd;
+  --gm-hover: #f2f6fc;
   --gm-blue: #0b57d0;
   --gm-on-blue: #ffffff;
   --gm-star: #f4b400;
@@ -188,6 +189,7 @@
   --gm-rule: #444746;
   --gm-search: #333537;
   --gm-selected: #004a77;
+  --gm-hover: #333537;
   --gm-blue: #8ab4f8;
   --gm-on-blue: #062e6f;
   --gm-star: #fdd663;
