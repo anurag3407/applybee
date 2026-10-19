@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
-import { Hero, GuaranteeBand, ProductFacts, Problem, DirectoryFeature, ResumeIntelligence, AgenticWorkflow, WritingModes, WorkspaceTeaser, Trust, Pricing, FAQ, FinalCta, FAQS } from "@/components/marketing/landing";
-import { NewsletterBand } from "@/components/marketing/newsletter";
+import {
+  Hero,
+  GuaranteeBand,
+  DirectoryFeature,
+  ResumeIntelligence,
+  AgenticWorkflow,
+  Trust,
+  Pricing,
+  FAQ,
+  FinalCta,
+  FAQS,
+} from "@/components/marketing/landing";
 import { getMarketingCatalog, getTrialAllowance } from "@/server/services/catalog";
 import { JsonLd } from "@/components/seo/json-ld";
 import { faqSchema, softwareApplicationSchema } from "@/lib/seo-schema";
@@ -27,17 +37,12 @@ export default async function HomePage() {
       <JsonLd data={faqSchema(FAQS)} />
       <Hero trial={trial} />
       <GuaranteeBand />
-      <ProductFacts />
-      <Problem />
       <DirectoryFeature />
       <ResumeIntelligence />
       <AgenticWorkflow />
-      <WritingModes />
-      <WorkspaceTeaser />
       <Trust />
       <Pricing catalog={catalog} />
       <FAQ />
-      <NewsletterBand />
       <FinalCta trial={trial} />
     </>
   );

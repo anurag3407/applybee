@@ -26,7 +26,7 @@ export function ResumeIntelligence({ standalone = false }: { standalone?: boolea
   return (
     <SectionShell
       id="resume"
-      index={standalone ? undefined : "04"}
+      index={standalone ? undefined : "02"}
       eyebrow="Grounding engine"
       heading="Your experience is the strongest part of the pitch."
       lede="Upload once, review what we extract, and keep the details that are accurate. The draft can only draw from what you have confirmed. Nothing else is in its reach."

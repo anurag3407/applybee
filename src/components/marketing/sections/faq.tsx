@@ -26,7 +26,7 @@ export function FAQ({ standalone = false }: { standalone?: boolean }) {
   return (
     <SectionShell
       id={standalone ? undefined : "faq"}
-      index={standalone ? undefined : "10"}
+      index={standalone ? undefined : "06"}
       eyebrow="Questions"
       align="split"
       headingAs={standalone ? "h1" : "h2"}

@@ -40,7 +40,7 @@ export function DirectoryFeature({ standalone = false }: { standalone?: boolean 
     <SectionShell
       tone="surface"
       id="directory"
-      index={standalone ? undefined : "03"}
+      index={standalone ? undefined : "01"}
       eyebrow="Contact directory"
       heading="Start with a person, not a generic inbox."
       lede="Search by role, stack, and city. Every listing shows its verification label and how recently it was checked before you spend anything."

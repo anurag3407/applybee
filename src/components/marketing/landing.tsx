@@ -2,10 +2,10 @@
  * Landing sections (§10).
  *
  * The page is assembled in `src/app/(marketing)/page.tsx`. Each section lives
- * in `./sections/` with its own file — the hero scene gets one, the nine content
- * sections each get one — so a change to pricing never diffs against the FAQ.
- * This module re-exports them under their original names so `/features`,
- * `/pricing`, `/faq` and `/how-it-works` keep rendering the same components.
+ * in `./sections/` with its own file, so a change to pricing never diffs
+ * against the FAQ. This module re-exports them under their original names so
+ * `/features`, `/pricing`, `/faq` and `/how-it-works` keep rendering the same
+ * components.
  *
  * Every example shown is fictional with reserved .example domains and labelled
  * "Illustrative preview". There are no fake testimonials, logo walls, or

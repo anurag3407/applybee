@@ -12,8 +12,8 @@ export const metadata: Metadata = pageMetaFor("/features");
 const deepLinks = [
   { href: "/#directory", label: "Directory" },
   { href: "/#resume", label: "Resume grounding" },
-  { href: "/#how-it-works", label: "Three modes" },
-  { href: "/#workspace", label: "Pipeline" },
+  { href: "/how-it-works", label: "Three modes" },
+  { href: "#workspace", label: "Pipeline" },
   { href: "/#trust", label: "Trust" },
 ];
 

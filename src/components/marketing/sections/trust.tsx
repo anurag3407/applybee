@@ -40,7 +40,7 @@ export function Trust({ standalone = false }: { standalone?: boolean }) {
   return (
     <SectionShell
       id="trust"
-      index={standalone ? undefined : "08"}
+      index={standalone ? undefined : "04"}
       eyebrow="Trust and permissions"
       heading="Your review. Your account. Your decision."
       lede="We state the Gmail permission plainly because it is broader than how we use it, and you should be able to check that claim against the code, not just a policy page."

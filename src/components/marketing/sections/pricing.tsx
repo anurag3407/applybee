@@ -27,7 +27,7 @@ export function Pricing({
     <SectionShell
       tone="surface"
       id={standalone ? undefined : "pricing"}
-      index={standalone ? undefined : "09"}
+      index={standalone ? undefined : "05"}
       eyebrow={standalone ? undefined : "Pricing"}
       align={standalone ? "stack" : "split"}
       headingAs={standalone ? "h1" : "h2"}

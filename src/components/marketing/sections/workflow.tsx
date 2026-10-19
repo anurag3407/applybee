@@ -27,8 +27,8 @@ export function AgenticWorkflow({ standalone = false }: { standalone?: boolean }
   return (
     <SectionShell
       tone="surface"
-      id="agentic"
-      index={standalone ? undefined : "05"}
+      id={standalone ? "agentic" : "how-it-works"}
+      index={standalone ? undefined : "03"}
       eyebrow="Agentic drafting"
       heading="A little preparation. A much better introduction."
       lede="One bounded pass, then you. The preparation step is explainable because every line it used is listed beside the draft it produced."

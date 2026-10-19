@@ -45,7 +45,7 @@ export function MarketingHeader() {
 
   const links = [
     { href: "/#how-it-works", label: "How it works" },
-    { href: "/#features", label: "Features" },
+    { href: "/features", label: "Features" },
     { href: "/#trust", label: "Trust" },
     { href: "/pricing", label: "Pricing" },
   ];
