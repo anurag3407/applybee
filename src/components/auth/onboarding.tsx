@@ -6,17 +6,25 @@ export function OnboardingShell({ step, children }: { step: string; children: Re
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-border-decorative bg-surface">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-5">
+        <div className="mx-auto flex h-[3.75rem] max-w-3xl items-center justify-between px-5">
           <Wordmark />
           <Link
-            href="/app"
-            className="ab-press rounded-control px-2 py-1 text-sm font-semibold text-text-secondary hover:bg-surface-subtle hover:text-ink"
+            href="/onboarding/complete"
+            className="ab-press rounded-control px-2 py-1 text-[0.8125rem] font-semibold text-text-secondary underline decoration-border-control/60 underline-offset-4 hover:text-ink"
           >
-            Skip for now, go to workspace
+            Skip for now
           </Link>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-5 py-10">{children}</main>
+      <main className="mx-auto max-w-3xl px-5 py-12">
+        <div className="mb-6">
+          <p className="text-xs font-semibold text-text-secondary">Onboarding</p>
+          <h1 className="mt-1 text-[1.75rem] font-extrabold leading-tight tracking-[-0.03em] text-ink">
+            Set up your outreach workspace
+          </h1>
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

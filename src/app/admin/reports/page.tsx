@@ -36,8 +36,8 @@ export default async function AdminReportsPage() {
             {reports.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-3 font-semibold text-ink">{r.report_type}</td>
-                <td className="px-4 py-3 text-text-secondary">{r.contact_name ?? "—"}</td>
-                <td className="max-w-72 px-4 py-3 text-xs text-text-secondary">{r.details ?? "—"}</td>
+                <td className="px-4 py-3 text-text-secondary">{r.contact_name ?? "Unknown contact"}</td>
+                <td className="max-w-72 px-4 py-3 text-xs text-text-secondary">{r.details ?? "No details recorded"}</td>
                 <td className="px-4 py-3">
                   <Badge tone={r.state === "open" ? "warning" : r.state === "resolved" ? "success" : "neutral"}>{r.state}</Badge>
                 </td>

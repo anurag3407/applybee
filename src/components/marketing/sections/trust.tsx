@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { FeatureCard, SectionShell } from "@/components/marketing/sections/shell";
+import { SectionShell } from "@/components/marketing/sections/shell";
+import { FeatureIcon } from "@/components/marketing/feature-icon";
 import type { FeatureIconName } from "@/components/marketing/feature-icon";
 
 /**
@@ -7,7 +8,7 @@ import type { FeatureIconName } from "@/components/marketing/feature-icon";
  * permission technically allows sending and the page should say so before
  * anything else on it.
  */
-export function Trust() {
+export function Trust({ standalone = false }: { standalone?: boolean }) {
   const principles: Array<{ icon: FeatureIconName; title: string; body: string }> = [
     {
       icon: "gmail",
@@ -17,11 +18,11 @@ export function Trust() {
     {
       icon: "cap",
       title: "Deliverability Shield",
-      body: "Capped at 10 drafts/day to protect your personal Gmail domain reputation, avoid Google spam triggers, and keep open rates high.",
+      body: "Capped at 10 drafts a day to protect your personal Gmail domain reputation, avoid Google spam triggers, and keep open rates high.",
     },
     {
       icon: "privacy",
-      title: "Private resumes",
+      title: "Private résumés",
       body: "Your files sit in private storage, scanned and gated. Downloads require your signed-in session. Nothing becomes public.",
     },
     {
@@ -39,38 +40,59 @@ export function Trust() {
   return (
     <SectionShell
       id="trust"
-      eyebrow="Trust & permissions"
+      index={standalone ? undefined : "08"}
+      eyebrow="Trust and permissions"
       heading="Your review. Your account. Your decision."
-      lede="We state the Gmail permission plainly because it is broader than how we use it — and you should be able to check that claim against the code, not just a policy page."
+      lede="We state the Gmail permission plainly because it is broader than how we use it, and you should be able to check that claim against the code, not just a policy page."
     >
-      <figure className="relative overflow-hidden rounded-scene border border-honey/40 bg-honey-wash/40 p-6 md:p-8" data-motion="reveal">
-        <blockquote className="prose-measure text-[1.0625rem] font-medium leading-relaxed text-ink md:text-[1.1875rem]">
+      <figure
+        className="brand-panel on-ink relative overflow-hidden rounded-scene bg-ink px-7 py-9 text-surface md:px-12 md:py-12"
+        data-motion="reveal"
+      >
+        <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-honey/40" />
+        <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-surface/50">
+          The Gmail permission, plainly
+        </p>
+        <blockquote className="mt-6 max-w-[40ch] font-editorial text-[1.5rem] font-medium leading-[1.4] tracking-[-0.01em] text-surface md:text-[2rem]">
           “Google’s permission allows managing drafts and sending email. ReachBee uses this connection to create drafts
           you approve. We do not send email automatically or read your inbox. You can disconnect at any time.”
         </blockquote>
-        <figcaption className="mt-4 text-sm text-text-secondary">
+        <figcaption className="mt-7 max-w-[62ch] border-t border-surface/15 pt-5 text-[0.8125rem] leading-relaxed text-surface/65">
           We say this plainly because the permission technically permits sending; our product and code do not. Nothing
           leaves your account without your explicit review.
         </figcaption>
       </figure>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" data-motion="stagger">
-        {principles.map((p) => (
-          <FeatureCard key={p.title} {...p} />
+      <div className="mt-10 grid gap-x-14 sm:grid-cols-2" data-motion="stagger">
+        {principles.map((p, i) => (
+          <div
+            key={p.title}
+            data-motion="stagger-item"
+            className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4 border-t border-border-decorative py-6"
+          >
+            <FeatureIcon name={p.icon} size={18} className="mt-0.5 text-honey-deep dark:text-honey" />
+            <div>
+              <h3 className="text-[0.9375rem] font-bold tracking-[-0.01em] text-ink">
+                {p.title}
+                <span className="tabular ml-2 text-[0.6875rem] font-semibold text-text-disabled">0{i + 1}</span>
+              </h3>
+              <p className="mt-2 text-[0.875rem] leading-[1.7] text-text-secondary">{p.body}</p>
+            </div>
+          </div>
         ))}
       </div>
 
-      <p className="mt-8 text-sm text-text-secondary" data-motion="reveal">
+      <p className="mt-8 border-t border-border-decorative pt-6 text-[0.8125rem] text-text-secondary" data-motion="reveal">
         Read the{" "}
-        <Link href="/legal/privacy" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/legal/privacy" className="font-semibold text-ink underline decoration-border-control underline-offset-4">
           privacy policy
         </Link>
         , the{" "}
-        <Link href="/legal/contact-data" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/legal/contact-data" className="font-semibold text-ink underline decoration-border-control underline-offset-4">
           contact-data policy
         </Link>{" "}
         and our{" "}
-        <Link href="/security" className="font-semibold text-ink underline underline-offset-4">
+        <Link href="/security" className="font-semibold text-ink underline decoration-border-control underline-offset-4">
           security notes
         </Link>
         .

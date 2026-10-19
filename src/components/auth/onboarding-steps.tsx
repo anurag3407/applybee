@@ -156,8 +156,11 @@ export function ResumeStep() {
         ) : null}
       </div>
       <div className="flex justify-between">
-        <Link href="/app">
-          <Button variant="ghost">Skip for now</Button>
+        {/* Both paths finish onboarding. Sending "Skip" straight to /app left
+            onboarding_step stuck, so the next visit to /onboarding reopened this
+            same step after the user believed they were done. */}
+        <Link href="/onboarding/complete">
+          <Button variant="ghost">Skip upload</Button>
         </Link>
         <Link href="/onboarding/complete">
           <Button>Continue</Button>

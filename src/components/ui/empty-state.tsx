@@ -47,17 +47,16 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-4 rounded-card border border-dashed border-border-decorative",
-        "bg-surface-subtle/40 px-6 py-10 text-center",
+        "flex flex-col gap-6 border-t border-border-decorative pt-8 sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >
-      {Figure ? <Figure size={150} /> : null}
-      <div className="space-y-1.5">
-        <h3 className="text-base font-bold text-ink">{title}</h3>
-        <p className="mx-auto max-w-sm text-sm text-text-secondary">{description}</p>
+      <div className="max-w-md">
+        <h3 className="text-[1.0625rem] font-bold tracking-[-0.015em] text-ink">{title}</h3>
+        <p className="mt-1.5 text-[0.875rem] leading-relaxed text-text-secondary">{description}</p>
+        {action ? <div className="mt-4">{action}</div> : null}
       </div>
-      {action}
+      {Figure ? <Figure size={132} className="mx-auto shrink-0 sm:mx-0" /> : null}
     </div>
   );
 }

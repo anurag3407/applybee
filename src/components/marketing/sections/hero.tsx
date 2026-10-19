@@ -1,57 +1,39 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/primitives";
 import { HeroScene } from "@/components/marketing/hero-scene";
-import { DotField, Glow, SignalWaves, CombTrace } from "@/components/marketing/atmosphere";
 import { FeatureIcon } from "@/components/marketing/feature-icon";
 
-/**
- * Hero (§10.1). The claim is the heading, and everything decorative sits
- * behind it: a hex dot lattice, two off-phase colour washes, and the brand's
- * outbound signal rings. The trial numbers are real, resolved server-side, and
- * never rounded into a marketing promise.
- */
 export function Hero({ trial }: { trial: { contact: number; ai: number } | null }) {
   return (
     <section className="relative overflow-hidden border-b border-border-decorative">
-      <DotField size={22} variant="hex" mask="bottom" className="opacity-80" />
-      <Glow tone="honey" className="-top-52 left-1/2 h-[36rem] w-[54rem] -translate-x-1/2 opacity-30" />
-      <Glow tone="info" slow className="-right-32 top-10 h-[24rem] w-[24rem] opacity-40 dark:opacity-25" />
-
-      <div className="relative mx-auto grid max-w-[calc(var(--ab-container-marketing))] items-center gap-16 px-5 pb-24 pt-14 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-12 md:pb-32 md:pt-20 lg:gap-16">
-        <div>
-          <p
-            className="inline-flex items-center gap-2 rounded-pill border border-border-decorative bg-surface/80 px-3 py-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-text-secondary shadow-card backdrop-blur-sm"
-            data-motion="reveal"
-          >
-            <CombTrace cells={4} size={12} className="text-honey" />
-            Draft-only Gmail
+      <div className="mx-auto grid max-w-[calc(var(--ab-container-marketing))] items-center gap-14 px-5 pb-20 pt-12 sm:px-6 md:pb-28 md:pt-20 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,1.08fr)] lg:gap-20 lg:px-8">
+        <div className="min-w-0 lg:py-6">
+          <p className="flex items-center gap-3 text-[0.8125rem] font-semibold text-text-secondary" data-motion="reveal">
+            <span aria-hidden className="h-1.5 w-1.5 bg-honey" />
+            The career outreach workspace
           </p>
 
           <h1
-            className="mt-6 max-w-[24ch] font-extrabold tracking-[-0.04em] text-ink"
-            style={{ fontSize: "clamp(2.25rem, 3.9vw, 3.5rem)", lineHeight: 1.06 }}
+            className="mt-7 max-w-[13ch] font-extrabold leading-[0.98] tracking-[-0.05em] text-ink"
+            style={{ fontSize: "clamp(2.9rem, 5.4vw, 4.5rem)" }}
             data-motion="reveal"
           >
-            The career outreach workspace where you keep{" "}
-            <span className="whitespace-nowrap font-editorial font-normal italic tracking-[-0.01em] text-honey-deep dark:text-honey">
-              every draft
-            </span>{" "}
-            under your own review.
+            Reach the person, not the portal.
           </h1>
 
-          <p className="prose-measure mt-7 text-[1.0625rem] leading-relaxed text-text-secondary md:text-[1.125rem]" data-motion="reveal">
-            Public job boards on LinkedIn and Indeed have become algorithmic dead ends. ReachBee grounds the
-            achievements you have already confirmed into bespoke introductions, staged as drafts in your own Gmail.
+          <p className="mt-7 max-w-[48ch] text-[1.0625rem] leading-[1.7] text-text-secondary" data-motion="reveal">
+            Find engineering decision-makers. Ground every introduction in achievements you have confirmed. Review the
+            draft in your own Gmail before anything leaves your hands.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center gap-3" data-motion="reveal">
+          <div className="mt-9 flex flex-wrap items-center gap-3" data-motion="reveal">
             <Link href="/sign-up">
-              <Button variant="accent" size="lg" className="min-h-12 px-7 shadow-float">
+              <Button variant="accent" size="lg" className="px-6">
                 Start free, no card
               </Button>
             </Link>
             <Link href="#how-it-works">
-              <Button variant="secondary" size="lg" className="min-h-12 px-7">
+              <Button variant="secondary" size="lg" className="px-6">
                 See how it works
               </Button>
             </Link>
@@ -59,7 +41,7 @@ export function Hero({ trial }: { trial: { contact: number; ai: number } | null 
 
           {trial ? (
             <dl
-              className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-border-decorative pt-6"
+              className="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-border-decorative pt-6"
               data-motion="reveal"
             >
               {[
@@ -68,20 +50,15 @@ export function Hero({ trial }: { trial: { contact: number; ai: number } | null 
                 { k: "Manual drafting", v: "Free" },
               ].map((s) => (
                 <div key={s.k}>
-                  <dt className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-text-disabled">{s.k}</dt>
-                  <dd className="mt-1 tabular text-2xl font-extrabold tracking-tight text-ink">{s.v}</dd>
+                  <dt className="text-[0.75rem] font-medium leading-snug text-text-secondary">{s.k}</dt>
+                  <dd className="tabular mt-1.5 text-[1.375rem] font-extrabold tracking-[-0.03em] text-ink">{s.v}</dd>
                 </div>
               ))}
             </dl>
           ) : null}
         </div>
 
-        {/* The scene sits under one more wash so it reads as the page's subject. */}
-        <div className="relative">
-          <SignalWaves
-            size={300}
-            className="pointer-events-none absolute -right-24 -top-24 opacity-25 [mask-image:radial-gradient(circle_at_50%_50%,#000_30%,transparent_70%)]"
-          />
+        <div className="relative min-w-0 lg:pl-4">
           <HeroScene />
         </div>
       </div>
@@ -89,11 +66,6 @@ export function Hero({ trial }: { trial: { contact: number; ai: number } | null 
   );
 }
 
-/**
- * Three hard guarantees, stated as a band rather than cards — they are the
- * product's constraints, and constraints should read like a list you can hold
- * us to, not like features you might unlock later.
- */
 export function GuaranteeBand() {
   const items = [
     {
@@ -108,22 +80,20 @@ export function GuaranteeBand() {
     },
     {
       icon: "cap" as const,
-      title: "10 drafts a day, by design",
+      title: "Ten drafts a day, by design",
       body: "A ceiling that protects your personal Gmail reputation, not a limit on your work.",
     },
   ];
   return (
     <section className="border-b border-border-decorative bg-surface">
-      <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 py-12 md:py-14">
-        <dl className="grid gap-8 md:grid-cols-3 md:gap-10" data-motion="stagger">
+      <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 sm:px-6 lg:px-8">
+        <dl className="grid divide-y divide-border-decorative md:grid-cols-3 md:divide-x md:divide-y-0" data-motion="stagger">
           {items.map((i) => (
-            <div key={i.title} data-motion="stagger-item" className="group flex items-start gap-4">
-              <span className="relative mt-0.5 shrink-0">
-                <FeatureIcon name={i.icon} size={26} className="text-honey-deep dark:text-honey" />
-              </span>
+            <div key={i.title} data-motion="stagger-item" className="flex items-start gap-4 py-7 md:px-8 md:first:pl-0 md:last:pr-0">
+              <FeatureIcon name={i.icon} size={19} className="mt-0.5 shrink-0 text-honey-deep dark:text-honey" />
               <div>
                 <dt className="text-[0.9375rem] font-bold text-ink">{i.title}</dt>
-                <dd className="mt-1 text-sm leading-relaxed text-text-secondary">{i.body}</dd>
+                <dd className="mt-1 text-[0.875rem] leading-relaxed text-text-secondary">{i.body}</dd>
               </div>
             </div>
           ))}

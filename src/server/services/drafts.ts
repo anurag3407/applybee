@@ -407,6 +407,16 @@ export async function listTemplates(userId: string) {
   return db.select().from(templates).where(eq(templates.userId, userId)).orderBy(desc(templates.updatedAt));
 }
 
+export async function getTemplateForUser(userId: string, templateId: string) {
+  return (
+    await db
+      .select()
+      .from(templates)
+      .where(and(eq(templates.id, templateId), eq(templates.userId, userId)))
+      .limit(1)
+  )[0] ?? null;
+}
+
 export async function createTemplate(userId: string, input: { name: string; subject: string; body: string }) {
   const unknownVars = findUnknownTemplateVariables(input.body, input.subject);
   const inserted = await db

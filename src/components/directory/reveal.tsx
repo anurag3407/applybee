@@ -115,6 +115,24 @@ export function RevealAction({
   );
 }
 
+export function CopyEmailButton({ email }: { email: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard access can be blocked; the address stays selectable in the code block.
+    }
+  }
+  return (
+    <Button size="sm" variant="quiet" onClick={copy} aria-label={`Copy ${email}`}>
+      <IconCopy size={14} aria-hidden /> {copied ? "Copied" : "Copy"}
+    </Button>
+  );
+}
+
 export function SaveContactButton({ contactId, saved }: { contactId: string; saved: boolean }) {
   const router = useRouter();
   const [isSaved, setIsSaved] = useState(saved);

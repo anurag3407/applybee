@@ -2,35 +2,59 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/primitives";
+import { Button, InlineError } from "@/components/ui/primitives";
 
 /** Connect/disconnect control; disconnect reuses the API with version bump. */
 export function GmailConnectPanel({ connected, email, mode }: { connected: boolean; email: string | null; mode: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function connect() {
     setBusy(true);
-    const res = await fetch("/api/v1/gmail/connection", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ returnPath: "/app/settings/integrations" }),
-    });
-    const data = (await res.json()) as { data?: { authorizeUrl?: string }; error?: { message?: string } };
-    if (data.data?.authorizeUrl) {
-      window.location.href = data.data.authorizeUrl;
-      return;
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/gmail/connection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // The API only connects the labeled sandbox when asked explicitly;
+        // without this flag mock mode fell through to OAuth and did nothing.
+        body: JSON.stringify({ returnPath: "/app/settings/integrations", sandbox: mode === "mock" }),
+      });
+      const data = (await res.json().catch(() => null)) as
+        | { data?: { authorizeUrl?: string; sandbox?: boolean }; error?: { message?: string } }
+        | null;
+      if (!res.ok) throw new Error(data?.error?.message ?? "Gmail connection could not start.");
+      if (data?.data?.authorizeUrl) {
+        window.location.href = data.data.authorizeUrl;
+        return;
+      }
+      if (data?.data?.sandbox) {
+        router.refresh();
+        return;
+      }
+      throw new Error("Gmail connection could not start. Check the server configuration.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gmail connection could not start.");
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   async function disconnect() {
     setBusy(true);
-    await fetch("/api/v1/gmail/connection", { method: "DELETE" });
-    setBusy(false);
-    setConfirmOpen(false);
-    router.refresh();
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/gmail/connection", { method: "DELETE" });
+      if (!res.ok) throw new Error("Gmail could not be disconnected. Please try again.");
+      setConfirmOpen(false);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gmail could not be disconnected.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (connected) {
@@ -63,8 +87,11 @@ export function GmailConnectPanel({ connected, email, mode }: { connected: boole
   }
 
   return (
-    <Button variant="primary" onClick={connect} disabled={busy}>
-      {busy ? "Redirecting…" : mode === "mock" ? "Connect Gmail (sandbox)" : "Connect Gmail"}
-    </Button>
+    <div className="space-y-2">
+      <Button variant="primary" onClick={connect} disabled={busy}>
+        {busy ? "Connecting…" : mode === "mock" ? "Connect Gmail (sandbox)" : "Connect Gmail"}
+      </Button>
+      {error ? <InlineError>{error}</InlineError> : null}
+    </div>
   );
 }

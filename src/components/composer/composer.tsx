@@ -10,6 +10,7 @@ import { Button, Badge, InlineError, Textarea, Input, Label, Select } from "@/co
 import { Dialog } from "@/components/ui/dialog";
 import { cn } from "@/lib/cn";
 import { wordCount } from "@/lib/format";
+import { fillTemplate, type TemplateVariable } from "@/lib/validation";
 
 /**
  * Shared composer (§13): one editor and domain model across Manual, Quick AI,
@@ -45,6 +46,12 @@ export type ComposerProps = {
   /** A newer, still-unconfirmed profile revision (usually a fresh resume parse). */
   pendingProfileReview?: { revisionId: string; factCount: number } | null;
   resumeOptions: Array<{ id: string; name: string; scanned: boolean }>;
+  /** The user's saved templates, offered as a starting point in the editor. */
+  templates: Array<{ id: string; name: string; subject: string; body: string }>;
+  /** Pre-selected when the draft was created from Templates → Use in a new draft. */
+  initialTemplateId?: string | null;
+  /** First confirmed achievement, used to fill {{achievement}} honestly. */
+  sampleAchievement?: string | null;
   initialGeneration?: {
     id: string;
     state: string;
@@ -357,7 +364,23 @@ const INTENTS = [
  */
 const AI_DRAFTS_PER_DAY = 10;
 
-export function Composer({ draftId, initial, recipient, balances, gmail, hasApprovedProfile, candidateName, profileTargetRole, pendingProfileReview, resumeOptions, initialGeneration, initialDelivery }: ComposerProps) {
+export function Composer({
+  draftId,
+  initial,
+  recipient,
+  balances,
+  gmail,
+  hasApprovedProfile,
+  candidateName,
+  profileTargetRole,
+  pendingProfileReview,
+  resumeOptions,
+  templates,
+  initialTemplateId,
+  sampleAchievement,
+  initialGeneration,
+  initialDelivery,
+}: ComposerProps) {
   const router = useRouter();
   const [subject, setSubject] = useState(initial.subject);
   const [body, setBody] = useState(initial.body);
@@ -401,6 +424,8 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
   const [confirmFactType, setConfirmFactType] = useState<FactType>("achievement");
   const [confirmRole, setConfirmRole] = useState("");
   const [profileNote, setProfileNote] = useState<string | null>(null);
+  const [templateId, setTemplateId] = useState(initialTemplateId ?? "");
+  const [templateNote, setTemplateNote] = useState<string | null>(null);
   // The server answers a throttled Generate with Retry-After; before this it was
   // discarded, so "please wait a minute" arrived with no clock and the only way
   // to find out was to click again.
@@ -538,6 +563,34 @@ export function Composer({ draftId, initial, recipient, balances, gmail, hasAppr
   function markDirty() {
     dirtyRef.current = true;
     setSaveState("idle");
+  }
+
+  /**
+   * Fill a saved template from what we already know, so applying one never
+   * silently leaves {{placeholders}} in the message. `achievement` only comes
+   * from a confirmed profile fact, never from a guess.
+   */
+  function applyTemplate() {
+    const template = templates.find((t) => t.id === templateId);
+    if (!template) return;
+    const values: Partial<Record<TemplateVariable, string>> = {
+      candidate_name: candidateName || confirmName || undefined,
+      recipient_first_name: recipient?.name?.trim().split(/\s+/)[0] || undefined,
+      company_name: recipient?.companyName || undefined,
+      target_role: targetRole.trim() || profileTargetRole || undefined,
+      achievement: sampleAchievement || undefined,
+    };
+    const nextSubject = fillTemplate(template.subject, values);
+    const nextBody = fillTemplate(template.body, values);
+    setSubject(nextSubject.filled);
+    setBody(nextBody.filled);
+    markDirty();
+    const missing = [...new Set([...nextSubject.missing, ...nextBody.missing])];
+    setTemplateNote(
+      missing.length > 0
+        ? `Template applied. Still needs your input: ${missing.map((m) => `{{${m}}}`).join(", ")}`
+        : "Template applied. Review it before generating.",
+    );
   }
 
   /* Recipient: a draft created from the dashboard's "Create an introduction"
@@ -994,6 +1047,50 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
             </p>
           ) : null}
         </div>
+        {templates.length > 0 ? (
+          <div className="rounded-card border border-border-decorative bg-surface p-4">
+            <Label htmlFor="template">Start from a template</Label>
+            <Select
+              id="template"
+              value={templateId}
+              onChange={(e) => {
+                setTemplateId(e.target.value);
+                setTemplateNote(null);
+              }}
+            >
+              <option value="">Choose a template…</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </Select>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="mt-2"
+              onClick={applyTemplate}
+              disabled={!templateId}
+            >
+              Apply template
+            </Button>
+            {templateNote ? (
+              <p className="mt-2 text-xs text-text-secondary" role="status">
+                {templateNote}
+              </p>
+            ) : (
+              <p className="mt-2 text-xs text-text-disabled">
+                Fills your name, the recipient, company, target role and a confirmed achievement.
+              </p>
+            )}
+            <p className="mt-2 text-xs text-text-disabled">
+              Applying never calls AI and costs nothing.{" "}
+              <Link href={templateId ? `/app/templates/${templateId}` : "/app/templates"} className="underline">
+                {templateId ? "Edit this template" : "Manage templates"}
+              </Link>
+            </p>
+          </div>
+        ) : null}
         <div className="rounded-card border border-border-decorative bg-surface p-4">
           <Label htmlFor="targetRole">Target role (optional)</Label>
           <Input id="targetRole" value={targetRole} onChange={(e) => setTargetRole(e.target.value)} maxLength={120} placeholder="e.g. Platform engineer" />
@@ -1080,9 +1177,9 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
                 {REVISION_SOURCE[proposal.profileRevision.source]
                   ? ` (${REVISION_SOURCE[proposal.profileRevision.source]})`
                   : ""}{" "}
-               ,{" "}
+                ·{" "}
                 <Link href="/app/profile" className="underline">
-                  view
+                  view profile
                 </Link>
               </p>
             ) : null}
@@ -1416,7 +1513,7 @@ const canGenerate = balances.ai.available > 0 && recipient !== null && !generati
             Nothing will be sent. This creates a draft in your Gmail. Sending stays with you.
           </p>
           <dl className="space-y-1.5">
-            <Row label="Recipient" value={recipient?.email ?? (recipient?.kind === "directory" ? "Locked email — reveal first" : "—")} />
+            <Row label="Recipient" value={recipient?.email ?? (recipient?.kind === "directory" ? "Locked email, reveal first" : "Not set")} />
             <Row label="Mailbox" value={gmail?.email ?? "Not connected"} />
             <Row label="Subject" value={subject || "(empty)"} />
             <Row label="Attachment" value={resumeOptions.find((r) => r.id === attachmentId)?.name ?? "None"} />

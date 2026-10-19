@@ -91,7 +91,7 @@ export function TemplateEditor({
           <Badge>Escaped output, no HTML</Badge>
         </div>
         <pre className="mt-2 whitespace-pre-wrap rounded-control border border-border-decorative bg-canvas p-3 text-sm text-ink">
-          {preview.filled || "—"}
+          {preview.filled || "No preview yet"}
         </pre>
         {preview.missing.length > 0 ? (
           <p className="mt-2 text-xs text-warning">Unfilled: {preview.missing.join(", ")}</p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { IconUpload } from "@/components/svg/icons";
 import { Button } from "@/components/ui/primitives";
 
@@ -8,6 +9,7 @@ const MAX_BYTES = 5 * 1024 * 1024;
 
 /** PDF-only upload (§14): create intent → PUT bytes → finalize server-side. */
 export function UploadZone({ onDone }: { onDone?: () => void }) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +49,9 @@ export function UploadZone({ onDone }: { onDone?: () => void }) {
         throw new Error(body.error?.message ?? "Upload failed.");
       }
       onDone?.();
+      // The page's resume list is server-rendered; without this it kept saying
+      // "No resumes" after a successful upload until a manual reload.
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
@@ -68,6 +73,7 @@ export function UploadZone({ onDone }: { onDone?: () => void }) {
         ref={inputRef}
         type="file"
         accept="application/pdf,.pdf"
+        aria-label="Upload a resume PDF"
         className="sr-only"
         onChange={(e) => {
           const file = e.target.files?.[0];

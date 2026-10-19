@@ -5,6 +5,7 @@ import { requireActiveUser } from "@/server/auth/session";
 import { getReviewableProfile, getProfileForUser } from "@/server/services/resumes";
 import { ProfileFactsEditor } from "@/components/resumes/profile-facts-editor";
 import { Badge, Card, Button } from "@/components/ui/primitives";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Career profile" };
@@ -15,19 +16,17 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-ink">Career profile</h2>
-          <p className="text-sm text-text-secondary">
-            AI drafts are written only from facts you have confirmed. Fix anything the parser got wrong.
-          </p>
-        </div>
-        <Link href="/app/resumes">
-          <Button variant="secondary" size="sm" className="gap-1.5">
-            <IconDraft size={14} /> Resumes & Uploads
-          </Button>
-        </Link>
-      </div>
+      <AppPageHeader
+        title="Career profile"
+        lede="AI drafts are written only from facts you have confirmed. Fix anything the parser got wrong."
+        actions={
+          <Link href="/app/resumes">
+            <Button variant="secondary" size="sm" className="gap-1.5">
+              <IconDraft size={14} /> Resumes & Uploads
+            </Button>
+          </Link>
+        }
+      />
 
       {reviewable && !reviewable.revision.approvedAt ? (
         <Card className="border-warning/40 bg-warning-wash/40">

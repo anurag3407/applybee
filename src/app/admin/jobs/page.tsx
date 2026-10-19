@@ -44,7 +44,7 @@ export default async function AdminJobsPage() {
                 <td className="tabular px-4 py-3">{j.attempts}/{j.max_attempts}</td>
                 <td className="px-4 py-3 text-xs text-text-secondary">
                   {j.error_code ? <span className="font-semibold">{j.error_code}: </span> : null}
-                  {j.error_message ?? "—"}
+                  {j.error_message ?? "No error"}
                 </td>
                 <td className="tabular px-4 py-3 text-text-secondary">{formatDateTime(j.updated_at)}</td>
               </tr>

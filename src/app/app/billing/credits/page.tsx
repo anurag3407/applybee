@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requireActiveUser } from "@/server/auth/session";
 import { getLedger } from "@/server/services/credits";
 import { Card } from "@/components/ui/primitives";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Credit ledger" };
@@ -26,12 +27,10 @@ export default async function CreditsLedgerPage({ searchParams }: { searchParams
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Credit ledger</h2>
-        <p className="text-sm text-text-secondary">
-          Append-only history. Balances are the sum of these entries, no opaque deductions.
-        </p>
-      </div>
+      <AppPageHeader
+        title="Credit ledger"
+        lede="Append-only history. Balances are the sum of these entries, no opaque deductions."
+      />
 
       <nav aria-label="Ledger filter" className="flex gap-2 text-sm">
         {[

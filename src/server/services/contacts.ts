@@ -44,6 +44,8 @@ export type DirectoryRow = {
   isHiringManager: boolean;
   unlocked: boolean;
   saved: boolean;
+  /** Full address, present only when this user has already unlocked the contact. */
+  email: string | null;
   maskedEmail: string;
 };
 
@@ -94,7 +96,7 @@ export async function searchDirectory(userId: string, filters: DirectoryFilters)
   // Parameterized query through the pool (sql.raw cannot bind values).
   const { rows } = await pool.query(`
     SELECT c.id, c.name, c.title, c.role_category, c.department, c.location, c.verification_status, c.status, c.updated_at,
-           c.last_email_checked_at, c.employment_checked_at, c.is_hiring_manager,
+           c.last_email_checked_at, c.employment_checked_at, c.is_hiring_manager, c.email_enc,
            co.name AS company_name, co.domain AS company_domain, co.stage AS company_stage,
            cu.id IS NOT NULL AS unlocked, sv.id IS NOT NULL AS saved
     FROM contacts c
@@ -122,6 +124,7 @@ export async function searchDirectory(userId: string, filters: DirectoryFilters)
     isHiringManager: Boolean(r.is_hiring_manager),
     unlocked: Boolean(r.unlocked),
     saved: Boolean(r.saved),
+    email: r.unlocked ? decryptContactEmail(r.email_enc as string | null, r.id as string) : null,
     maskedEmail: maskEmailForDisplay(r.company_domain as string),
   }));
   let nextCursor: string | null = null;
@@ -136,6 +139,17 @@ export async function searchDirectory(userId: string, filters: DirectoryFilters)
 /** Masked preview built from the company domain only — never the real local part. */
 function maskEmailForDisplay(domain: string): string {
   return `•••@${domain}`;
+}
+
+/** A retired key or corrupt envelope must not take the whole directory down. */
+function decryptContactEmail(emailEnc: string | null, contactId: string): string | null {
+  if (!emailEnc) return null;
+  try {
+    return decryptEnvelope(emailEnc, `contact:${contactId}`);
+  } catch {
+    logger.warn("contact.email_undecryptable", { contactId });
+    return null;
+  }
 }
 
 export async function getContactForUser(userId: string, contactId: string) {

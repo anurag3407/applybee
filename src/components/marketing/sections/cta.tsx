@@ -1,62 +1,58 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/primitives";
 import { BrandMark } from "@/components/marketing/brand";
-import { DotField, Glow, SignalWaves } from "@/components/marketing/atmosphere";
 
 /**
- * §12 — closing CTA. The brand mark carries the weight here rather than a
- * heading bomb: the page has already made its argument, and this is the door.
+ * §12 — closing CTA. The page has made its argument; this is the door.
  */
 export function FinalCta({ trial }: { trial: { contact: number; ai: number } | null }) {
   return (
-    <section className="relative overflow-hidden border-t border-border-decorative">
-      <DotField size={24} variant="hex" mask="top" className="opacity-70" />
-      <Glow tone="honey" className="-bottom-40 left-1/2 h-[30rem] w-[46rem] -translate-x-1/2 opacity-25" />
-
-      <div className="relative mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 py-24 text-center md:py-36">
-        <div className="relative mx-auto w-fit" data-motion="reveal">
-          <BrandMark size={56} />
-          <SignalWaves
-            size={150}
-            className="pointer-events-none absolute -right-16 -top-10 opacity-25 [mask-image:radial-gradient(circle_at_50%_50%,#000_30%,transparent_70%)]"
-          />
-        </div>
-
-        <h2
-          className="mx-auto mt-8 max-w-3xl font-bold tracking-[-0.04em] text-ink"
-          style={{ fontSize: "clamp(2.25rem, 5vw, 4rem)", lineHeight: 1.05 }}
-          data-motion="reveal"
-        >
-          Make your next{" "}
-          <span className="font-editorial font-normal italic tracking-[-0.01em] text-honey-deep dark:text-honey">
-            introduction
-          </span>{" "}
-          count.
-        </h2>
-
-        <p className="prose-measure mx-auto mt-6 text-[1.0625rem] leading-relaxed text-text-secondary" data-motion="reveal">
-          Write one truthful message to one real person. That is the whole product, and it is enough.
-        </p>
-
-        <div className="mt-10 flex flex-wrap justify-center gap-3" data-motion="reveal">
-          <Link href="/sign-up">
-            <Button variant="accent" size="lg" className="min-h-12 px-8 shadow-float">
-              Start free
-            </Button>
-          </Link>
-          <Link href="/pricing">
-            <Button variant="secondary" size="lg" className="min-h-12 px-8">
-              View pricing
-            </Button>
-          </Link>
-        </div>
-
-        {trial ? (
-          <p className="mt-6 text-sm font-semibold text-text-secondary" data-motion="reveal">
-            <span className="tabular">{trial.contact}</span> contact reveals ·{" "}
-            <span className="tabular">{trial.ai}</span> AI generations · No card required
+    <section className="brand-panel on-ink relative overflow-hidden bg-ink text-surface">
+      <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-honey/35" />
+      <div className="mx-auto grid max-w-[calc(var(--ab-container-marketing))] items-end gap-12 px-5 py-20 sm:px-6 md:py-28 lg:grid-cols-[minmax(0,1.3fr)_auto] lg:px-8">
+        <div>
+          <p className="flex items-center gap-3 text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-surface/50" data-motion="reveal">
+            <BrandMark size={18} variant="mono" className="text-surface" />
+            Start with one real person
           </p>
-        ) : null}
+
+          <h2
+            className="mt-8 max-w-[16ch] font-extrabold leading-[0.98] tracking-[-0.045em] text-surface"
+            style={{ fontSize: "clamp(2.5rem, 5vw, 4.25rem)" }}
+            data-motion="reveal"
+          >
+            Make your next introduction count.
+          </h2>
+
+          <p className="mt-6 max-w-[46ch] text-[1rem] leading-[1.7] text-surface/65" data-motion="reveal">
+            Write one truthful message to one real person. That is the whole product, and it is enough.
+          </p>
+        </div>
+
+        <div className="lg:pb-2 lg:text-right" data-motion="reveal">
+          <div className="flex flex-wrap gap-3 lg:justify-end">
+            <Link href="/sign-up">
+              <Button variant="accent" size="lg" className="px-6">
+                Start free
+              </Button>
+            </Link>
+            <Link href="/pricing">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="border-surface/25 px-6 text-surface hover:border-surface/40 hover:bg-surface/10"
+              >
+                View pricing
+              </Button>
+            </Link>
+          </div>
+          {trial ? (
+            <p className="mt-5 text-[0.75rem] font-medium text-surface/50">
+              <span className="tabular text-surface/80">{trial.contact}</span> contact reveals ·{" "}
+              <span className="tabular text-surface/80">{trial.ai}</span> AI generations · No card required
+            </p>
+          ) : null}
+        </div>
       </div>
     </section>
   );

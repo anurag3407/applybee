@@ -14,8 +14,6 @@ export const metadata: Metadata = noIndexMeta;
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   await requireActiveUser();
   return (
-    <AppShell title="Workspace">
-      {children}
-    </AppShell>
+    <AppShell>{children}</AppShell>
   );
 }

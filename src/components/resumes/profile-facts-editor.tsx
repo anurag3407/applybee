@@ -28,7 +28,7 @@ export function ProfileFactsEditor({
   const [newText, setNewText] = useState("");
   const [newType, setNewType] = useState("skill");
   const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState<string | null>(null);
+  const [saved, setSaved] = useState<{ message: string; error: boolean } | null>(null);
   /**
    * Tracked as the *excluded* set, so a fact added after mount is selected by
    * default and a refresh that re-supplies `facts` cannot silently drop a choice
@@ -53,14 +53,14 @@ export function ProfileFactsEditor({
       // the user believing their facts were usable in AI drafts when they were not.
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
-        setSaved(data?.error?.message ?? "We couldn't confirm those facts. Please try again.");
+        setSaved({ message: data?.error?.message ?? "We couldn't confirm those facts. Please try again.", error: true });
         return;
       }
-      setSaved(okMessage);
+      setSaved({ message: okMessage, error: false });
       setExcluded(new Set());
       router.refresh();
     } catch {
-      setSaved("We couldn't reach the server. Please try again.");
+      setSaved({ message: "We couldn't reach the server. Please try again.", error: true });
     } finally {
       setBusy(false);
     }
@@ -78,7 +78,7 @@ export function ProfileFactsEditor({
     const additions = facts.filter((f) => isNew(f.id));
     const payloadFacts = kept.map((f) => ({ factType: f.factType, text: f.text }));
     if (payloadFacts.length === 0) {
-      setSaved("Keep at least one detail, AI drafting needs something confirmed to write from.");
+      setSaved({ message: "Keep at least one detail, AI drafting needs something confirmed to write from.", error: true });
       return;
     }
     if (additions.length > 0) {
@@ -224,8 +224,8 @@ export function ProfileFactsEditor({
           </Button>
         )}
         {saved ? (
-          <p className="text-sm text-success" role="status">
-            {saved}
+          <p className={`text-sm ${saved.error ? "text-danger" : "text-success"}`} role={saved.error ? "alert" : "status"}>
+            {saved.message}
           </p>
         ) : null}
       </div>

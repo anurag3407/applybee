@@ -53,15 +53,19 @@ export function MarketingHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-20 h-16 border-b transition-colors",
-        solid ? "border-border-decorative bg-surface" : "border-transparent bg-canvas/80",
+        "sticky top-0 z-30 h-16 border-b transition-colors duration-200",
+        solid ? "border-border-decorative bg-canvas" : "border-transparent bg-canvas",
       )}
     >
-      <div className="mx-auto flex h-full max-w-[calc(var(--ab-container-marketing))] items-center justify-between px-5">
+      <div className="mx-auto flex h-full max-w-[calc(var(--ab-container-marketing))] items-center justify-between px-5 sm:px-6 lg:px-8">
         <Wordmark />
-        <nav aria-label="Main" className="hidden items-center gap-6 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-7 md:flex">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="text-sm font-semibold text-text-secondary hover:text-ink">
+            <Link
+              key={l.href}
+              href={l.href}
+              className="text-[0.8125rem] font-semibold text-text-secondary transition-colors hover:text-ink"
+            >
               {l.label}
             </Link>
           ))}
@@ -74,8 +78,11 @@ export function MarketingHeader() {
             </Link>
           ) : (
             <>
-              <Link href="/sign-in">
-                <Button variant="secondary">Sign in</Button>
+              <Link
+                href="/sign-in"
+                className="rounded-control px-3 py-2 text-[0.8125rem] font-semibold text-ink transition-colors hover:bg-surface-subtle"
+              >
+                Sign in
               </Link>
               <Link href="/sign-up">
                 <Button variant="accent">Start free</Button>

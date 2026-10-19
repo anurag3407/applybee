@@ -4,6 +4,7 @@ import { requireActiveUser } from "@/server/auth/session";
 import { listOrders, listPayments } from "@/server/services/billing";
 import { Card, Badge } from "@/components/ui/primitives";
 import { EmptyState } from "@/components/ui/empty-state";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDateTime, formatINRPaise } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Payment history" };
@@ -23,12 +24,10 @@ export default async function BillingHistoryPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Payments</h2>
-        <p className="text-sm text-text-secondary">
-          Provider and local states shown plainly. A payment marked “being confirmed” should never be paid twice.
-        </p>
-      </div>
+      <AppPageHeader
+        title="Payments"
+        lede="Provider and local states shown plainly. A payment marked “being confirmed” should never be paid twice."
+      />
 
       {orders.length === 0 ? (
         <EmptyState art="credits" title="No purchases yet" description="One-time packs appear here when you buy them." />
@@ -39,7 +38,7 @@ export default async function BillingHistoryPage() {
             const sku = o.skuSnapshot as { sku?: string; name?: string };
             const status = payment?.state ?? o.status;
             return (
-              <Card key={o.id}>
+              <Card key={o.id} as="li">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="font-bold text-ink">{sku.name ?? sku.sku}</p>

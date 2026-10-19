@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requireActiveUser } from "@/server/auth/session";
 import { getCompanyWithEvidence } from "@/server/services/contacts";
 import { Badge, Card } from "@/components/ui/primitives";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Company" };
@@ -16,12 +17,10 @@ export default async function CompanyPage({ params }: { params: Promise<{ compan
   const { company, evidence, contacts } = data;
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">{company.name}</h2>
-        <p className="text-sm text-text-secondary">
-          {company.category ?? "Company"} · {company.location ?? "—"} · {company.stage ?? ""}
-        </p>
-      </div>
+      <AppPageHeader
+        title={company.name}
+        lede={`${company.category ?? "Company"} · ${company.location ?? "Location not listed"}${company.stage ? ` · ${company.stage}` : ""}`}
+      />
       <Card>
         <h3 className="font-bold text-ink">Approved company context</h3>
         <p className="text-xs text-text-secondary">Only dated, approved facts are shown here and used in AI drafts.</p>

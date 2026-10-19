@@ -37,8 +37,8 @@ export default async function AdminAuditPage() {
               <tr key={i}>
                 <td className="px-4 py-3 font-semibold text-ink">{e.action}{e.permission ? <span className="text-xs text-text-secondary"> ({e.permission})</span> : null}</td>
                 <td className="px-4 py-3 text-text-secondary">{e.actor_type}</td>
-                <td className="px-4 py-3 text-xs text-text-secondary">{e.entity_type ? `${e.entity_type}:${(e.entity_id ?? "").slice(0, 8)}` : "—"}</td>
-                <td className="px-4 py-3 text-xs text-text-secondary">{e.reason ?? "—"}</td>
+                <td className="px-4 py-3 text-xs text-text-secondary">{e.entity_type ? `${e.entity_type}:${(e.entity_id ?? "").slice(0, 8)}` : "Not linked"}</td>
+                <td className="px-4 py-3 text-xs text-text-secondary">{e.reason ?? "No reason recorded"}</td>
                 <td className="tabular px-4 py-3 text-text-secondary">{formatDateTime(e.created_at)}</td>
               </tr>
             ))}

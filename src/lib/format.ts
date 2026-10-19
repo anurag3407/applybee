@@ -13,7 +13,7 @@ export function formatINR(rupees: number): string {
 }
 
 export function formatDateTime(value: Date | string | null | undefined): string {
-  if (!value) return "—";
+  if (!value) return "Not recorded";
   const d = typeof value === "string" ? new Date(value) : value;
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
@@ -23,7 +23,7 @@ export function formatDateTime(value: Date | string | null | undefined): string 
 }
 
 export function formatDate(value: Date | string | null | undefined): string {
-  if (!value) return "—";
+  if (!value) return "Not recorded";
   const d = typeof value === "string" ? new Date(value) : value;
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
@@ -32,7 +32,7 @@ export function formatDate(value: Date | string | null | undefined): string {
 }
 
 export function relativeTime(value: Date | string | null | undefined): string {
-  if (!value) return "—";
+  if (!value) return "Not recorded";
   const d = typeof value === "string" ? new Date(value) : value;
   const diff = Date.now() - d.getTime();
   const mins = Math.round(diff / 60_000);

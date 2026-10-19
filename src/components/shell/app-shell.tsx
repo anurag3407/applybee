@@ -49,7 +49,7 @@ const bottomLinks: NavLink[] = [
   { href: "/help", label: "Help", icon: <IconLifeRing size={18} /> },
 ];
 
-export async function AppShell({ children, title }: { children: React.ReactNode; title: string }) {
+export async function AppShell({ children }: { children: React.ReactNode }) {
   const user = await requireActiveUser();
   const [balances, unread] = await Promise.all([
     getBalancesForRequest(user.id),
@@ -58,39 +58,38 @@ export async function AppShell({ children, title }: { children: React.ReactNode;
 
   return (
     <div className="min-h-screen bg-canvas">
-      <MobileNav links={links} bottomLinks={bottomLinks} title={title} />
+      <MobileNav links={links} bottomLinks={bottomLinks} />
       <div className="mx-auto flex max-w-[calc(var(--ab-container-app))]">
-        <aside className="sticky top-0 hidden h-screen w-[15rem] shrink-0 flex-col border-r border-border-decorative bg-surface px-4 py-5 lg:flex">
+        <aside className="sticky top-0 hidden h-screen w-[15.5rem] shrink-0 flex-col border-r border-border-decorative bg-surface px-4 py-5 lg:flex">
           <Link
             href="/app"
-            className="ab-mark ab-press mb-6 flex items-center gap-2 rounded-control px-1 font-bold text-ink"
+            className="ab-mark ab-press mb-5 flex items-center gap-2.5 rounded-control border-b border-border-decorative px-2 pb-5 font-bold text-ink"
           >
             <BrandMark size={24} />
-            ReachBee
+            <span className="text-[0.9375rem] tracking-[-0.01em]">ReachBee</span>
           </Link>
 
           <nav aria-label="Workspace" className="flex-1 overflow-y-auto">
-            <p className="mb-2 px-3 text-xs font-bold text-text-disabled">Workspace</p>
+            <p className="mb-2 px-3 text-[0.6875rem] font-semibold text-text-disabled">Workspace</p>
             <NavList links={links} />
           </nav>
 
           <CreditStrip contact={balances.contact} ai={balances.ai} />
-          <div className="mt-4 border-t border-border-decorative pt-4">
-            <p className="mb-2 px-3 text-xs font-bold text-text-disabled">Account</p>
+          <div className="mt-4">
+            <p className="mb-2 px-3 text-[0.6875rem] font-semibold text-text-disabled">Account</p>
             <NavList links={bottomLinks} />
           </div>
         </aside>
 
         <div className="min-w-0 flex-1">
           <AppHeader
-            title={title}
             displayName={user.displayName}
             email={user.email}
             isAdmin={user.isAdmin}
             unread={unread}
           />
-          <main id="main" className="px-4 py-6 md:px-8">
-            <PageEnter key={title}>{children}</PageEnter>
+          <main id="main" className="px-5 py-7 md:px-8 md:py-9 xl:px-10">
+            <PageEnter>{children}</PageEnter>
           </main>
         </div>
       </div>
@@ -99,28 +98,26 @@ export async function AppShell({ children, title }: { children: React.ReactNode;
 }
 
 function AppHeader({
-  title,
   displayName,
   email,
   isAdmin,
   unread,
 }: {
-  title: string;
   displayName: string | null;
   email: string;
   isAdmin: boolean;
   unread: number;
 }) {
   return (
-    <header className="hidden h-16 items-center justify-between border-b border-border-decorative bg-surface px-8 lg:flex">
-      <h1 className="text-base font-bold tracking-tight text-ink">{title}</h1>
+    <header className="sticky top-0 z-20 hidden h-[var(--ab-header-height)] items-center justify-between border-b border-border-decorative bg-canvas px-8 lg:flex xl:px-10">
+      <p className="text-[0.75rem] font-semibold text-text-secondary">Career workspace</p>
       <div className="flex items-center gap-2.5">
         <Link
           href="/app/drafts/new"
-          className="ab-press flex min-h-9 items-center gap-2 rounded-control bg-ink px-3.5 text-sm font-semibold text-surface shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink-soft"
+          className="ab-press flex min-h-9 items-center gap-2 rounded-control bg-ink px-3.5 text-[0.8125rem] font-semibold text-surface shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink-soft"
         >
           <IconCompose size={15} />
-          Create an introduction
+          New introduction
         </Link>
         <ThemeToggle />
         <Link

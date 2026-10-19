@@ -16,9 +16,17 @@ export function CreditStrip({
   ai: { available: number; reserved: number };
 }) {
   return (
-    <div className="rounded-card border border-border-decorative bg-surface-subtle/70 p-3">
-      <p className="mb-2 text-xs font-bold text-text-disabled">Your credits</p>
-      <div className="space-y-1.5">
+    <div className="border-t border-border-decorative pt-4">
+      <div className="mb-1.5 flex items-baseline justify-between px-3">
+        <p className="text-[0.6875rem] font-semibold text-text-disabled">Credits</p>
+        <Link
+          href="/app/billing"
+          className="text-[0.6875rem] font-semibold text-text-secondary transition-colors hover:text-ink"
+        >
+          Billing
+        </Link>
+      </div>
+      <div className="space-y-0.5">
         <CreditLine
           href="/app/billing/credits?type=contact"
           icon={<IconSend size={14} />}
@@ -55,8 +63,8 @@ function CreditLine({
     <Link
       href={href}
       className={cn(
-        "ab-press flex items-center justify-between gap-2 rounded-control px-2 py-1.5",
-        "hover:bg-surface hover:ring-1 hover:ring-border-decorative",
+        "ab-press flex min-h-9 items-center justify-between gap-2 rounded-control px-3 py-1.5",
+        "hover:bg-surface-subtle/70",
       )}
     >
       <span className="flex min-w-0 items-center gap-2 text-sm text-ink">

@@ -1,10 +1,9 @@
 import { SectionShell } from "@/components/marketing/sections/shell";
-import { cn } from "@/lib/cn";
 
 /**
  * §11 — FAQ. Exported so /faq and the home page emit FAQPage markup from the
- * same text they render: structured data that does not match the page is a
- * violation. Answers are plain strings so the JSON-LD stays a faithful copy.
+ * same text they render. Answers are plain strings so the JSON-LD stays a
+ * faithful copy.
  */
 export const FAQS: Array<{ q: string; a: string }> = [
   { q: "Does ReachBee send emails for me?", a: "No. ReachBee prepares drafts. You review, edit, and send them yourself, or copy the text anywhere." },
@@ -23,36 +22,37 @@ export const FAQS: Array<{ q: string; a: string }> = [
   { q: "Will this guarantee interviews or a job?", a: "No. Nothing can. ReachBee helps you prepare relevant, truthful introductions. Outcomes depend on you and the market." },
 ];
 
-export function FAQ() {
+export function FAQ({ standalone = false }: { standalone?: boolean }) {
   return (
     <SectionShell
-      id="faq"
+      id={standalone ? undefined : "faq"}
+      index={standalone ? undefined : "10"}
       eyebrow="Questions"
+      align="split"
+      headingAs={standalone ? "h1" : "h2"}
+      headingClass={standalone ? "text-[clamp(2.5rem,5vw,4.25rem)] max-w-[24ch]" : undefined}
       heading="Questions people actually ask."
-      lede="Fourteen of them, answered the way we would answer them in person — including the ones where the answer is “no”."
+      lede="Fourteen of them, answered the way we would answer them in person, including the ones where the answer is no."
     >
-      <div className="grid gap-3 md:grid-cols-2" data-motion="stagger">
+      <div className="grid gap-x-14 md:grid-cols-2" data-motion="stagger">
         {FAQS.map((f) => (
           <details
             key={f.q}
             data-motion="stagger-item"
-            className={cn(
-              "group rounded-card border border-border-decorative bg-surface p-5",
-              "transition-[border-color,box-shadow] duration-[220ms] hover:border-ink/25 open:shadow-card",
-            )}
+            className="group border-t border-border-decorative py-5 md:[&:nth-child(-n+2)]:border-t-0 md:[&:nth-child(-n+2)]:pt-0"
           >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-ink marker:hidden">
+            <summary className="flex cursor-pointer list-none items-start justify-between gap-5 text-[0.9375rem] font-semibold leading-snug text-ink marker:hidden">
               {f.q}
               <span
                 aria-hidden
-                className="relative grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border-decorative text-honey-deep transition-transform duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-open:rotate-45 group-open:border-honey group-open:bg-honey-wash dark:text-honey"
+                className="relative mt-0.5 grid h-5 w-5 shrink-0 place-items-center text-text-secondary transition-transform duration-200 group-open:rotate-45 group-open:text-honey-deep dark:group-open:text-honey"
               >
-                <svg width="11" height="11" viewBox="0 0 11 11">
-                  <path d="M5.5 1v9M1 5.5h9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                  <path d="M6 1v10M1 6h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" />
                 </svg>
               </span>
             </summary>
-            <p className="mt-3 text-sm leading-relaxed text-text-secondary">{f.a}</p>
+            <p className="mt-3 max-w-[52ch] text-[0.875rem] leading-[1.7] text-text-secondary">{f.a}</p>
           </details>
         ))}
       </div>

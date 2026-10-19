@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Pricing } from "@/components/marketing/landing";
 import { getMarketingCatalog } from "@/server/services/catalog";
-import { Badge } from "@/components/ui/primitives";
 import { HELP_ARTICLES } from "@/content/help";
 import { JsonLd } from "@/components/seo/json-ld";
 import { breadcrumbSchema, softwareApplicationSchema } from "@/lib/seo-schema";
@@ -17,7 +16,7 @@ export default async function PricingPage() {
   const payments = HELP_ARTICLES.find((a) => a.slug === "refunds");
   const page = MARKETING_PAGES.find((p) => p.path === "/pricing");
   return (
-    <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 py-16">
+    <>
       <JsonLd data={breadcrumbSchema(breadcrumbTrail("Pricing", "/pricing"))} />
       {catalog && page ? (
         <JsonLd
@@ -28,36 +27,43 @@ export default async function PricingPage() {
           })}
         />
       ) : null}
-      <h1 className="text-4xl font-bold tracking-tight text-ink md:text-5xl">Pricing</h1>
-      <p className="prose-measure mt-3 text-lg text-text-secondary">
-        One-time packs, visible costs, no subscriptions. Every action shows its price before you confirm.
-      </p>
-      <div className="mt-10">
-        <Pricing catalog={catalog} />
-      </div>
-      <section className="mt-14 grid gap-6 md:grid-cols-2">
-        <div className="rounded-card border border-border-decorative bg-surface p-6">
-          <h2 className="text-xl font-bold text-ink">How credits behave</h2>
-          <ul className="mt-3 space-y-2 text-sm text-text-secondary">
-            <li>• Reveal a directory email once. Reopen/copy it free, forever.</li>
-            <li>• One validated AI draft = one AI credit. Failed generations release automatically.</li>
-            <li>• <strong>Deliverability Shield:</strong> Up to 10 AI drafts per day per account (resets daily at 00:00 UTC / 05:30 IST) to protect your personal sender reputation and avoid spam filters.</li>
-            <li>• Manual writing, templates, and export are always free.</li>
-            <li>• Gmail draft creation is not an AI charge.</li>
-          </ul>
-        </div>
-        <div className="rounded-card border border-border-decorative bg-surface p-6">
-          <h2 className="text-xl font-bold text-ink">Policies</h2>
-          <p className="mt-3 text-sm text-text-secondary">
-            {payments ? payments.body[1] : "Credits appear when your payment is confirmed."}
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link href="/legal/refunds"><Badge tone="info">Refunds</Badge></Link>
-            <Link href="/legal/terms"><Badge tone="info">Terms</Badge></Link>
-            <Link href="/help/refunds"><Badge tone="info">Payments help</Badge></Link>
+      <Pricing catalog={catalog} standalone />
+      <section aria-labelledby="payment-policies" className="border-b border-border-decorative bg-canvas">
+        <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 py-12 sm:px-6 lg:px-8">
+          <div className="grid gap-5 md:grid-cols-[10rem_minmax(0,1fr)] md:gap-12 lg:gap-20">
+            <h2 id="payment-policies" className="text-[0.8125rem] font-semibold text-ink">
+              Payments and refunds
+            </h2>
+            <div>
+              <p className="max-w-[62ch] text-[0.9375rem] leading-[1.75] text-text-secondary">
+                {payments
+                  ? payments.body[1]
+                  : "Credits appear when your payment is confirmed. If confirmation is delayed, do not pay again."}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-[0.8125rem] font-semibold text-ink">
+                <Link
+                  href="/legal/refunds"
+                  className="underline decoration-border-control/70 underline-offset-4 transition-colors hover:decoration-ink"
+                >
+                  Refund policy
+                </Link>
+                <Link
+                  href="/legal/terms"
+                  className="underline decoration-border-control/70 underline-offset-4 transition-colors hover:decoration-ink"
+                >
+                  Terms
+                </Link>
+                <Link
+                  href="/help/refunds"
+                  className="underline decoration-border-control/70 underline-offset-4 transition-colors hover:decoration-ink"
+                >
+                  Payments help
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

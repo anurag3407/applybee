@@ -1,32 +1,27 @@
 import Link from "next/link";
 import { cn } from "@/lib/cn";
-import { DotField } from "@/components/marketing/atmosphere";
-import { IconHex, type FeatureIconName } from "@/components/marketing/feature-icon";
+import { FeatureIcon, type FeatureIconName } from "@/components/marketing/feature-icon";
 
 /**
- * Shared landing furniture (§10). Every section is the same three-part
- * skeleton — eyebrow, heading, body — so the page reads as one document
- * instead of twelve unrelated blocks. Nothing here carries a claim; the copy
- * does that.
+ * Landing furniture. Sections share a ruled editorial header: index on the
+ * left, claim on the right. Honey is reserved for the one action or fact that
+ * needs to lead; everything else is ink on paper.
  */
 
-/** Small tracked label above a heading. */
 export function Eyebrow({ children, tone = "canvas" }: { children: React.ReactNode; tone?: "canvas" | "ink" }) {
   return (
     <p
       className={cn(
-        "inline-flex items-center gap-2 rounded-pill border px-3 py-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.14em]",
-        tone === "ink" ? "border-surface/25 text-honey" : "border-border-decorative bg-surface text-text-secondary",
+        "text-[0.75rem] font-semibold",
+        tone === "ink" ? "text-surface/65" : "text-text-secondary",
       )}
       data-motion="reveal"
     >
-      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-honey" />
       {children}
     </p>
   );
 }
 
-/** One card in a feature grid: hex icon, title, body, optional footnote. */
 export function FeatureCard({
   icon,
   title,
@@ -46,21 +41,22 @@ export function FeatureCard({
     <Tag
       data-motion="stagger-item"
       className={cn(
-        "group ab-sheen relative overflow-hidden rounded-card border border-border-decorative bg-surface p-6",
-        "shadow-card transition-[transform,border-color,box-shadow] duration-[220ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-        "hover:-translate-y-0.5 hover:border-ink/25 hover:shadow-float",
+        "group relative border-t border-border-decorative pt-5",
         className,
       )}
     >
-      <IconHex name={icon} />
-      <h3 className="mt-5 text-[1.0625rem] font-bold leading-snug tracking-[-0.01em] text-ink">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-text-secondary">{body}</p>
-      {meta ? <div className="mt-4 border-t border-border-decorative pt-3">{meta}</div> : null}
+      <FeatureIcon
+        name={icon}
+        size={20}
+        className="text-honey-deep transition-colors duration-200 group-hover:text-ink dark:text-honey"
+      />
+      <h3 className="mt-5 text-[0.9375rem] font-bold leading-snug tracking-[-0.01em] text-ink">{title}</h3>
+      <p className="mt-2 text-[0.875rem] leading-relaxed text-text-secondary">{body}</p>
+      {meta ? <div className="mt-4">{meta}</div> : null}
     </Tag>
   );
 }
 
-/** Panel used for illustrative previews. Never a screenshot of a real account. */
 export function PreviewPanel({
   children,
   className,
@@ -75,27 +71,26 @@ export function PreviewPanel({
   return (
     <div
       className={cn(
-        "ab-hairline relative overflow-hidden rounded-scene border border-border-decorative bg-surface p-4 shadow-card md:p-5",
+        "relative overflow-hidden rounded-card border border-border-decorative bg-surface shadow-card",
         className,
       )}
       data-motion="reveal"
     >
       {label || aside ? (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-decorative px-5 py-3.5">
           {label ? (
-            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-text-disabled">{label}</p>
+            <p className="text-[0.75rem] font-semibold text-text-secondary">{label}</p>
           ) : (
             <span />
           )}
           {aside}
         </div>
       ) : null}
-      {children}
+      <div className="p-5 md:p-6">{children}</div>
     </div>
   );
 }
 
-/** Inline callout row: icon, label, text. Used inside evidence-style panels. */
 export function NoteRow({
   icon,
   label,
@@ -107,20 +102,19 @@ export function NoteRow({
   label: string;
   children: React.ReactNode;
   iconClass?: string;
-  /** Adds this row to a scroll-stagger group as an item. */
   stagger?: boolean;
 }) {
   return (
     <li
       {...(stagger ? { "data-motion": "stagger-item" as const } : {})}
-      className="flex items-start gap-3 rounded-control border border-border-decorative/70 bg-canvas/60 p-3.5"
+      className="flex items-start gap-3 border-t border-border-decorative py-4 first:border-t-0 first:pt-0 last:pb-0"
     >
       <span className={cn("mt-0.5 shrink-0", iconClass)}>
-        <IconHex name={icon} size={34} iconSize={17} />
+        <FeatureIcon name={icon} size={17} />
       </span>
       <span className="min-w-0">
-        <span className="block text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-text-disabled">{label}</span>
-        <span className="mt-1 block text-sm leading-relaxed text-ink">{children}</span>
+        <span className="block text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-text-disabled">{label}</span>
+        <span className="mt-1 block text-[0.875rem] leading-relaxed text-ink">{children}</span>
       </span>
     </li>
   );
@@ -128,85 +122,124 @@ export function NoteRow({
 
 export function SectionShell({
   id,
+  index,
   eyebrow,
   heading,
   lede,
   children,
   tone = "canvas",
-  align = "start",
+  align = "split",
   headingClass,
-  /** Decorative lattice. Off for panels that already carry a texture. */
-  dots = true,
+  headingAs: Heading = "h2",
 }: {
   id?: string;
+  index?: string;
   eyebrow?: React.ReactNode;
   heading: React.ReactNode;
   lede?: React.ReactNode;
   children: React.ReactNode;
   tone?: "canvas" | "surface" | "ink";
-  align?: "start" | "center";
+  align?: "split" | "stack" | "center";
   headingClass?: string;
-  dots?: boolean;
+  headingAs?: "h1" | "h2";
 }) {
+  const ink = tone === "ink";
   return (
     <section
       id={id}
       className={cn(
-        "relative overflow-hidden",
+        "relative",
         tone === "surface" && "border-y border-border-decorative bg-surface",
-        tone === "ink" && "brand-panel on-ink bg-ink text-surface",
+        ink && "brand-panel on-ink overflow-hidden bg-ink text-surface",
       )}
     >
-      {dots ? (
-        <DotField
-          size={26}
-          variant="hex"
-          mask="bottom"
-          className={cn("opacity-70", tone === "ink" && "opacity-25")}
-        />
-      ) : null}
-
-      <div className="relative mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 py-20 md:py-28">
+      <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 py-20 sm:px-6 md:py-28 lg:px-8">
         {eyebrow || heading ? (
-          <header className={cn("max-w-3xl", align === "center" && "mx-auto text-center")}>
-            {eyebrow ? <Eyebrow tone={tone === "ink" ? "ink" : "canvas"}>{eyebrow}</Eyebrow> : null}
-            <h2
-              className={cn(
-                "mt-5 font-bold tracking-[-0.02em]",
-                tone === "ink" ? "text-surface" : "text-ink",
-                headingClass ?? "text-[clamp(1.9rem,3.6vw,3rem)]",
-                "leading-[1.1]",
-              )}
-              data-motion="reveal"
-            >
-              {heading}
-            </h2>
-            {lede ? (
-              <p
+          <header
+            className={cn(
+              align === "split" && "grid gap-6 md:grid-cols-[10rem_minmax(0,1fr)] md:gap-12 lg:gap-20",
+              align === "center" && "mx-auto max-w-3xl text-center",
+            )}
+          >
+            {align === "split" ? (
+              <div data-motion="reveal">
+                {index ? (
+                  <p className={cn("tabular text-[0.6875rem] font-semibold", ink ? "text-surface/45" : "text-text-disabled")}>
+                    {index}
+                  </p>
+                ) : null}
+                {eyebrow ? (
+                  <p
+                    className={cn(
+                      index ? "mt-3" : "",
+                      "max-w-[9rem] text-[0.8125rem] font-semibold leading-snug",
+                      ink ? "text-surface/80" : "text-ink",
+                    )}
+                  >
+                    {eyebrow}
+                  </p>
+                ) : null}
+              </div>
+            ) : align === "stack" && (index || eyebrow) ? (
+              <div className="mb-5 flex items-baseline gap-3" data-motion="reveal">
+                {index ? (
+                  <span className={cn("tabular text-[0.6875rem] font-semibold", ink ? "text-surface/45" : "text-text-disabled")}>
+                    {index}
+                  </span>
+                ) : null}
+                {eyebrow ? (
+                  <span className={cn("text-[0.8125rem] font-semibold", ink ? "text-surface/80" : "text-ink")}>
+                    {eyebrow}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className={cn(align === "center" && "flex flex-col items-center")}>
+              {align === "center" && (index || eyebrow) ? (
+                <div className="mb-5 flex items-baseline gap-3" data-motion="reveal">
+                  {index ? <span className="tabular text-[0.6875rem] font-semibold text-text-disabled">{index}</span> : null}
+                  {eyebrow ? <span className="text-[0.8125rem] font-semibold text-ink">{eyebrow}</span> : null}
+                </div>
+              ) : null}
+              <Heading
                 className={cn(
-                  "prose-measure mt-5 text-[1.0625rem] leading-relaxed",
-                  tone === "ink" ? "text-surface/75" : "text-text-secondary",
+                  "font-extrabold tracking-[-0.04em] leading-[1.04]",
+                  ink ? "text-surface" : "text-ink",
+                  align === "split" ? "max-w-[22ch]" : "max-w-[26ch]",
                   align === "center" && "mx-auto",
+                  headingClass ?? "text-[clamp(1.9rem,3.3vw,2.9rem)]",
                 )}
                 data-motion="reveal"
               >
-                {lede}
-              </p>
-            ) : null}
+                {heading}
+              </Heading>
+              {lede ? (
+                <p
+                  className={cn(
+                    "mt-5 max-w-[56ch] text-[1rem] leading-[1.7]",
+                    ink ? "text-surface/65" : "text-text-secondary",
+                    align === "center" && "mx-auto",
+                  )}
+                  data-motion="reveal"
+                >
+                  {lede}
+                </p>
+              ) : null}
+            </div>
           </header>
         ) : null}
-        <div className={cn((eyebrow || heading) && "mt-12 md:mt-14")}>{children}</div>
+        <div className={cn((eyebrow || heading) && "mt-12 md:mt-16")}>{children}</div>
       </div>
     </section>
   );
 }
 
-/** Ghost link that reads as an action without competing with the CTA. */
 export function QuietLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className="ab-slide group/ql inline-flex items-center gap-1.5 text-sm font-semibold text-ink underline decoration-border-control underline-offset-4 transition-colors hover:decoration-ink"
+      className="group inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-ink underline decoration-border-control/70 underline-offset-4 transition-colors hover:decoration-ink"
     >
       {children}
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden className="ab-slide-icon">

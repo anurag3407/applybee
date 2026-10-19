@@ -6,6 +6,7 @@ import { listNotifications } from "@/server/services/opportunities";
 import { NotificationActions } from "@/components/pipeline/notification-actions";
 import { Card, Badge } from "@/components/ui/primitives";
 import { EmptyState } from "@/components/ui/empty-state";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Notifications" };
@@ -35,12 +36,10 @@ export default async function NotificationsPage() {
   const rows = await listNotifications(user.id);
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Notifications</h2>
-        <p className="text-sm text-text-secondary">
-          In-app reminders and operational notices. Reminder emails, if you enable them, never contain draft content.
-        </p>
-      </div>
+      <AppPageHeader
+        title="Notifications"
+        lede="In-app reminders and operational notices. Reminder emails, if you enable them, never contain draft content."
+      />
       {rows.length === 0 ? (
         <EmptyState art="notifications" title="All clear" description="Reminders you set on opportunities and operational updates will appear here." />
       ) : (
@@ -48,7 +47,7 @@ export default async function NotificationsPage() {
           {rows.map((n) => {
             const href = notificationHref(n);
             return (
-            <Card key={n.id} className={n.readAt ? "opacity-80" : ""}>
+            <Card key={n.id} as="li" className={n.readAt ? "opacity-80" : ""}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-bold text-ink">

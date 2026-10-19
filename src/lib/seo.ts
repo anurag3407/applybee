@@ -57,14 +57,14 @@ export const MARKETING_PAGES: Array<{
     path: "/how-it-works",
     title: "How ReachBee Works: Facts to Gmail Draft",
     description:
-      "The four steps a ReachBee draft takes — confirmed facts, contact, grounding, Gmail — and what the tool never does for you.",
+      "The four steps a ReachBee draft takes, from confirmed facts and contact to grounding and Gmail, and what the tool never does for you.",
     priority: 0.9,
   },
   {
     path: "/features",
     title: "Features: Verified Contacts and Grounded Drafts",
     description:
-      "Directory search, resume intelligence, agentic drafting, manual writing, templates, pipeline and .eml export — what each does.",
+      "Directory search, resume intelligence, agentic drafting, manual writing, templates, pipeline and .eml export, and what each does.",
     priority: 0.9,
   },
   {
@@ -158,7 +158,7 @@ export function pageMeta(params: {
       siteName: site.name,
       title: displayTitle.absolute,
       description,
-      images: [{ url: image, width: 1200, height: 630, alt: `${site.name} — ${site.tagline}` }],
+      images: [{ url: image, width: 1200, height: 630, alt: `${site.name}: ${site.tagline}` }],
     },
     twitter: {
       card: "summary_large_image",

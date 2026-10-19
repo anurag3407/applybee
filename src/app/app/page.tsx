@@ -5,12 +5,10 @@ import { getPendingProfileReview, hasApprovedProfile } from "@/server/services/r
 import { listDrafts } from "@/server/services/drafts";
 import { upcomingReminders, STAGES } from "@/server/services/opportunities";
 import { getConnection } from "@/server/services/gmail";
-import { Card, Metric, StatusChip } from "@/components/ui/primitives";
+import { Metric, StatusChip } from "@/components/ui/primitives";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
-  IconAlert,
   IconArrowRight,
-  IconBee,
   IconCompose,
   IconDraft,
   IconInfo,
@@ -19,7 +17,7 @@ import {
   IconSend,
   IconToken,
 } from "@/components/svg/icons";
-import { OutreachPath, StageChain } from "@/components/svg/composite";
+import { StageChain } from "@/components/svg/composite";
 import { CountUp, Reveal, Stagger } from "@/components/motion";
 import { relativeTime, formatDateTime } from "@/lib/format";
 import { getConfig } from "@/server/config";
@@ -27,7 +25,7 @@ import { cn } from "@/lib/cn";
 
 /**
  * Dashboard (§12.2): setup states from real data, balances, next actions from
- * user-created reminders, recent drafts with real status. Only true metrics —
+ * user-created reminders, recent drafts with real status. Only true metrics:
  * no "emails sent" or "replies" (they cannot be inferred).
  */
 export default async function DashboardPage() {
@@ -95,144 +93,141 @@ export default async function DashboardPage() {
   }
 
   const recentDrafts = drafts.slice(0, 5);
+  const firstName = user.displayName?.split(" ")[0];
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <Reveal className="flex flex-wrap items-center justify-between gap-3">
+    <div className="mx-auto max-w-6xl">
+      <Reveal className="flex flex-wrap items-end justify-between gap-5 border-b border-border-decorative pb-7">
         <div>
-          <p className="text-sm text-text-secondary">
-            Welcome back{user.displayName ? `, ${user.displayName.split(" ")[0]}` : ""}.
+          <p className="text-[0.75rem] font-semibold text-text-secondary">Overview</p>
+          <h1 className="mt-2 text-[clamp(1.75rem,3.2vw,2.35rem)] font-extrabold leading-[1.06] tracking-[-0.035em] text-ink">
+            Welcome back{firstName ? `, ${firstName}` : ""}.
+          </h1>
+          <p className="mt-2.5 max-w-[54ch] text-[0.9375rem] leading-[1.65] text-text-secondary">
+            Your credits, drafts, and next actions. Nothing leaves without your review.
           </p>
-          <h2 className="text-[1.75rem] font-extrabold tracking-tight text-ink">Outreach Co-Pilot</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/app/contacts"
-            className="ab-press flex min-h-11 items-center gap-2 rounded-control bg-ink px-4 text-sm font-semibold text-surface shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink-soft"
+            className="ab-press flex min-h-10 items-center gap-2 rounded-control bg-ink px-4 text-[0.8125rem] font-semibold text-surface shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-ink-soft"
           >
-            <IconRadar size={16} />
-            Find Decision-Makers
+            <IconRadar size={15} />
+            Find a contact
           </Link>
           <Link
             href="/app/drafts/new"
-            className="ab-press flex min-h-11 items-center gap-2 rounded-control border border-border-control bg-surface px-3.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
+            className="ab-press flex min-h-10 items-center gap-2 rounded-control border border-border-control/70 px-3.5 text-[0.8125rem] font-semibold text-ink hover:bg-surface-subtle"
           >
-            <IconCompose size={15} />
-            Custom Draft
+            <IconCompose size={14} />
+            New draft
           </Link>
         </div>
       </Reveal>
 
-      <Reveal delay={60}>
-        <Card raised className="border-honey/45 bg-honey-wash/25 p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-2">
-              <h3 className="flex items-center gap-2 text-sm font-bold text-ink">
-                <IconBee size={16} className="text-honey-deep" />
-                Search, draft, and stage in one pass
-              </h3>
-              <OutreachPath
-                steps={[
-                  { label: "Find a verified contact", icon: <IconRadar size={13} className="text-text-secondary" /> },
-                  { label: "Grounded draft from your facts", icon: <IconDraft size={13} className="text-text-secondary" /> },
-                  { label: "Staged in Gmail drafts", icon: <IconSend size={13} className="text-text-secondary" /> },
-                ]}
-              />
-            </div>
-            <Link
-              href="/app/contacts"
-              className="ab-press inline-flex shrink-0 items-center gap-1.5 rounded-control bg-ink px-4 py-2.5 text-xs font-semibold text-surface hover:bg-ink-soft"
-            >
-              Start reaching out
-              <IconArrowRight size={13} className="ab-slide-icon" />
-            </Link>
-          </div>
-        </Card>
-      </Reveal>
-
-      <Stagger as="section" className="grid gap-4 md:grid-cols-3">
-        <Card interactive className="space-y-2">
+      <Stagger as="section" aria-label="Account status" className="grid border-b border-border-decorative md:grid-cols-3">
+        <div className="py-6 md:border-r md:border-border-decorative md:pr-8">
           <Metric
             label="Contact reveals"
             value={<CountUp value={balances.contact.available} />}
             meter={
               balances.contact.reserved > 0 ? (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
-                  <IconAlert size={13} />
+                <p className="text-[0.75rem] font-semibold text-warning">
                   {balances.contact.reserved} reserved for open reveals
-                </div>
+                </p>
               ) : (
-                <p className="text-xs text-text-disabled">Nothing reserved</p>
+                <p className="text-[0.75rem] text-text-disabled">Nothing reserved</p>
               )
             }
           />
-        </Card>
-        <Card interactive className="space-y-2">
+        </div>
+        <div className="border-t border-border-decorative py-6 md:border-r md:border-t-0 md:px-8">
           <Metric
             label="AI generations"
             value={<CountUp value={balances.ai.available} />}
             meter={
               balances.ai.reserved > 0 ? (
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-info">
+                <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-info">
                   <IconInfo size={13} />
                   {balances.ai.reserved} in progress
-                </div>
+                </p>
               ) : (
-                <p className="text-xs text-text-disabled">Nothing running</p>
+                <p className="text-[0.75rem] text-text-disabled">Nothing running</p>
               )
             }
           />
-        </Card>
-        <Card interactive className="space-y-2">
-          <p className="text-sm font-semibold text-text-secondary">Gmail</p>
-          <p className="mt-1 truncate text-[1.05rem] font-bold leading-snug text-ink">
+        </div>
+        <div className="border-t border-border-decorative py-6 md:border-t-0 md:pl-8">
+          <p className="text-[0.8125rem] font-semibold text-text-secondary">Gmail</p>
+          <p className="mt-2 truncate text-[1.35rem] font-extrabold leading-tight tracking-[-0.02em] text-ink">
             {gmail ? gmail.googleEmail : config.gmailMode === "mock" ? "Sandbox mode" : "Not connected"}
           </p>
-          <div className="pt-1">
+          <div className="mt-2.5">
             <StatusChip
               status={gmail ? "success" : "neutral"}
               label={gmail ? "Connected · drafts only" : "Optional"}
             />
           </div>
-        </Card>
+        </div>
       </Stagger>
 
-      <section className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <div className="space-y-4">
-          {nextSteps.map((s, i) => (
-            <Reveal key={s.title} delay={i * 50} className="group">
-              <Card interactive>
-                <div className="flex items-start gap-4">
-                  <StepGlyph tone={s.tone}>{s.icon}</StepGlyph>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-ink">{s.title}</h3>
-                    <p className="mt-1.5 text-sm text-text-secondary">{s.body}</p>
-                    <Link
-                      href={s.href}
-                      className="ab-press mt-3 inline-flex items-center gap-1.5 rounded-control border border-border-control px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
-                    >
-                      {s.cta}
-                      <IconArrowRight size={14} className="ab-slide-icon" />
-                    </Link>
+      <section className="grid gap-12 py-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:gap-16">
+        <div className="min-w-0 space-y-11">
+          <section aria-labelledby="needs-you">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 id="needs-you" className="text-[1.0625rem] font-bold tracking-[-0.015em] text-ink">
+                What needs you
+              </h2>
+              <p className="text-[0.75rem] font-semibold text-text-disabled">
+                {nextSteps.length} {nextSteps.length === 1 ? "task" : "tasks"}
+              </p>
+            </div>
+            <Stagger as="ul" className="mt-4 border-t border-border-decorative">
+              {nextSteps.map((step, i) => (
+                <li key={step.title}>
+                  <div className="flex items-start gap-4 border-b border-border-decorative py-5">
+                    <StepGlyph tone={step.tone}>{step.icon}</StepGlyph>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-baseline gap-x-2.5">
+                        <span className="tabular text-[0.6875rem] font-semibold text-text-disabled">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <h3 className="text-[0.9375rem] font-bold tracking-[-0.01em] text-ink">{step.title}</h3>
+                      </div>
+                      <p className="mt-1.5 max-w-[60ch] text-[0.875rem] leading-[1.65] text-text-secondary">{step.body}</p>
+                      <Link
+                        href={step.href}
+                        className="ab-press group mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-ink underline decoration-border-control/70 underline-offset-4 hover:decoration-ink"
+                      >
+                        {step.cta}
+                        <IconArrowRight size={13} className="ab-slide-icon" />
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            </Reveal>
-          ))}
+                </li>
+              ))}
+            </Stagger>
+          </section>
 
-          <Reveal delay={120}>
-            <Card>
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="font-bold text-ink">Recent drafts</h3>
-                <Link
-                  href="/app/drafts"
-                  className="ab-press flex items-center gap-1 rounded-control px-2 py-1 text-sm font-semibold text-ink hover:bg-surface-subtle"
-                >
-                  All drafts
-                  <IconArrowRight size={13} className="ab-slide-icon" />
-                </Link>
+          <section aria-labelledby="recent-drafts">
+            <div className="flex items-baseline justify-between gap-3">
+              <div>
+                <h2 id="recent-drafts" className="text-[1.0625rem] font-bold tracking-[-0.015em] text-ink">
+                  Recent drafts
+                </h2>
+                <p className="mt-1 text-[0.8125rem] text-text-secondary">Every draft waits for your review.</p>
               </div>
-              {recentDrafts.length === 0 ? (
+              <Link
+                href="/app/drafts"
+                className="ab-press flex items-center gap-1 rounded-control px-2 py-1 text-[0.8125rem] font-semibold text-ink hover:bg-surface-subtle"
+              >
+                All drafts
+                <IconArrowRight size={13} className="ab-slide-icon" />
+              </Link>
+            </div>
+
+            {recentDrafts.length === 0 ? (
+              <div className="mt-4">
                 <EmptyState
                   art="drafts"
                   title="No drafts yet"
@@ -240,105 +235,116 @@ export default async function DashboardPage() {
                   action={
                     <Link
                       href="/app/drafts/new"
-                      className="ab-press inline-flex min-h-11 items-center gap-2 rounded-control bg-ink px-4 text-sm font-semibold text-surface hover:bg-ink-soft"
+                      className="ab-press inline-flex min-h-10 items-center gap-2 rounded-control bg-ink px-4 text-[0.8125rem] font-semibold text-surface hover:bg-ink-soft"
                     >
-                      <IconCompose size={15} />
+                      <IconCompose size={14} />
                       Start writing
                     </Link>
                   }
                 />
-              ) : (
-                <ul className="divide-y divide-border-decorative">
-                  {recentDrafts.map((d) => (
-                    <li key={d.id}>
-                      <Link
-                        href={`/app/drafts/${d.id}`}
-                        className="group flex items-center justify-between gap-3 rounded-control px-2 py-3 transition-colors hover:bg-surface-subtle/70"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-ink">{d.subject || "(no subject)"}</p>
-                          <p className="text-xs text-text-secondary">
-                            {d.mode === "manual" ? "Manual" : d.mode === "agentic" ? "Agentic" : "Quick AI"} · updated{" "}
-                            {relativeTime(d.updatedAt)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <StatusChip
-                            status={d.status === "generating" ? "info" : "neutral"}
-                            busy={d.status === "generating"}
-                            label={d.status === "generating" ? "Generating" : "Draft"}
-                          />
-                          <IconArrowRight
-                            size={14}
-                            className="ab-slide-icon shrink-0 text-text-disabled group-hover:text-ink"
-                          />
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Card>
-          </Reveal>
+              </div>
+            ) : (
+              <ul className="mt-4 border-t border-border-decorative">
+                {recentDrafts.map((d) => (
+                  <li key={d.id}>
+                    <Link
+                      href={`/app/drafts/${d.id}`}
+                      className="group flex items-center justify-between gap-4 border-b border-border-decorative py-3.5 transition-colors hover:bg-surface-subtle/50"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-[0.875rem] font-semibold text-ink">{d.subject || "(no subject)"}</p>
+                        <p className="mt-0.5 text-[0.75rem] text-text-secondary">
+                          {d.mode === "manual" ? "Manual" : d.mode === "agentic" ? "Agentic" : "Quick AI"} · updated{" "}
+                          {relativeTime(d.updatedAt)}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2.5">
+                        <StatusChip
+                          status={d.status === "generating" ? "info" : "neutral"}
+                          busy={d.status === "generating"}
+                          label={d.status === "generating" ? "Generating" : "Draft"}
+                        />
+                        <IconArrowRight
+                          size={14}
+                          className="ab-slide-icon text-text-disabled group-hover:text-ink"
+                        />
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         </div>
 
-        <div className="space-y-4">
+        <aside className="min-w-0 space-y-10">
           <Reveal delay={60}>
-            <Card>
-              <h3 className="font-bold text-ink">Next actions</h3>
+            <section aria-labelledby="next-actions">
+              <h2 id="next-actions" className="text-[1.0625rem] font-bold tracking-[-0.015em] text-ink">
+                Next actions
+              </h2>
               {reminders.length === 0 ? (
-                <p className="mt-2 text-sm text-text-secondary">
+                <p className="mt-3 border-t border-border-decorative pt-4 text-[0.8125rem] leading-relaxed text-text-secondary">
                   Set a next-action date on a pipeline opportunity and it will show up here.
                 </p>
               ) : (
-                <ul className="mt-3 space-y-2.5">
+                <ul className="mt-4 border-t border-border-decorative">
                   {reminders.slice(0, 5).map((r) => (
                     <li key={r.id}>
                       <Link
                         href={`/app/pipeline/${r.id}`}
-                        className="ab-press group flex items-center justify-between gap-2 rounded-control border border-border-decorative bg-canvas px-3 py-2.5 hover:border-ink/25 hover:bg-surface-subtle"
+                        className="group flex items-center justify-between gap-3 border-b border-border-decorative py-3.5 hover:bg-surface-subtle/50"
                       >
                         <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold text-ink">
+                          <span className="block truncate text-[0.875rem] font-semibold text-ink">
                             {r.roleTitle} · {r.companyName}
                           </span>
-                          <span className="block text-xs text-text-secondary">{formatDateTime(r.nextActionAt)}</span>
+                          <span className="mt-0.5 block text-[0.75rem] text-text-secondary">
+                            {formatDateTime(r.nextActionAt)}
+                          </span>
                         </span>
-                        <IconArrowRight size={14} className="ab-slide-icon shrink-0 text-text-disabled group-hover:text-ink" />
+                        <IconArrowRight
+                          size={14}
+                          className="ab-slide-icon shrink-0 text-text-disabled group-hover:text-ink"
+                        />
                       </Link>
                     </li>
                   ))}
                 </ul>
               )}
-            </Card>
+            </section>
           </Reveal>
 
           <Reveal delay={110}>
-            <Card>
-              <h3 className="font-bold text-ink">Your pipeline</h3>
-              <p className="mt-1 text-xs text-text-secondary">
+            <section aria-labelledby="your-pipeline">
+              <h2 id="your-pipeline" className="text-[1.0625rem] font-bold tracking-[-0.015em] text-ink">
+                Your pipeline
+              </h2>
+              <p className="mt-1 text-[0.8125rem] leading-relaxed text-text-secondary">
                 Stages are updated by you. ReachBee doesn’t read your inbox.
               </p>
-              <StageChain items={STAGES} className="mt-4" />
+              <div className="mt-4 border-y border-border-decorative py-4">
+                <StageChain items={STAGES} />
+              </div>
               <Link
                 href="/app/pipeline"
-                className="ab-press mt-4 inline-flex items-center gap-1.5 rounded-control border border-border-control px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-subtle"
+                className="ab-press group mt-3 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-ink underline decoration-border-control/70 underline-offset-4 hover:decoration-ink"
               >
                 Open pipeline
-                <IconArrowRight size={14} className="ab-slide-icon" />
+                <IconArrowRight size={13} className="ab-slide-icon" />
               </Link>
-            </Card>
+            </section>
           </Reveal>
-        </div>
+        </aside>
       </section>
     </div>
   );
 }
 
 const glyphTones = {
-  warning: "border-warning/35 bg-warning-wash text-warning",
-  info: "border-info/35 bg-info-wash text-info",
-  honey: "border-honey/60 bg-honey-wash text-honey-deep",
+  warning: "border-warning/35 text-warning",
+  info: "border-info/35 text-info",
+  honey: "border-honey-deep/45 text-honey-deep dark:text-honey",
 };
 
 function StepGlyph({ tone, children }: { tone: keyof typeof glyphTones; children: React.ReactNode }) {
@@ -346,7 +352,7 @@ function StepGlyph({ tone, children }: { tone: keyof typeof glyphTones; children
     <span
       aria-hidden
       className={cn(
-        "flex h-9 w-9 shrink-0 items-center justify-center rounded-control border",
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-control border bg-surface",
         glyphTones[tone],
       )}
     >

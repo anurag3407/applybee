@@ -5,6 +5,7 @@ import { listSavedContacts } from "@/server/services/contacts";
 import { SaveContactButton, WriteToContactButton } from "@/components/directory/reveal";
 import { Badge, Card, Button } from "@/components/ui/primitives";
 import { EmptyState } from "@/components/ui/empty-state";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Saved contacts" };
@@ -14,10 +15,10 @@ export default async function SavedPage() {
   const rows = await listSavedContacts(user.id);
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Saved contacts</h2>
-        <p className="text-sm text-text-secondary">Saving is free. Unavailable records stay visible as tombstones out of respect for history.</p>
-      </div>
+      <AppPageHeader
+        title="Saved contacts"
+        lede="Saving is free. Unavailable records stay visible as tombstones out of respect for history."
+      />
       {rows.length === 0 ? (
         <EmptyState
           art="saved"
@@ -32,7 +33,7 @@ export default async function SavedPage() {
       ) : (
         <ul className="space-y-3">
           {rows.map((r) => (
-            <Card key={r.savedId}>
+            <Card key={r.savedId} as="li">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   {r.tombstone ? (

@@ -1,14 +1,47 @@
 import { z } from "zod";
-import { signOut, requireSessionUser } from "@/server/auth/session";
+import { signOut, requireSessionUser, requireApiUser } from "@/server/auth/session";
 import { privacyRequests, users } from "@/db/schema";
 import { db } from "@/db/client";
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { enqueueJob } from "@/server/services/jobs";
 import { admitWithPreCheck, LIMITS } from "@/server/adapters/ratelimit";
 import { ok, assertSameOrigin, apiError, route } from "@/server/http";
 import { audit } from "@/server/services/audit";
 
 const schema = z.object({ action: z.enum(["export", "delete-account"]), confirm: z.string().optional() });
+
+/**
+ * GET /privacy — the caller's most recent export, so the Privacy page can show
+ * a real download instead of promising one that has no route.
+ */
+export const GET = route(async () => {
+  const user = await requireApiUser();
+  const latest = (
+    await db
+      .select({
+        id: privacyRequests.id,
+        state: privacyRequests.state,
+        requestedAt: privacyRequests.requestedAt,
+        completedAt: privacyRequests.completedAt,
+        resultRef: privacyRequests.resultRef,
+      })
+      .from(privacyRequests)
+      .where(and(eq(privacyRequests.userId, user.id), eq(privacyRequests.kind, "export")))
+      .orderBy(desc(privacyRequests.requestedAt))
+      .limit(1)
+  )[0];
+  return ok({
+    export: latest
+      ? {
+          id: latest.id,
+          state: latest.state,
+          requestedAt: latest.requestedAt,
+          completedAt: latest.completedAt,
+          downloadUrl: latest.state === "ready" && latest.resultRef ? `/api/v1/privacy/export?id=${latest.id}` : null,
+        }
+      : null,
+  });
+});
 
 /**
  * POST /privacy — export (durable job) or account deletion lifecycle.

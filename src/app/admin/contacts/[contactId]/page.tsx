@@ -99,7 +99,7 @@ export default async function AdminContactPage({ params }: { params: Promise<{ c
         <ul className="mt-2 space-y-1.5 text-sm text-text-secondary">
           {(sources.rows as Array<{ provider: string; license_ref: string | null; collection_date: string | null; permitted_uses: string | null }>).map((s, i) => (
             <li key={i}>
-              {s.provider} · license {s.license_ref ?? "—"} · collected {formatDate(s.collection_date)} · {s.permitted_uses ?? "—"}
+              {s.provider} · license {s.license_ref ?? "Not recorded"} · collected {formatDate(s.collection_date)} · {s.permitted_uses ?? "Not recorded"}
             </li>
           ))}
           {sources.rows.length === 0 ? <li>No source records (seed fixture).</li> : null}

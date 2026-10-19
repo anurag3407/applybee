@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Input, Label, Select } from "@/components/ui/primitives";
+import { Button, Input, Label, Select, InlineError } from "@/components/ui/primitives";
 
 export function SettingsForm(props: {
   displayName: string;
@@ -15,6 +15,7 @@ export function SettingsForm(props: {
 }) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [notifyReminders, setNotifyReminders] = useState(props.notifyReminders);
   const [notifyProduct, setNotifyProduct] = useState(props.notifyProduct);
@@ -24,23 +25,33 @@ export function SettingsForm(props: {
     e.preventDefault();
     setBusy(true);
     setSaved(false);
+    setError(null);
     const form = new FormData(e.currentTarget);
-    await fetch("/api/v1/me/preferences", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        displayName: String(form.get("displayName") ?? ""),
-        timezone: String(form.get("timezone") ?? ""),
-        careerStage: String(form.get("careerStage") ?? "") || undefined,
-        defaultMode: String(form.get("defaultMode") ?? "manual"),
-        notifyReminders,
-        notifyProduct,
-        dailyDigestEnabled,
-      }),
-    });
-    setBusy(false);
-    setSaved(true);
-    router.refresh();
+    try {
+      const res = await fetch("/api/v1/me/preferences", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: String(form.get("displayName") ?? ""),
+          timezone: String(form.get("timezone") ?? ""),
+          careerStage: String(form.get("careerStage") ?? "") || undefined,
+          defaultMode: String(form.get("defaultMode") ?? "manual"),
+          notifyReminders,
+          notifyProduct,
+          dailyDigestEnabled,
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
+        throw new Error(data?.error?.message ?? "Your settings were not saved. Please try again.");
+      }
+      setSaved(true);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Your settings were not saved. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -96,11 +107,12 @@ export function SettingsForm(props: {
           Transactional emails (receipts, security notices) are not controlled by these switches.
         </p>
       </fieldset>
-      <div className="mt-5 flex items-center gap-3">
+      <div className="mt-5 flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={busy}>
           {busy ? "Saving…" : "Save settings"}
         </Button>
         {saved ? <p className="text-sm text-success" role="status">Saved.</p> : null}
+        {error ? <InlineError>{error}</InlineError> : null}
       </div>
     </form>
   );

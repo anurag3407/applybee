@@ -18,30 +18,38 @@ export function StageChain({
 }) {
   if (orientation === "horizontal") {
     return (
-      <ol className={cn("flex flex-wrap items-center gap-x-1 gap-y-2", className)}>
+      <ol className={cn("flex gap-3", className)}>
         {items.map((item, i) => {
           const done = currentIndex !== undefined && i < currentIndex;
           const at = currentIndex === i;
           return (
-            <li key={item.key} className="flex items-center gap-1">
+            <li
+              key={item.key}
+              className="min-w-0 flex-1"
+              aria-current={at ? "step" : undefined}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "tabular text-[0.625rem] font-semibold",
+                    at ? "text-honey-deep dark:text-honey" : done ? "text-ink" : "text-text-disabled",
+                  )}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span
+                  aria-hidden
+                  className={cn("h-px flex-1", at || done ? "bg-honey" : "bg-border-decorative")}
+                />
+              </div>
               <span
                 className={cn(
-                  "ab-press inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold",
-                  at
-                    ? "border-honey-deep bg-honey-wash text-ink"
-                    : done
-                      ? "border-border-decorative bg-surface-subtle text-ink"
-                      : "border-border-decorative text-text-secondary",
+                  "mt-2 block truncate text-[0.75rem] font-semibold",
+                  at ? "text-ink" : done ? "text-text-secondary" : "text-text-disabled",
                 )}
               >
-                <CombNode n={i + 1} active={at || done} />
                 {item.label}
               </span>
-              {i < items.length - 1 ? (
-                <svg width="14" height="8" viewBox="0 0 14 8" aria-hidden className="text-border-decorative">
-                  <path d="M0 4h11M11 4l-2.5-2.5M11 4l-2.5 2.5" stroke="currentColor" strokeWidth="1.3" fill="none" />
-                </svg>
-              ) : null}
             </li>
           );
         })}

@@ -3,6 +3,7 @@ import { requireActiveUser } from "@/server/auth/session";
 import { getLedger } from "@/server/services/credits";
 import { listDeliveries } from "@/server/services/gmail";
 import { Card, Badge } from "@/components/ui/primitives";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Activity" };
@@ -52,12 +53,10 @@ export default async function ActivityPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Activity</h2>
-        <p className="text-sm text-text-secondary">
-          Reveals, generations, deliveries, and purchases. Your inbox isn’t read, so sent/reply events never appear here.
-        </p>
-      </div>
+      <AppPageHeader
+        title="Activity"
+        lede="Reveals, generations, deliveries, and purchases. Your inbox isn’t read, so sent/reply events never appear here."
+      />
       {events.length === 0 ? (
         <Card>
           <p className="text-sm text-text-secondary">No activity yet. It starts when you reveal a contact or generate a draft.</p>

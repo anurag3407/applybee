@@ -4,6 +4,7 @@ import { requireActiveUser } from "@/server/auth/session";
 import { getBalancesForRequest } from "@/server/services/credits";
 import { getPublishedCatalog } from "@/server/services/billing";
 import { Card, Badge, Button } from "@/components/ui/primitives";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatINRPaise } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Billing" };
@@ -14,10 +15,10 @@ export default async function BillingPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Billing</h2>
-        <p className="text-sm text-text-secondary">Balances, reservations, and purchases, one place.</p>
-      </div>
+      <AppPageHeader
+        title="Billing"
+        lede="Balances, reservations, and purchases, one place."
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>

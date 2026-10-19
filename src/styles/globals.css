@@ -143,6 +143,16 @@ html {
   scroll-behavior: smooth;
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -161,7 +171,14 @@ body {
   color: var(--ab-ink);
   font-family: var(--font-sans);
   line-height: 1.55;
+  font-feature-settings: "ss01" 1, "cv11" 1;
+  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ab-border-control) transparent;
 }
 
 /* Accessible focus ring: 2px distinct ring with contrasting offset. */
@@ -178,8 +195,8 @@ body {
 }
 
 ::selection {
-  background: var(--ab-honey-wash);
-  color: var(--ab-ink);
+  background: var(--ab-honey);
+  color: var(--ab-on-honey);
 }
 
 .tabular {
@@ -199,7 +216,7 @@ body {
 
 .js-motion [data-motion="reveal"] {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(12px);
 }
 
 .js-motion [data-motion="reveal"].is-revealed {

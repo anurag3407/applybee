@@ -47,7 +47,7 @@ export default async function AdminPaymentsPage() {
               <tr key={p.id}>
                 <td className="tabular px-4 py-3 font-semibold text-ink">{p.provider_payment_id}</td>
                 <td className="px-4 py-3 text-text-secondary">{p.email}</td>
-                <td className="tabular px-4 py-3">{p.provider_amount ? formatINRPaise(p.provider_amount) : "—"}</td>
+                <td className="tabular px-4 py-3">{p.provider_amount ? formatINRPaise(p.provider_amount) : "Not recorded"}</td>
                 <td className="px-4 py-3">
                   <Badge tone={p.state === "fulfilled" ? "success" : p.state === "disputed" ? "danger" : "warning"}>{p.state}</Badge>
                 </td>

@@ -6,6 +6,7 @@ import { getContactForUser, getCompanyWithEvidence } from "@/server/services/con
 import { RevealAction, SaveContactButton, WriteToContactButton, ReportContactDialog } from "@/components/directory/reveal";
 import { getBalancesForRequest } from "@/server/services/credits";
 import { Badge, Card, StatusChip } from "@/components/ui/primitives";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Contact" };
@@ -27,30 +28,32 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
         <span className="font-semibold text-ink">{contact.name}</span>
       </nav>
 
+      <AppPageHeader
+        title={contact.name}
+        lede={
+          <>
+            {contact.title} ·{" "}
+            <Link href={`/app/companies/${contact.companyId}`} className="font-semibold text-ink underline hover:text-ink-soft">
+              {contact.companyName}
+            </Link>
+            <span className="block text-text-disabled">{contact.location ?? "Location not listed"}</span>
+          </>
+        }
+        actions={
+          <>
+            <StatusChip
+              status={contact.verificationStatus === "verified" ? "success" : contact.verificationStatus === "catch_all" ? "warning" : contact.verificationStatus === "invalid" ? "danger" : "neutral"}
+              label={contact.verificationStatus === "catch_all" ? "Catch-all domain" : contact.verificationStatus}
+            />
+            {contact.status === "stale" ? <StatusChip status="warning" label="Employment may have changed" /> : null}
+          </>
+        }
+      />
+
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-5">
           <Card>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="text-2xl font-bold text-ink">{contact.name}</h2>
-                <p className="text-text-secondary">
-                  {contact.title} ·{" "}
-                  <Link href={`/app/companies/${contact.companyId}`} className="font-semibold text-ink underline hover:text-ink-soft">
-                    {contact.companyName}
-                  </Link>
-                </p>
-                <p className="text-sm text-text-secondary">{contact.location ?? "—"}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <StatusChip
-                  status={contact.verificationStatus === "verified" ? "success" : contact.verificationStatus === "catch_all" ? "warning" : contact.verificationStatus === "invalid" ? "danger" : "neutral"}
-                  label={contact.verificationStatus === "catch_all" ? "Catch-all domain" : contact.verificationStatus}
-                />
-                {contact.status === "stale" ? <StatusChip status="warning" label="Employment may have changed" /> : null}
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-3">
+            <div className="space-y-3">
               <div>
                 <h3 className="text-xs font-bold text-text-disabled">Email</h3>
                 <div className="mt-1">

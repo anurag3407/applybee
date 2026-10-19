@@ -5,6 +5,7 @@ import { requireActiveUser } from "@/server/auth/session";
 import { getOrderForUser } from "@/server/services/billing";
 import { getBalancesForRequest } from "@/server/services/credits";
 import { Card, Badge } from "@/components/ui/primitives";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDateTime, formatINRPaise } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Payment" };
@@ -40,30 +41,31 @@ export default async function PaymentPage({ params }: { params: Promise<{ paymen
         <span className="tabular font-semibold text-ink">{order.receipt}</span>
       </nav>
 
-      <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-bold text-ink">{sku.name ?? sku.sku}</h2>
-            <p className="text-sm text-text-secondary">
-              {formatINRPaise(order.amountPaise)} · {order.currency} · {formatDateTime(order.createdAt)}
-            </p>
-          </div>
+      <AppPageHeader
+        title={sku.name ?? sku.sku ?? "Payment"}
+        lede={`${formatINRPaise(order.amountPaise)} · ${order.currency} · ${formatDateTime(order.createdAt)}`}
+        actions={
           <Badge
             tone={order.status === "fulfilled" ? "success" : order.status === "pending" ? "warning" : "neutral"}
           >
             {statusLabel}
           </Badge>
-        </div>
-        {order.status === "fulfilled" ? (
-          <div className="mt-4 rounded-control bg-success-wash px-3 py-2 text-sm text-success" role="status">
-            Credits granted exactly once: {sku.contact_credits ?? 0} contact reveals and {sku.ai_credits ?? 0} AI
-            generations. Current balances: {balances.contact.available} reveals · {balances.ai.available} AI.
-          </div>
-        ) : null}
-        {order.providerOrderId ? (
-          <p className="mt-3 text-xs text-text-disabled tabular">Provider order: {order.providerOrderId}</p>
-        ) : null}
-      </Card>
+        }
+      />
+
+      {order.status === "fulfilled" || order.providerOrderId ? (
+        <Card>
+          {order.status === "fulfilled" ? (
+            <div className="rounded-control bg-success-wash px-3 py-2 text-sm text-success" role="status">
+              Credits granted exactly once: {sku.contact_credits ?? 0} contact reveals and {sku.ai_credits ?? 0} AI
+              generations. Current balances: {balances.contact.available} reveals · {balances.ai.available} AI.
+            </div>
+          ) : null}
+          {order.providerOrderId ? (
+            <p className="mt-3 text-xs text-text-disabled tabular">Provider order: {order.providerOrderId}</p>
+          ) : null}
+        </Card>
+      ) : null}
 
       <p className="text-xs text-text-disabled">
         Delays can happen if a provider confirmation is slow. Fulfillment is idempotent: whether confirmation arrives

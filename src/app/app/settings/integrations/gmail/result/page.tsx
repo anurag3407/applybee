@@ -52,9 +52,9 @@ export default async function GmailResultPage({ searchParams }: { searchParams: 
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <h2 className="text-2xl font-bold tracking-tight text-ink">Gmail connection</h2>
+      <h2 className="text-xl font-bold tracking-[-0.02em] text-ink">Gmail connection</h2>
       <Card className={toneClasses}>
-        <h3 className="text-lg font-bold">{message.title}</h3>
+        <h2 className="text-lg font-bold">{message.title}</h2>
         <p className="mt-2 text-sm text-ink">{message.body}</p>
         {result === "connected" && mailbox ? (
           <p className="mt-2 text-sm font-semibold text-ink">Connected mailbox: {mailbox}</p>

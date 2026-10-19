@@ -7,6 +7,7 @@ import { UploadZone } from "@/components/resumes/upload-zone";
 import { DeleteResumeButton } from "@/components/resumes/delete-resume";
 import { Badge, Card, StatusChip } from "@/components/ui/primitives";
 import { EmptyState } from "@/components/ui/empty-state";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Resumes" };
@@ -29,13 +30,10 @@ export default async function ResumesPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-ink">Resumes</h2>
-        <p className="text-sm text-text-secondary">
-          Private storage, scan-gated, owner-only downloads. Files are never publicly linkable. PDF up to 5 MiB, 10 pages, 3
-          active files.
-        </p>
-      </div>
+      <AppPageHeader
+        title="Resumes"
+        lede="Private storage, scan-gated, owner-only downloads. Files are never publicly linkable. PDF up to 5 MiB, 10 pages, 3 active files."
+      />
 
       <UploadZone />
 
@@ -46,7 +44,7 @@ export default async function ResumesPage() {
           {resumes.map((r) => {
             const state = STATE_LABELS[r.state] ?? { label: r.state, tone: "neutral" as const };
             return (
-              <Card key={r.id}>
+              <Card key={r.id} as="li">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <Link href={`/app/resumes/${r.id}`} className="font-bold text-ink hover:underline">

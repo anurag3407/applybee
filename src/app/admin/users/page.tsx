@@ -45,8 +45,8 @@ export default async function AdminUsersPage() {
                 <td className="px-4 py-3">
                   <Badge tone={u.status === "active" ? "success" : u.status === "deleting" ? "warning" : "danger"}>{u.status}</Badge>
                 </td>
-                <td className="tabular px-4 py-3">{u.contact_credits ?? "—"}</td>
-                <td className="tabular px-4 py-3">{u.ai_credits ?? "—"}</td>
+                <td className="tabular px-4 py-3">{u.contact_credits ?? "Not set"}</td>
+                <td className="tabular px-4 py-3">{u.ai_credits ?? "Not set"}</td>
                 <td className="tabular px-4 py-3">{u.draft_count}</td>
                 <td className="tabular px-4 py-3 text-text-secondary">{formatDateTime(u.created_at)}</td>
               </tr>

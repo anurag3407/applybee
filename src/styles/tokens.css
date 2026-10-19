@@ -1,37 +1,47 @@
 /*
- * Apply Bee design tokens — raw values (plan §8.2).
- * Components consume semantic tokens mapped in globals.css, never literal colors.
+ * ReachBee design tokens.
+ * A warm paper and mineral ink system with one brass signal colour.
+ * Raw values only; components consume the semantic mapping in globals.css.
  */
 :root {
   color-scheme: light;
-  --ab-canvas: #f7f4ec;
-  --ab-surface: #fffdf7;
-  --ab-surface-subtle: #eeeade;
+  --ab-canvas: #f2f0e9;
+  --ab-surface: #fbfaf6;
+  --ab-surface-subtle: #e9e6dc;
   --ab-surface-raised: #ffffff;
-  --ab-ink: #18231e;
-  --ab-ink-soft: #2c3a33;
-  --ab-text-secondary: #586257;
-  --ab-text-disabled: #697067;
+  --ab-ink: #131a16;
+  --ab-ink-soft: #243029;
+  --ab-text-secondary: #545c55;
+  --ab-text-disabled: #5e665e;
   --ab-honey: #e8b544;
-  --ab-honey-deep: #8d6310;
-  --ab-honey-wash: #faedc9;
-  /* Lattice ink for the dotted fields. Hex alpha keeps the dots legible on
-   * both canvases without a second token per theme. */
-  --ab-dot-color: rgb(24 35 30 / 0.18);
-  /* Ink stays ink on honey in both themes: white on honey is ~2.9:1. */
-  --ab-on-honey: #18231e;
-  --ab-border-decorative: #dcdace;
-  --ab-border-control: #7b8478;
-  --ab-focus: #245ead;
-  --ab-focus-on-dark: #faedc9;
-  --ab-success: #245a3b;
-  --ab-success-wash: #e5f0e7;
-  --ab-warning: #704a08;
-  --ab-warning-wash: #fff0cf;
-  --ab-danger: #a52d2d;
-  --ab-danger-wash: #fce8e5;
-  --ab-info: #245ead;
-  --ab-info-wash: #e7eef9;
+  --ab-honey-deep: #7a5209;
+  --ab-honey-wash: #f6e8c3;
+  --ab-dot-color: rgb(19 26 22 / 0.14);
+  --ab-on-honey: #131a16;
+  --ab-border-decorative: #dcd8cc;
+  --ab-border-control: #8a9187;
+  --ab-focus: #1d5fa8;
+  --ab-focus-on-dark: #f6e8c3;
+  --ab-success: #1f5c3c;
+  --ab-success-wash: #e3efe6;
+  --ab-warning: #6b4a06;
+  --ab-warning-wash: #faedcf;
+  --ab-danger: #a02c2c;
+  --ab-danger-wash: #fbe8e5;
+  --ab-info: #1d5fa8;
+  --ab-info-wash: #e6eef9;
+
+  /* Gmail compose mock. A deliberately faithful external surface in the hero. */
+  --gm-bg: #f6f8fc;
+  --gm-surface: #ffffff;
+  --gm-text: #1f1f1f;
+  --gm-muted: #5f6368;
+  --gm-rule: #e0e3e7;
+  --gm-search: #eaf1fb;
+  --gm-selected: #d3e3fd;
+  --gm-blue: #0b57d0;
+  --gm-on-blue: #ffffff;
+  --gm-star: #f4b400;
 
   --ab-space-1: 0.25rem;
   --ab-space-2: 0.5rem;
@@ -44,32 +54,32 @@
   --ab-space-9: 6rem;
   --ab-space-10: 8rem;
 
-  --ab-radius-xs: 0.375rem;
-  --ab-radius-control: 0.625rem;
-  --ab-radius-card: 1rem;
-  --ab-radius-scene: 1.5rem;
+  --ab-radius-xs: 0.25rem;
+  --ab-radius-control: 0.5rem;
+  --ab-radius-card: 0.75rem;
+  --ab-radius-scene: 1rem;
   --ab-radius-pill: 999px;
 
-  --ab-shadow-card: 0 2px 10px rgb(24 35 30 / 0.04);
-  --ab-shadow-float: 0 16px 48px rgb(24 35 30 / 0.1);
-  --ab-shadow-dialog: 0 24px 80px rgb(24 35 30 / 0.18);
+  --ab-shadow-card: 0 1px 2px rgb(19 26 22 / 0.04);
+  --ab-shadow-float: 0 2px 4px rgb(19 26 22 / 0.04), 0 24px 56px -24px rgb(19 26 22 / 0.24);
+  --ab-shadow-dialog: 0 2px 8px rgb(19 26 22 / 0.06), 0 32px 88px -28px rgb(19 26 22 / 0.34);
 
-  --ab-duration-fast: 140ms;
-  --ab-duration-normal: 220ms;
-  --ab-duration-reveal: 500ms;
-  --ab-duration-press: 110ms;
-  --ab-duration-enter: 260ms;
-  --ab-duration-exit: 150ms;
+  --ab-duration-fast: 120ms;
+  --ab-duration-normal: 200ms;
+  --ab-duration-reveal: 480ms;
+  --ab-duration-press: 100ms;
+  --ab-duration-enter: 240ms;
+  --ab-duration-exit: 140ms;
   --ab-ease-ui: cubic-bezier(0.22, 1, 0.36, 1);
   --ab-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ab-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ab-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ab-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ab-ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
 
-  --ab-container-marketing: 77.5rem;
-  --ab-container-app: 90rem;
+  --ab-container-marketing: 78rem;
+  --ab-container-app: 92rem;
   --ab-sidebar-width: 15rem;
-  --ab-header-height: 4rem;
+  --ab-header-height: 3.75rem;
   --ab-control-height: 2.75rem;
   --ab-z-sticky: 20;
   --ab-z-dropdown: 40;
@@ -81,113 +91,115 @@
   --ink-2: var(--ab-text-secondary);
   --ink-3: var(--ab-text-disabled);
   --line: var(--ab-border-decorative);
-  --tooltip-bg: #18231e;
-  --tooltip-muted: #8f94a2;
+  --tooltip-bg: #131a16;
+  --tooltip-muted: #a6ada4;
 
-  /*
-   * Overlay veil. Never derived from --ab-ink: in the dark theme ink is white,
-   * so an ink-based scrim lightens the page behind a dialog instead of darkening it.
-   */
-  --ab-veil: rgba(24, 35, 30, 0.55);
+  --ab-veil: rgba(11, 15, 12, 0.62);
 }
 
 /*
- * Brand surface. Panels that carry the ink-coloured brand slab — the auth
- * aside, admin bar, "ink" marketing sections — must stay dark in both themes.
- *
- * Both token families are set: Tailwind resolves `--color-*` where it is
- * declared (:root), so overriding only `--ab-*` here would not reach
- * `bg-ink`/`text-surface`. Components that read `var(--ab-*)` directly
- * (CombField strokes) need the raw token too.
+ * Brand surface. Panels carrying the ink slab stay dark in both themes, so
+ * both token families are set here; Tailwind resolves --color-* at :root.
  */
 .brand-panel {
-  --ab-ink: #18231e;
-  --ab-ink-soft: #2c3a33;
-  --ab-surface: #fffdf7;
-  --ab-surface-subtle: #eeeade;
+  --ab-ink: #131a16;
+  --ab-ink-soft: #e8e4d8;
+  --ab-surface: #fbfaf6;
+  --ab-surface-subtle: #e9e6dc;
   --ab-surface-raised: #ffffff;
-  --ab-text-secondary: #586257;
-  --ab-text-disabled: #697067;
+  --ab-text-secondary: #c7c3b7;
+  --ab-text-disabled: #a8a59a;
   --ab-honey: #e8b544;
-  --ab-honey-deep: #8d6310;
-  --ab-honey-wash: #faedc9;
-  --ab-dot-color: rgb(255 253 247 / 0.18);
-  --ab-on-honey: #18231e;
-  --ab-border-decorative: rgba(255, 253, 247, 0.16);
-  --ab-border-control: rgba(255, 253, 247, 0.4);
+  --ab-honey-deep: #e8b544;
+  --ab-honey-wash: rgb(232 181 68 / 0.16);
+  --ab-dot-color: rgb(251 250 246 / 0.16);
+  --ab-on-honey: #131a16;
+  --ab-border-decorative: rgb(251 250 246 / 0.16);
+  --ab-border-control: rgb(251 250 246 / 0.4);
+  --ab-focus: #f6e8c3;
 
-  --color-ink: #18231e;
-  --color-surface: #fffdf7;
-  --color-surface-subtle: #eeeade;
+  --color-ink: #131a16;
+  --color-surface: #fbfaf6;
+  --color-surface-subtle: #e9e6dc;
   --color-surface-raised: #ffffff;
-  --color-text-secondary: #586257;
-  --color-text-disabled: #697067;
+  --color-text-secondary: #c7c3b7;
+  --color-text-disabled: #a8a59a;
   --color-honey: #e8b544;
-  --color-honey-deep: #8d6310;
-  --color-honey-wash: #faedc9;
-  --color-on-honey: #18231e;
-  --color-border-decorative: rgba(255, 253, 247, 0.16);
-  --color-border-control: rgba(255, 253, 247, 0.4);
-  --color-canvas: #18231e;
-  --color-foreground: #fffdf7;
+  --color-honey-deep: #e8b544;
+  --color-honey-wash: rgb(232 181 68 / 0.16);
+  --color-on-honey: #131a16;
+  --color-border-decorative: rgb(251 250 246 / 0.16);
+  --color-border-control: rgb(251 250 246 / 0.4);
+  --color-canvas: #131a16;
+  --color-foreground: #fbfaf6;
 }
 
 .dark .brand-panel {
-  --ab-ink: #0a1210;
-  --ab-surface: #f4f1e8;
-  --ab-honey-wash: rgba(232, 181, 68, 0.16);
-  --ab-border-decorative: rgba(255, 255, 255, 0.12);
-  --ab-border-control: rgba(255, 255, 255, 0.32);
+  --ab-ink: #0b0f0c;
+  --ab-surface: #f5f2e9;
+  --ab-text-secondary: #cfcbc0;
+  --ab-text-disabled: #b0ada2;
+  --ab-border-decorative: rgb(245 242 233 / 0.14);
+  --ab-border-control: rgb(245 242 233 / 0.34);
 
-  --color-ink: #0a1210;
-  --color-surface: #f4f1e8;
-  --color-honey-wash: rgba(232, 181, 68, 0.16);
-  --color-border-decorative: rgba(255, 255, 255, 0.12);
-  --color-border-control: rgba(255, 255, 255, 0.32);
-  --color-canvas: #0a1210;
+  --color-ink: #0b0f0c;
+  --color-surface: #f5f2e9;
+  --color-text-secondary: #cfcbc0;
+  --color-text-disabled: #b0ada2;
+  --color-border-decorative: rgb(245 242 233 / 0.14);
+  --color-border-control: rgb(245 242 233 / 0.34);
+  --color-canvas: #0b0f0c;
 }
 
-/*
- * Dark Theme — exact palette matching the sleek noir / obsidian aesthetic:
- * Deep noir canvas (#060709), dark obsidian container (#0c0d12),
- * card surface (#121318), crisp white text (#ffffff), and cool gray (#8f94a2).
- */
+/* Dark theme: green-black instrument panel, not an inversion of the paper. */
 .dark {
   color-scheme: dark;
-  --ab-canvas: #060709;
-  --ab-surface: #0c0d12;
-  --ab-surface-subtle: #121318;
-  --ab-surface-raised: #181a22;
-  --ab-ink: #ffffff;
-  --ab-ink-soft: #e2e4e9;
-  --ab-text-secondary: #8f94a2;
-  --ab-text-disabled: #767e8f;
-  --ab-honey: #f97316;
-  --ab-honey-deep: #ea580c;
-  --ab-honey-wash: rgba(249, 115, 22, 0.16);
-  --ab-dot-color: rgb(255 255 255 / 0.16);
-  --ab-on-honey: #18231e;
-  --ab-border-decorative: rgba(255, 255, 255, 0.08);
-  --ab-border-control: rgba(255, 255, 255, 0.18);
-  --ab-focus: #38bdf8;
-  --ab-focus-on-dark: #38bdf8;
-  --ab-success: #34d399;
-  --ab-success-wash: rgba(52, 211, 153, 0.15);
-  --ab-warning: #fbbf24;
-  --ab-warning-wash: rgba(251, 191, 36, 0.15);
-  --ab-danger: #f87171;
-  --ab-danger-wash: rgba(248, 113, 113, 0.15);
-  --ab-info: #38bdf8;
-  --ab-info-wash: rgba(56, 189, 248, 0.15);
+  --ab-canvas: #0b0f0c;
+  --ab-surface: #111512;
+  --ab-surface-subtle: #171c18;
+  --ab-surface-raised: #1c221d;
+  --ab-ink: #f5f2e9;
+  --ab-ink-soft: #e4e0d6;
+  --ab-text-secondary: #a6ada4;
+  --ab-text-disabled: #8b938a;
+  --ab-honey: #e8b544;
+  --ab-honey-deep: #ebc06a;
+  --ab-honey-wash: rgb(232 181 68 / 0.15);
+  --ab-dot-color: rgb(245 242 233 / 0.13);
+  --ab-on-honey: #131a16;
+  --ab-border-decorative: rgb(245 242 233 / 0.09);
+  --ab-border-control: rgb(245 242 233 / 0.24);
+  --ab-focus: #8fc1ff;
+  --ab-focus-on-dark: #f6e8c3;
+  --ab-success: #6ecf9a;
+  --ab-success-wash: rgb(110 207 154 / 0.14);
+  --ab-warning: #f0c368;
+  --ab-warning-wash: rgb(240 195 104 / 0.14);
+  --ab-danger: #f59a93;
+  --ab-danger-wash: rgb(245 154 147 / 0.14);
+  --ab-info: #8fc1ff;
+  --ab-info-wash: rgb(143 193 255 / 0.14);
 
-  --ab-shadow-card: 0 4px 24px rgba(0, 0, 0, 0.85);
-  --ab-shadow-float: 0 20px 60px rgba(0, 0, 0, 0.95);
-  --ab-shadow-dialog: 0 30px 90px rgba(0, 0, 0, 0.98);
+  /* Gmail compose mock: the dark counterpart, not a tint of the paper theme. */
+  --gm-bg: #1b1b1b;
+  --gm-surface: #2b2b2b;
+  --gm-text: #e3e3e3;
+  --gm-muted: #9aa0a6;
+  --gm-rule: #444746;
+  --gm-search: #333537;
+  --gm-selected: #004a77;
+  --gm-blue: #8ab4f8;
+  --gm-on-blue: #062e6f;
+  --gm-star: #fdd663;
+
+  --ab-shadow-card: 0 1px 0 rgb(255 255 255 / 0.03);
+  --ab-shadow-float: 0 2px 4px rgb(0 0 0 / 0.4), 0 32px 72px -28px rgb(0 0 0 / 0.8);
+  --ab-shadow-dialog: 0 2px 8px rgb(0 0 0 / 0.5), 0 40px 100px -30px rgb(0 0 0 / 0.9);
 
   --ink: var(--ab-ink);
   --ink-2: var(--ab-text-secondary);
   --ink-3: var(--ab-text-disabled);
   --line: var(--ab-border-decorative);
-  --tooltip-bg: #0c0d12;
-  --tooltip-muted: #71796f;
+  --tooltip-bg: #171c18;
+  --tooltip-muted: #a6ada4;
 }

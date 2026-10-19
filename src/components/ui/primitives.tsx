@@ -22,12 +22,13 @@ type ButtonVariant = "primary" | "secondary" | "accent" | "ghost" | "danger" | "
 
 const buttonStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-ink text-surface border border-ink hover:bg-ink-soft hover:border-ink-soft shadow-[inset_0_1px_0_rgb(255_255_255/0.12)]",
-  secondary: "bg-surface text-ink border border-border-control hover:bg-surface-subtle hover:border-ink/35",
-  accent: "bg-honey text-on-honey border border-honey-deep hover:bg-honey-deep hover:text-on-honey",
+    "bg-ink text-surface border border-ink hover:bg-ink-soft hover:border-ink-soft shadow-[inset_0_1px_0_rgb(255_255_255/0.14)]",
+  secondary: "bg-transparent text-ink border border-border-control/70 hover:bg-surface-subtle hover:border-border-control",
+  accent:
+    "bg-honey text-on-honey border border-honey-deep/25 hover:bg-honey/90 shadow-[inset_0_1px_0_rgb(255_255_255/0.28)]",
   ghost: "bg-transparent text-ink border border-transparent hover:bg-surface-subtle",
-  danger: "bg-transparent text-danger border border-danger/45 hover:bg-danger hover:text-surface",
-  quiet: "bg-surface-subtle text-ink border border-transparent hover:bg-honey-wash",
+  danger: "bg-transparent text-danger border border-danger/35 hover:bg-danger-wash",
+  quiet: "bg-surface-subtle text-ink border border-transparent hover:bg-surface-subtle/70",
 };
 
 export const Button = forwardRef<
@@ -50,9 +51,9 @@ export const Button = forwardRef<
         "ab-press group inline-flex items-center justify-center gap-2 rounded-control font-semibold",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
         "disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none",
-        size === "lg" && "min-h-12 px-6 text-[1rem]",
-        size === "md" && "min-h-11 px-5 text-[0.95rem]",
-        size === "sm" && "min-h-9 px-3.5 text-sm",
+        size === "lg" && "min-h-12 px-6 text-[0.9375rem]",
+        size === "md" && "min-h-10 px-4 text-[0.875rem]",
+        size === "sm" && "min-h-9 px-3 text-[0.8125rem]",
         buttonStyles[variant],
         className,
       )}
@@ -91,9 +92,9 @@ export const IconButton = forwardRef<
 });
 
 const fieldBase =
-  "w-full rounded-control border border-border-control bg-surface text-ink " +
-  "transition-[border-color,box-shadow] duration-[140ms] " +
-  "hover:border-ink/40 " +
+  "w-full rounded-control border border-border-control/55 bg-surface text-ink " +
+  "transition-[border-color,box-shadow,background-color] duration-[120ms] " +
+  "hover:border-border-control " +
   "focus-visible:border-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus " +
   "disabled:opacity-50";
 
@@ -129,7 +130,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 
 export function Label({ className, children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
-    <label className={cn("mb-1.5 block text-sm font-semibold text-ink", className)} {...props}>
+    <label className={cn("mb-1.5 block text-[0.8125rem] font-semibold text-ink", className)} {...props}>
       {children}
     </label>
   );
@@ -164,8 +165,8 @@ export function Card({
     <Tag
       className={cn(
         "rounded-card border border-border-decorative bg-surface",
-        raised ? "ab-hairline shadow-float" : "shadow-none",
-        interactive && "ab-lift hover:border-ink/25 hover:bg-surface-raised",
+        raised ? "shadow-float" : "shadow-none",
+        interactive && "transition-[border-color,background-color] duration-150 hover:border-border-control/60 hover:bg-surface-raised",
         "p-5",
         className,
       )}
@@ -186,17 +187,17 @@ export function Badge({
   children: ReactNode;
 }) {
   const tones: Record<string, string> = {
-    neutral: "bg-surface-subtle text-text-secondary border-border-decorative",
-    success: "bg-success-wash text-success border-success/25",
-    warning: "bg-warning-wash text-warning border-warning/25",
-    danger: "bg-danger-wash text-danger border-danger/25",
-    info: "bg-info-wash text-info border-info/25",
-    honey: "bg-honey-wash text-ink border-honey/60",
+    neutral: "bg-surface-subtle text-text-secondary border-border-decorative/70",
+    success: "bg-success-wash text-success border-success/20",
+    warning: "bg-warning-wash text-warning border-warning/20",
+    danger: "bg-danger-wash text-danger border-danger/20",
+    info: "bg-info-wash text-info border-info/20",
+    honey: "bg-honey-wash text-honey-deep border-honey-deep/20",
   };
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold leading-none",
+        "inline-flex items-center gap-1.5 rounded-xs border px-2 py-1 text-[0.6875rem] font-semibold leading-none tracking-[0.01em]",
         tones[tone],
         className,
       )}
@@ -286,8 +287,8 @@ export function SectionHeading({
   return (
     <div className={cn("flex flex-wrap items-end justify-between gap-3", className)}>
       <div className="space-y-1">
-        <h3 className="text-[1.05rem] font-bold tracking-tight text-ink">{title}</h3>
-        {hint ? <p className="text-sm text-text-secondary">{hint}</p> : null}
+        <h3 className="text-base font-bold tracking-[-0.01em] text-ink">{title}</h3>
+        {hint ? <p className="text-[0.8125rem] text-text-secondary">{hint}</p> : null}
       </div>
       {action}
     </div>
@@ -310,8 +311,8 @@ export function Metric({
 }) {
   return (
     <div className={cn("space-y-2", className)}>
-      <p className="text-sm font-semibold text-text-secondary">{label}</p>
-      <p className="text-[1.75rem] font-extrabold leading-none tracking-tight text-ink">{value}</p>
+      <p className="text-[0.8125rem] font-medium text-text-secondary">{label}</p>
+      <p className="tabular text-[2rem] font-extrabold leading-none tracking-[-0.03em] text-ink">{value}</p>
       {meter}
       {meta ? <p className="text-xs text-text-disabled">{meta}</p> : null}
     </div>

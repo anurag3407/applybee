@@ -31,7 +31,7 @@ export default async function AdminCompaniesPage() {
               <tr key={c.id}>
                 <td className="px-4 py-3 font-semibold text-ink">{c.name}</td>
                 <td className="tabular px-4 py-3 text-text-secondary">{c.domain}</td>
-                <td className="px-4 py-3 text-text-secondary">{c.stage ?? "—"}</td>
+                <td className="px-4 py-3 text-text-secondary">{c.stage ?? "Not set"}</td>
                 <td className="tabular px-4 py-3">{c.evidence_count}</td>
                 <td className="tabular px-4 py-3">{c.contact_count}</td>
               </tr>

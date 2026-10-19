@@ -4,9 +4,10 @@ import { requireActiveUser } from "@/server/auth/session";
 import { searchDirectory } from "@/server/services/contacts";
 import { getBalancesForRequest } from "@/server/services/credits";
 import { SearchToolbar } from "@/components/directory/search-toolbar";
-import { RevealAction, SaveContactButton, WriteToContactButton, OneClickOutreachButton } from "@/components/directory/reveal";
+import { RevealAction, SaveContactButton, WriteToContactButton, OneClickOutreachButton, CopyEmailButton } from "@/components/directory/reveal";
 import { Badge, Button, Card } from "@/components/ui/primitives";
 import { EmptyState } from "@/components/ui/empty-state";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { CountUp, Reveal } from "@/components/motion";
 import { relativeTime } from "@/lib/format";
 import { Suspense } from "react";
@@ -70,19 +71,17 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-ink">Find contacts</h2>
-          <p className="text-sm text-text-secondary">
-            Browsing is free. Reveal shows a full address once for one credit. Reopening it is always free.
+      <AppPageHeader
+        title="Find contacts"
+        lede="Browsing is free. Reveal shows a full address once for one credit. Reopening it is always free."
+        actions={
+          <p className="tabular text-sm font-semibold text-ink">
+            <CountUp value={balances.contact.available} /> contact{" "}
+            {balances.contact.available === 1 ? "reveal" : "reveals"}
+            {balances.contact.reserved > 0 ? ` · ${balances.contact.reserved} in use` : ""}
           </p>
-        </div>
-        <p className="tabular text-sm font-semibold text-ink">
-          <CountUp value={balances.contact.available} /> contact{" "}
-          {balances.contact.available === 1 ? "reveal" : "reveals"}
-          {balances.contact.reserved > 0 ? ` · ${balances.contact.reserved} in use` : ""}
-        </p>
-      </div>
+        }
+      />
 
       <Suspense fallback={<div className="ab-shimmer h-11 rounded-control" />}>
         <SearchToolbar />
@@ -129,14 +128,15 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                       </div>
                     </td>
                     <td className="px-4 py-3 text-text-secondary">{c.companyName}</td>
-                    <td className="px-4 py-3 text-text-secondary">{c.location ?? "—"}</td>
+                    <td className="px-4 py-3 text-text-secondary">{c.location ?? "Not listed"}</td>
                     <td className="px-4 py-3">
                       {c.unlocked ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Badge tone="success">Unlocked</Badge>
                           <code className="rounded-control border border-border-decorative bg-canvas px-2 py-0.5 text-xs font-semibold text-ink">
-                            {c.maskedEmail}
+                            {c.email ?? "Address unavailable"}
                           </code>
+                          {c.email ? <CopyEmailButton email={c.email} /> : null}
                         </div>
                       ) : (
                         <RevealAction contactId={c.id} unlocked={false} initialEmail={null} initialBalance={balances.contact} maskedEmail={c.maskedEmail} contactName={c.name} />
@@ -177,7 +177,7 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                       <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-surface-raised border border-border-control/50 text-text-secondary">
                         {DEPT_LABELS[c.department] ?? c.department}
                       </span>
-                      <span className="text-xs text-text-secondary">{c.location ?? "—"}</span>
+                      <span className="text-xs text-text-secondary">{c.location ?? "Not listed"}</span>
                     </div>
                   </div>
                   <Badge tone={VERIFICATION_TONES[c.verificationStatus] ?? "neutral"}>{c.verificationStatus}</Badge>
@@ -186,6 +186,10 @@ export default async function ContactsPage({ searchParams }: { searchParams: Sea
                   {c.unlocked ? (
                     <>
                       <Badge tone="success">Unlocked</Badge>
+                      <code className="w-full truncate rounded-control border border-border-decorative bg-canvas px-2 py-1 text-xs font-semibold text-ink">
+                        {c.email ?? "Address unavailable"}
+                      </code>
+                      {c.email ? <CopyEmailButton email={c.email} /> : null}
                       <WriteToContactButton contactId={c.id} />
                     </>
                   ) : (

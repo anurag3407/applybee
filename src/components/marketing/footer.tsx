@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/marketing/brand";
-import { CombField } from "@/components/svg/meter";
 
 /**
  * Three real destinations per column, every one verified against a route that
@@ -39,15 +38,18 @@ const columns = [
 
 export function MarketingFooter() {
   return (
-    <footer className="relative overflow-hidden border-t border-border-decorative bg-surface">
-      <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 pb-24 pt-16">
-        <div className="grid gap-12 md:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)]">
+    <footer className="border-t border-border-decorative bg-surface">
+      <div className="mx-auto max-w-[calc(var(--ab-container-marketing))] px-5 pb-16 pt-16 sm:px-6 lg:px-8">
+        <div className="grid gap-12 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.7fr)]">
           <div>
             <Wordmark />
-            <p className="prose-measure mt-4 max-w-[34ch] text-sm leading-relaxed text-text-secondary">
+            <p className="mt-5 max-w-[32ch] text-[0.9375rem] leading-relaxed text-text-secondary">
               Grounded outreach drafts, staged in your own Gmail. Nothing leaves without you pressing send.
             </p>
-            <Link href="/sign-up" className="mt-5 inline-block text-sm font-bold text-ink underline underline-offset-4">
+            <Link
+              href="/sign-up"
+              className="mt-6 inline-flex items-center gap-2 text-[0.8125rem] font-semibold text-ink underline decoration-border-control underline-offset-4 hover:decoration-ink"
+            >
               Create a free account
             </Link>
           </div>
@@ -55,13 +57,13 @@ export function MarketingFooter() {
           <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-3">
             {columns.map((col) => (
               <div key={col.label}>
-                <h2 className="text-sm font-bold text-ink">{col.label}</h2>
-                <ul className="mt-3 space-y-2.5">
+                <h2 className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-text-disabled">{col.label}</h2>
+                <ul className="mt-4 space-y-2.5">
                   {col.links.map((l) => (
                     <li key={l.href}>
                       <Link
                         href={l.href}
-                        className="ab-slide inline-flex text-sm text-text-secondary hover:text-ink"
+                        className="text-[0.875rem] text-text-secondary transition-colors hover:text-ink"
                       >
                         {l.text}
                       </Link>
@@ -73,22 +75,17 @@ export function MarketingFooter() {
           </nav>
         </div>
 
-        <p className="mt-14 max-w-[70ch] border-t border-border-decorative pt-6 text-xs leading-relaxed text-text-disabled">
-          Reveal credits unlock a directory email once. A verification label means a provider checked that the mailbox
-          existed at check time. It does not mean a role is open, that anyone expects your message, or that delivery is
-          guaranteed. ReachBee does not send email on your behalf.
-        </p>
-        <p className="mt-4 text-xs text-text-disabled">
-          © {new Date().getFullYear()} ReachBee AI. Prices shown in INR where a catalog is available.
-        </p>
+        <div className="mt-16 flex flex-col gap-5 border-t border-border-decorative pt-6 md:flex-row md:items-start md:justify-between">
+          <p className="max-w-[70ch] text-[0.6875rem] leading-relaxed text-text-disabled">
+            Reveal credits unlock a directory email once. A verification label means a provider checked that the mailbox
+            existed at check time. It does not mean a role is open, that anyone expects your message, or that delivery is
+            guaranteed. ReachBee does not send email on your behalf.
+          </p>
+          <p className="shrink-0 text-[0.6875rem] text-text-disabled">
+            © {new Date().getFullYear()} ReachBee AI
+          </p>
+        </div>
       </div>
-
-      <CombField
-        rows={2}
-        cols={22}
-        opacity={0.22}
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full [mask-image:linear-gradient(to_top,#000,transparent)]"
-      />
     </footer>
   );
 }

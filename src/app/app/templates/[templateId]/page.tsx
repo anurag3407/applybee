@@ -4,6 +4,7 @@ import { db } from "@/db/client";
 import { templates } from "@/db/schema";
 import { requireActiveUser } from "@/server/auth/session";
 import { TemplateEditor } from "@/components/composer/template-editor";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import type { TemplateVariable } from "@/lib/validation";
 
 export default async function TemplateEditorPage({ params }: { params: Promise<{ templateId: string }> }) {
@@ -25,8 +26,8 @@ export default async function TemplateEditorPage({ params }: { params: Promise<{
     portfolio_url: "https://portfolio.example.com",
   };
   return (
-    <div className="mx-auto max-w-3xl">
-      <h2 className="mb-4 text-2xl font-bold tracking-tight text-ink">Edit template</h2>
+    <div className="mx-auto max-w-3xl space-y-5">
+      <AppPageHeader title="Edit template" lede="Reusable subject and body for the drafts you write." />
       <TemplateEditor
         templateId={t.id}
         initial={{ name: t.name, subject: t.subject, body: t.body, version: t.version }}

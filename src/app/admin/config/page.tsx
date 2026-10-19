@@ -57,7 +57,7 @@ export default async function AdminConfigPage() {
         <ul className="mt-2 space-y-1.5 text-sm text-text-secondary">
           {(evidence.rows as Array<{ company: string; fact_type: string; source_name: string | null; checked_at: string | null; approval: string; confidence: string }>).map((e, i) => (
             <li key={i} className="flex flex-wrap justify-between gap-2">
-              <span>{e.company} · {e.fact_type} · {e.source_name ?? "—"}</span>
+              <span>{e.company} · {e.fact_type} · {e.source_name ?? "Not recorded"}</span>
               <span className="flex items-center gap-2">
                 <Badge tone={e.approval === "approved" ? "success" : "warning"}>{e.approval}</Badge>
                 <span className="tabular text-xs text-text-disabled">checked {formatDate(e.checked_at)}</span>

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requireActiveUser } from "@/server/auth/session";
 import { getResume } from "@/server/services/resumes";
 import { Badge, Card, StatusChip } from "@/components/ui/primitives";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatDate } from "@/lib/format";
 import { DeleteResumeButton } from "@/components/resumes/delete-resume";
 import { DownloadResumeButton } from "@/components/resumes/download-resume";
@@ -22,25 +23,22 @@ export default async function ResumeDetailPage({ params }: { params: Promise<{ r
         <Link href="/app/resumes" className="underline">Resumes</Link> <span aria-hidden>/</span>{" "}
         <span className="font-semibold text-ink">{resume.displayFilename}</span>
       </nav>
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-bold text-ink">{resume.displayFilename}</h2>
-            <p className="text-sm text-text-secondary">
-              {(resume.byteSize / 1024 / 1024).toFixed(2)} MiB
-              {resume.pageCount ? ` · ${resume.pageCount} pages` : ""} · uploaded {formatDate(resume.createdAt)}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+      <AppPageHeader
+        title={resume.displayFilename}
+        lede={`${(resume.byteSize / 1024 / 1024).toFixed(2)} MiB${resume.pageCount ? ` · ${resume.pageCount} pages` : ""} · uploaded ${formatDate(resume.createdAt)}`}
+        actions={
+          <>
             <DownloadResumeButton
               resumeId={resume.id}
               filename={resume.displayFilename}
               disabled={resume.scanStatus !== "clean"}
             />
             <DeleteResumeButton resumeId={resume.id} />
-          </div>
-        </div>
-        <dl className="mt-4 space-y-2 text-sm">
+          </>
+        }
+      />
+      <Card>
+        <dl className="space-y-2 text-sm">
           <div className="flex items-center gap-2">
             <dt className="text-text-secondary">State:</dt>
             <dd><Badge>{resume.state}</Badge></dd>

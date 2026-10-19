@@ -4,6 +4,7 @@ import { requireActiveUser } from "@/server/auth/session";
 import { listDrafts } from "@/server/services/drafts";
 import { Card, Button, StatusChip } from "@/components/ui/primitives";
 import { EmptyState } from "@/components/ui/empty-state";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { IconArrowRight, IconCompose } from "@/components/svg/icons";
 import { Reveal, Stagger } from "@/components/motion";
 import { relativeTime } from "@/lib/format";
@@ -18,15 +19,15 @@ export default async function DraftsPage() {
   const active = rows.filter((r) => r.status !== "deleted");
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <Reveal className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-ink">Drafts</h2>
-          <p className="text-sm text-text-secondary">Every draft, its mode, and where it stands.</p>
-        </div>
-        <Link href="/app/drafts/new">
-          <Button icon={<IconCompose size={15} />}>New draft</Button>
-        </Link>
-      </Reveal>
+      <AppPageHeader
+        title="Drafts"
+        lede="Every draft, its mode, and where it stands."
+        actions={
+          <Link href="/app/drafts/new">
+            <Button icon={<IconCompose size={15} />}>New draft</Button>
+          </Link>
+        }
+      />
       {active.length === 0 ? (
         <Reveal delay={60}>
           <EmptyState

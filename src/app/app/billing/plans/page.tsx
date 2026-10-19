@@ -5,6 +5,7 @@ import { CheckoutLauncher } from "@/components/billing/checkout-launcher";
 import { Card, Badge } from "@/components/ui/primitives";
 import { IconCheck, IconToken } from "@/components/svg/icons";
 import { Reveal, Stagger } from "@/components/motion";
+import { AppPageHeader } from "@/components/shell/app-page-header";
 import { formatINRPaise } from "@/lib/format";
 import { getConfig } from "@/server/config";
 
@@ -19,10 +20,10 @@ export default async function PlansPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <Reveal>
-        <h2 className="text-2xl font-extrabold tracking-tight text-ink">Plans & packs</h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          One-time purchases. Balances add. Packs never overwrite unused credits. No auto-renewal.
-        </p>
+        <AppPageHeader
+          title="Plans & packs"
+          lede="One-time purchases. Balances add. Packs never overwrite unused credits. No auto-renewal."
+        />
       </Reveal>
 
       {!catalog ? (
